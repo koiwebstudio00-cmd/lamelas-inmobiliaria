@@ -2,6 +2,7 @@ import Link from "next/link";
 import { signIn } from "@/actions/auth";
 import { AuthForm } from "@/components/auth/auth-form";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 
 export const metadata = { title: "Iniciar sesión — Lamelas & Chaumont" };
@@ -17,10 +18,9 @@ export default function LoginPage() {
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Contraseña</Label>
-          <Input
+          <PasswordInput
             id="password"
             name="password"
-            type="password"
             autoComplete="current-password"
             required
           />

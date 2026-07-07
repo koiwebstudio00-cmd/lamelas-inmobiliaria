@@ -2,6 +2,7 @@ import Link from "next/link";
 import { signUp } from "@/actions/auth";
 import { AuthForm } from "@/components/auth/auth-form";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 
 export const metadata = { title: "Crear cuenta — Lamelas & Chaumont" };
@@ -21,10 +22,9 @@ export default function RegistroPage() {
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Contraseña (mín. 8 caracteres)</Label>
-          <Input
+          <PasswordInput
             id="password"
             name="password"
-            type="password"
             autoComplete="new-password"
             minLength={8}
             required
