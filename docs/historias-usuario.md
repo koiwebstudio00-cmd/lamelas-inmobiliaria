@@ -53,7 +53,7 @@ Criterios:
 **Como** vendedor **quiero** subir fotos y elegir una portada **para** que la propiedad sea identificable.
 
 Criterios:
-- Hasta 20 fotos por propiedad; JPG/PNG/WebP; se redimensionan antes de subir (máx. 1920px).
+- Hasta 20 fotos por propiedad; JPG/PNG/WebP; se redimensionan antes de subir (máx. 1600px).
 - Puedo marcar una (y solo una) como portada; la primera subida es portada por defecto.
 - Puedo eliminar fotos y reordenarlas (P1 el reordenado).
 - Subida desde la galería o cámara del celular.

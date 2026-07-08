@@ -46,7 +46,7 @@ npx supabase gen types typescript --local > src/lib/types.ts  # tipos
 ## Reglas de producto
 
 - Campos obligatorios de propiedad: título, operación, tipo, precio. Todo lo demás (incl. `notas`) es opcional.
-- Fotos: bucket `property-images`, path `{property_id}/{uuid}.webp`, resize client-side a máx. 1920px, límite 20, una sola portada.
+- Fotos: bucket `property-images`, path `{property_id}/{uuid}.webp`, resize client-side a máx. 1600px, límite 20, una sola portada.
 - Mobile-first: verificar formularios y subida de fotos en viewport móvil.
 - No implementar features post-MVP (sitio público, roles, aprobación, leads) sin pedido explícito.
 

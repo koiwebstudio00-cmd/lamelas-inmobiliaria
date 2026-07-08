@@ -34,7 +34,7 @@ Fases secuenciales y cortas. Cada fase termina con un checkpoint verificable (`n
 
 ## Fase 3 — Fotos (~1.5 h) · HU-6
 
-- Subida directa a Storage (`{property_id}/{uuid}.webp`), resize client-side máx. 1920px.
+- Subida directa a Storage (`{property_id}/{uuid}.webp`), resize client-side máx. 1600px.
 - Hasta 20 fotos, portada única (primera por defecto), eliminar foto.
 
 **Checkpoint:** subir fotos desde el celular, cambiar portada, eliminar.

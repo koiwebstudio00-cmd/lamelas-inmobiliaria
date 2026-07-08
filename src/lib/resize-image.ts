@@ -1,6 +1,9 @@
-// Redimensiona una imagen client-side a máx. 1920px y la convierte a WebP
+// Redimensiona una imagen client-side a máx. 1600px y la convierte a WebP
 // (regla 5 de CLAUDE.md / design-system). Devuelve un Blob listo para subir.
-const MAX_SIZE = 1920;
+// 1600px / calidad 0.75 ≈ ~150 KB por foto: con el límite de 20 fotos y
+// ~250 propiedades el total queda dentro del 1 GB del plan free de Supabase.
+const MAX_SIZE = 1600;
+const WEBP_QUALITY = 0.75;
 
 export async function resizeImage(file: File): Promise<Blob> {
   const bitmap = await createImageBitmap(file);
@@ -20,7 +23,7 @@ export async function resizeImage(file: File): Promise<Blob> {
     canvas.toBlob(
       (blob) => (blob ? resolve(blob) : reject(new Error("No se pudo convertir la imagen"))),
       "image/webp",
-      0.85
+      WEBP_QUALITY
     );
   });
 }

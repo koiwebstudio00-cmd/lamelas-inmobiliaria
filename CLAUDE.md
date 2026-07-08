@@ -36,7 +36,7 @@ npx supabase gen types typescript --local > src/lib/types.ts  # regenerar tipos
 2. **Mutations solo por Server Actions** en `src/actions/`, siempre validadas con Zod (schemas en `src/lib/validations/`). Lecturas en Server Components con el cliente server.
 3. **Nunca usar `SUPABASE_SERVICE_ROLE_KEY` en código de app.** Si parece necesario, la policy RLS está mal diseñada.
 4. **Cambios de BD = migración nueva** en `supabase/migrations/` (nunca editar migraciones aplicadas) + regenerar tipos TS.
-5. **Fotos:** bucket `property-images`, path `{property_id}/{uuid}.webp`, redimensionar client-side (máx. 1920px) antes de subir, máx. 20 por propiedad, una sola portada.
+5. **Fotos:** bucket `property-images`, path `{property_id}/{uuid}.webp`, redimensionar client-side (máx. 1600px) antes de subir, máx. 20 por propiedad, una sola portada.
 6. **Campos obligatorios de propiedad:** solo título, operación, tipo, precio. El resto (incl. `notas`) es opcional — no agregar `required` de más.
 7. **Mobile-first.** Los vendedores cargan desde el celular; probar todo formulario en viewport móvil.
 8. **No agregar alcance post-MVP** (sitio público, roles, aprobaciones, leads) sin pedido explícito. Ver sección "Excluido" del PRD.

@@ -63,7 +63,7 @@ src/
 - **RLS como capa de autorización.** Toda regla de acceso vive en Postgres (ver `schema.sql`). El código de UI nunca es la única barrera.
 - **Server Actions para mutations** (crear/editar/eliminar propiedad), validadas con Zod server-side. Lecturas vía Server Components con el cliente server de Supabase.
 - **Auth con Supabase Auth** (email + contraseña, recuperación incluida). Sesión gestionada con `@supabase/ssr` y cookies; `middleware.ts` refresca tokens y protege el grupo `(app)`.
-- **Fotos en Supabase Storage**, bucket `property-images`, path `{property_id}/{uuid}.webp`. Subida directa desde el browser (signed upload) para no pasar archivos por Vercel. Redimensionado client-side antes de subir (canvas, máx. 1920px) — evita funciones server de procesamiento en el MVP. Render con `next/image`.
+- **Fotos en Supabase Storage**, bucket `property-images`, path `{property_id}/{uuid}.webp`. Subida directa desde el browser (signed upload) para no pasar archivos por Vercel. Redimensionado client-side antes de subir (canvas, máx. 1600px) — evita funciones server de procesamiento en el MVP. Render con `next/image`.
 - **Multi-tenant desde el día 1 en datos, no en código:** `tenant_id` en todas las tablas con un tenant fijo (Lamelas). Sin selector de tenant, sin subdominios.
 - **Un solo rol.** No hay tabla de roles ni checks de permisos más allá de "dueño edita lo suyo".
 
