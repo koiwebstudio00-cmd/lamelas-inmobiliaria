@@ -76,8 +76,9 @@ export async function recoverPassword(
   }
 
   const supabase = await createClient();
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/actualizar-clave`,
+    redirectTo: `${siteUrl}/auth/callback?next=/actualizar-clave`,
   });
 
   // Mismo mensaje exista o no el email (HU-3)
