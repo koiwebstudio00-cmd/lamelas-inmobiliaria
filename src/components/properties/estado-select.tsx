@@ -27,8 +27,9 @@ export function EstadoSelect({
         onChange={() => {
           const formData = new FormData(formRef.current!);
           startTransition(async () => {
-            await updateEstado(propertyId, formData);
-            toast.success("Estado actualizado");
+            const error = await updateEstado(propertyId, formData);
+            if (error) toast.error(error);
+            else toast.success("Estado actualizado");
           });
         }}
       >

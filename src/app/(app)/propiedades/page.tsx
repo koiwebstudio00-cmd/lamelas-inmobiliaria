@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { SearchX } from "lucide-react";
 import { PropertyCard } from "@/components/properties/property-card";
 import { PropertyFilters } from "@/components/properties/filters";
-import { Pagination } from "@/components/properties/pagination";
+import { Pagination } from "@/components/pagination";
 import { getProperties, getVendedores } from "@/lib/queries";
 
 export const metadata = { title: "Propiedades — Lamelas & Chaumont" };
@@ -29,9 +29,11 @@ export default async function PropiedadesPage({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div>
         <h1 className="text-2xl font-semibold">Propiedades</h1>
-        <span className="text-sm text-muted-foreground">{count} en total</span>
+        <p className="text-sm text-muted-foreground">
+          Todo lo que tiene cargado la inmobiliaria. {count} en total.
+        </p>
       </div>
 
       <Suspense>

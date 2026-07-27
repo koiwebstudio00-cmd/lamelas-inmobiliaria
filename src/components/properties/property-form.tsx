@@ -120,7 +120,8 @@ export function PropertyForm({
             );
           }
         }
-        toast.success("Propiedad creada");
+        if (result.warning) toast.warning(result.warning);
+        else toast.success("Propiedad creada");
         router.push(`/propiedades/${result.id}`);
       }
     });

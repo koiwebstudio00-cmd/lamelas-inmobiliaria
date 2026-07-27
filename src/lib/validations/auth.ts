@@ -1,10 +1,6 @@
 import { z } from "zod";
 
-export const registerSchema = z.object({
-  nombre: z.string().trim().min(2, "Ingresá tu nombre completo"),
-  email: z.string().trim().email("Email inválido"),
-  password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
-});
+const password = z.string().min(8, "La contraseña debe tener al menos 8 caracteres");
 
 export const loginSchema = z.object({
   email: z.string().trim().email("Email inválido"),
@@ -15,6 +11,15 @@ export const recoverSchema = z.object({
   email: z.string().trim().email("Email inválido"),
 });
 
+/** Cambio de contraseña desde el link de recuperación: el token viaja en el form. */
 export const updatePasswordSchema = z.object({
-  password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
+  token: z.string().trim().min(1, "El link no es válido. Pedí uno nuevo."),
+  password,
+});
+
+/** Alta desde una invitación: la persona elige su nombre y su contraseña. */
+export const acceptInvitationSchema = z.object({
+  token: z.string().trim().min(1, "El link no es válido. Pedí que te inviten de nuevo."),
+  nombre: z.string().trim().min(2, "Ingresá tu nombre completo"),
+  password,
 });

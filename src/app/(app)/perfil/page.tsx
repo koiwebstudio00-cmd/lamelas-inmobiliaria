@@ -4,22 +4,12 @@ import { AuthForm } from "@/components/auth/auth-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createClient } from "@/lib/supabase/server";
-import type { UserProfile } from "@/lib/types";
+import { getPerfil } from "@/lib/queries";
 
 export const metadata = { title: "Mi perfil — Lamelas & Chaumont" };
 
 export default async function PerfilPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { data: profile } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", user!.id)
-    .single<UserProfile>();
+  const profile = await getPerfil();
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
@@ -69,10 +59,20 @@ export default async function PerfilPage() {
             pendingLabel="Cambiando..."
           >
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña nueva (mín. 8 caracteres)</Label>
+              <Label htmlFor="current_password">Contraseña actual</Label>
               <Input
-                id="password"
-                name="password"
+                id="current_password"
+                name="current_password"
+                type="password"
+                autoComplete="current-password"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new_password">Contraseña nueva (mín. 8 caracteres)</Label>
+              <Input
+                id="new_password"
+                name="new_password"
                 type="password"
                 autoComplete="new-password"
                 minLength={8}
@@ -83,7 +83,7 @@ export default async function PerfilPage() {
         </CardContent>
       </Card>
 
-      {profile && (
+      {profile?.created_at && (
         <p className="text-xs text-muted-foreground">
           Cuenta creada el {new Date(profile.created_at).toLocaleDateString("es-AR")}.
         </p>

@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import { ImagePlus, Star, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/client";
-import { resizeImage } from "@/lib/resize-image";
+import { deletePhoto, setPortada } from "@/actions/images";
+import { uploadPropertyPhotos } from "@/lib/upload-photos";
 import { imageUrl } from "@/lib/utils";
 import type { PropertyImage } from "@/lib/types";
 
@@ -24,7 +24,6 @@ export function PhotoManager({
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const supabase = createClient();
 
   async function handleUpload(files: FileList | null) {
     if (!files || files.length === 0) return;
@@ -40,83 +39,39 @@ export function PhotoManager({
     }
 
     setUploading(true);
-    let hasPortada = images.some((i) => i.es_portada);
-    let orden = images.length > 0 ? Math.max(...images.map((i) => i.orden)) + 1 : 0;
-    let ok = 0;
-
-    for (const file of selected) {
-      try {
-        const blob = await resizeImage(file);
-        const path = `${propertyId}/${crypto.randomUUID()}.webp`;
-
-        const { error: upErr } = await supabase.storage
-          .from("property-images")
-          .upload(path, blob, { contentType: "image/webp" });
-        if (upErr) throw upErr;
-
-        const { error: dbErr } = await supabase.from("property_images").insert({
-          property_id: propertyId,
-          url: path,
-          es_portada: !hasPortada,
-          orden: orden++,
-        });
-        if (dbErr) throw dbErr;
-
-        hasPortada = true;
-        ok++;
-      } catch {
-        toast.error(`No se pudo subir ${file.name}.`);
-      }
-    }
-
+    const { ok, failed, error } = await uploadPropertyPhotos(propertyId, selected);
     setUploading(false);
     if (inputRef.current) inputRef.current.value = "";
+
+    if (error) toast.error(error);
+    else if (failed > 0) {
+      toast.warning(`${failed} foto(s) no se pudieron subir. Probá de nuevo.`);
+    }
     if (ok > 0) {
       toast.success(ok === 1 ? "Foto subida" : `${ok} fotos subidas`);
       router.refresh();
     }
   }
 
-  async function setPortada(image: PropertyImage) {
+  async function handlePortada(image: PropertyImage) {
     setBusyId(image.id);
-    const current = images.find((i) => i.es_portada);
-    if (current) {
-      await supabase
-        .from("property_images")
-        .update({ es_portada: false })
-        .eq("id", current.id);
-    }
-    const { error } = await supabase
-      .from("property_images")
-      .update({ es_portada: true })
-      .eq("id", image.id);
+    const error = await setPortada(image.id, propertyId);
     setBusyId(null);
     if (error) {
-      toast.error("No se pudo cambiar la portada.");
+      toast.error(error);
     } else {
       toast.success("Portada actualizada");
       router.refresh();
     }
   }
 
-  async function deletePhoto(image: PropertyImage) {
+  // La API borra el objeto en R2 y promueve la siguiente portada si hacía falta.
+  async function handleDelete(image: PropertyImage) {
     setBusyId(image.id);
-    await supabase.storage.from("property-images").remove([image.url]);
-    const { error } = await supabase.from("property_images").delete().eq("id", image.id);
-
-    // Si era la portada, promover la siguiente
-    if (!error && image.es_portada) {
-      const next = images.find((i) => i.id !== image.id);
-      if (next) {
-        await supabase
-          .from("property_images")
-          .update({ es_portada: true })
-          .eq("id", next.id);
-      }
-    }
+    const error = await deletePhoto(image.id, propertyId);
     setBusyId(null);
     if (error) {
-      toast.error("No se pudo eliminar la foto.");
+      toast.error(error);
     } else {
       toast.success("Foto eliminada");
       router.refresh();
@@ -180,7 +135,7 @@ export function PhotoManager({
                     variant="secondary"
                     className="size-8"
                     disabled={busyId === img.id}
-                    onClick={() => setPortada(img)}
+                    onClick={() => handlePortada(img)}
                     aria-label="Marcar como portada"
                   >
                     <Star />
@@ -192,7 +147,7 @@ export function PhotoManager({
                   variant="destructive"
                   className="size-8"
                   disabled={busyId === img.id}
-                  onClick={() => deletePhoto(img)}
+                  onClick={() => handleDelete(img)}
                   aria-label="Eliminar foto"
                 >
                   <Trash2 />

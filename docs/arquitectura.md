@@ -1,5 +1,7 @@
 # Arquitectura — MVP Registro de Propiedades
 
+> **Histórico (MVP sobre Supabase).** El proyecto migró a un backend propio: la arquitectura vigente está en `../back-lamelas/docs/` y en el `CLAUDE.md` de este repo. Este documento se conserva como registro de las decisiones originales.
+
 **Referencia:** `prd-mvp-registro-propiedades.md` · **Fecha:** Julio 2026
 
 ## 1. Visión general

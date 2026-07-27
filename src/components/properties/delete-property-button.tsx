@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -44,7 +45,13 @@ export function DeletePropertyButton({
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
           <AlertDialogAction
             disabled={pending}
-            onClick={() => startTransition(() => deleteProperty(propertyId))}
+            onClick={() =>
+              startTransition(async () => {
+                // Si sale bien la action redirige y esto no llega a ejecutarse.
+                const error = await deleteProperty(propertyId);
+                if (error) toast.error(error);
+              })
+            }
           >
             {pending ? "Eliminando..." : "Eliminar"}
           </AlertDialogAction>

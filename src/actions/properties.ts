@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { ApiError, apiFetch } from "@/lib/api";
 import { propertySchema, estadoSchema } from "@/lib/validations/property";
 
 export type PropertyFormState = {
@@ -10,6 +10,8 @@ export type PropertyFormState = {
   error?: string;
   // id de la propiedad creada: el cliente sube las fotos y navega al detalle
   id?: string;
+  // La propiedad se creó pero quedó incompleta (ver createProperty).
+  warning?: string;
 };
 
 function fieldErrors(issues: { path: PropertyKey[]; message: string }[]) {
@@ -21,6 +23,42 @@ function fieldErrors(issues: { path: PropertyKey[]; message: string }[]) {
   return errors;
 }
 
+/** Traduce un error de la API al estado del formulario. */
+function apiState(error: unknown, fallback: string): PropertyFormState {
+  if (error instanceof ApiError) {
+    const errors = error.fieldErrors();
+    if (Object.keys(errors).length > 0) return { errors };
+    return { error: error.message };
+  }
+  return { error: fallback };
+}
+
+type PropertyInput = ReturnType<typeof propertySchema.parse>;
+
+/** Los campos que la API acepta en el alta rápida; el resto va por PATCH. */
+const CAMPOS_ALTA = ["titulo", "operacion", "tipo", "precio", "moneda"] as const;
+
+function altaRapida(data: PropertyInput) {
+  const { titulo, operacion, tipo, precio, moneda } = data;
+  return { titulo, operacion, tipo, precio, moneda };
+}
+
+/** El resto de los campos, sin los vacíos (una propiedad nueva ya viene en null). */
+function detalle(data: PropertyInput) {
+  const alta: readonly string[] = CAMPOS_ALTA;
+  return Object.fromEntries(
+    Object.entries(data).filter(
+      ([key, value]) => !alta.includes(key) && value !== null && value !== undefined
+    )
+  );
+}
+
+/**
+ * El alta es en dos pasos porque la API separa el alta rápida (solo lo
+ * obligatorio) del resto de los datos. Si el segundo paso falla igual
+ * devolvemos el id: la propiedad ya existe y reintentar crearía un duplicado.
+ * El formulario avisa que quedó incompleta y se completa desde la edición.
+ */
 export async function createProperty(
   _prev: PropertyFormState,
   formData: FormData
@@ -30,25 +68,32 @@ export async function createProperty(
     return { errors: fieldErrors(parsed.error.issues) };
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { error: "Sesión expirada. Volvé a iniciar sesión." };
+  let id: string;
+  try {
+    const { property } = await apiFetch<{ property: { id: string } }>("/v1/properties", {
+      method: "POST",
+      body: altaRapida(parsed.data),
+    });
+    id = property.id;
+  } catch (error) {
+    return apiState(error, "No pudimos guardar la propiedad. Intentá de nuevo.");
+  }
 
-  const { data, error } = await supabase
-    .from("properties")
-    .insert({ ...parsed.data, user_id: user.id })
-    .select("id")
-    .single();
-
-  if (error || !data) {
-    return { error: "No pudimos guardar la propiedad. Intentá de nuevo." };
+  const resto = detalle(parsed.data);
+  let warning: string | undefined;
+  if (Object.keys(resto).length > 0) {
+    try {
+      await apiFetch(`/v1/properties/${id}`, { method: "PATCH", body: resto });
+    } catch {
+      warning =
+        "Guardamos la propiedad, pero algunos datos no se pudieron cargar. Revisalos y guardá de nuevo.";
+    }
   }
 
   revalidatePath("/propiedades");
+  revalidatePath("/mis-propiedades");
   // Sin redirect: el formulario sube las fotos seleccionadas y navega al detalle
-  return { id: data.id };
+  return { id, warning };
 }
 
 export async function updateProperty(
@@ -61,57 +106,56 @@ export async function updateProperty(
     return { errors: fieldErrors(parsed.error.issues) };
   }
 
-  const supabase = await createClient();
-  // RLS garantiza que solo el dueño puede actualizar (HU-5)
-  const { error } = await supabase.from("properties").update(parsed.data).eq("id", id);
-
-  if (error) {
-    return { error: "No pudimos actualizar la propiedad." };
+  try {
+    // Mandamos todo, nulls incluidos: así se vacía un campo que se borró.
+    await apiFetch(`/v1/properties/${id}`, { method: "PATCH", body: parsed.data });
+  } catch (error) {
+    return apiState(error, "No pudimos actualizar la propiedad.");
   }
 
   revalidatePath("/propiedades");
+  revalidatePath("/mis-propiedades");
   revalidatePath(`/propiedades/${id}`);
   redirect(`/propiedades/${id}`);
 }
 
-export async function updateEstado(id: string, formData: FormData) {
+/** Devuelve el mensaje de error, o null si salió bien. */
+export async function updateEstado(
+  id: string,
+  formData: FormData
+): Promise<string | null> {
   const parsed = estadoSchema.safeParse({ estado: formData.get("estado") });
-  if (!parsed.success) return;
+  if (!parsed.success) return "Ese estado no es válido.";
 
-  const supabase = await createClient();
-  await supabase.from("properties").update({ estado: parsed.data.estado }).eq("id", id);
-
-  revalidatePath("/propiedades");
-  revalidatePath(`/propiedades/${id}`);
-  revalidatePath("/mis-propiedades");
-}
-
-export async function deleteProperty(id: string) {
-  const supabase = await createClient();
-
-  // Verificar propiedad y dueño antes de tocar Storage
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  const { data: property } = await supabase
-    .from("properties")
-    .select("id, user_id")
-    .eq("id", id)
-    .single();
-
-  if (!property || !user || property.user_id !== user.id) return;
-
-  // Borrar fotos del bucket (las filas caen por cascade)
-  const { data: files } = await supabase.storage
-    .from("property-images")
-    .list(id, { limit: 100 });
-  if (files && files.length > 0) {
-    await supabase.storage
-      .from("property-images")
-      .remove(files.map((f) => `${id}/${f.name}`));
+  try {
+    await apiFetch(`/v1/properties/${id}/estado`, {
+      method: "PATCH",
+      body: { estado: parsed.data.estado },
+    });
+  } catch (error) {
+    return error instanceof ApiError
+      ? error.message
+      : "No pudimos actualizar el estado.";
   }
 
-  await supabase.from("properties").delete().eq("id", id);
+  revalidatePath("/propiedades");
+  revalidatePath("/mis-propiedades");
+  revalidatePath(`/propiedades/${id}`);
+  return null;
+}
+
+/**
+ * Borra la propiedad. La API se encarga de las fotos en R2 y de que solo el
+ * dueño pueda hacerlo. Devuelve el error, o redirige si salió bien.
+ */
+export async function deleteProperty(id: string): Promise<string | null> {
+  try {
+    await apiFetch(`/v1/properties/${id}`, { method: "DELETE" });
+  } catch (error) {
+    return error instanceof ApiError
+      ? error.message
+      : "No pudimos eliminar la propiedad.";
+  }
 
   revalidatePath("/propiedades");
   revalidatePath("/mis-propiedades");

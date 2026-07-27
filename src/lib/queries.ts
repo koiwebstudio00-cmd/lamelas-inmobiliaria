@@ -1,6 +1,30 @@
-import { createClient } from "@/lib/supabase/server";
+/**
+ * Capa de adaptación entre back-lamelas y las pantallas del panel.
+ *
+ * La API habla camelCase y manda los `numeric` como string (son Decimal en
+ * Prisma). Los componentes hablan snake_case y esperan números. Toda esa
+ * traducción vive acá: si cambia la API, se toca solo este archivo.
+ */
+
+import { ApiError, apiFetch, getCurrentUser } from "@/lib/api";
 import type { PropertyCardData } from "@/components/properties/property-card";
-import type { EstadoPropiedad, Operacion, TipoPropiedad } from "@/lib/types";
+import type {
+  ApiKey,
+  CanalLead,
+  EstadoLead,
+  EstadoPropiedad,
+  EstadoUsuario,
+  Invitacion,
+  Lead,
+  LeadDetalle,
+  Moneda,
+  Operacion,
+  Property,
+  PropertyImage,
+  Rol,
+  TipoPropiedad,
+  Usuario,
+} from "@/lib/types";
 
 export const PAGE_SIZE = 24;
 
@@ -11,72 +35,417 @@ export interface PropertyFilters {
   estado?: string;
   vendedor?: string;
   pagina?: number;
-  userId?: string;
 }
 
-interface PropertyRow {
+// --- Lo que devuelve la API -------------------------------------------------
+
+interface ApiImage {
   id: string;
+  propertyId: string;
+  url: string;
+  esPortada: boolean;
+  orden: number;
+  createdAt: string;
+}
+
+interface ApiProperty {
+  id: string;
+  tenantId: string;
+  userId: string;
   titulo: string;
   operacion: Operacion;
   tipo: TipoPropiedad;
-  precio: number;
-  moneda: "ARS" | "USD";
-  estado: EstadoPropiedad;
+  precio: string;
+  moneda: Moneda;
+  descripcion: string | null;
+  direccion: string | null;
   zona: string | null;
-  user_id: string;
-  users: { nombre: string } | null;
-  property_images: { url: string; es_portada: boolean }[];
+  ciudad: string | null;
+  ambientes: number | null;
+  dormitorios: number | null;
+  banios: number | null;
+  supCubierta: string | null;
+  supTotal: string | null;
+  estado: EstadoPropiedad;
+  notas: string | null;
+  createdAt: string;
+  updatedAt: string;
+  images?: ApiImage[];
+  user?: { id: string; nombre: string } | null;
 }
 
-export async function getProperties(filters: PropertyFilters) {
-  const supabase = await createClient();
-  const page = Math.max(1, filters.pagina ?? 1);
-  const from = (page - 1) * PAGE_SIZE;
+interface ListResponse {
+  data: ApiProperty[];
+  meta: { page: number; limit: number; total: number };
+}
 
-  let query = supabase
-    .from("properties")
-    .select(
-      "id, titulo, operacion, tipo, precio, moneda, estado, zona, user_id, users(nombre), property_images(url, es_portada)",
-      { count: "exact" }
-    )
-    .order("created_at", { ascending: false })
-    .range(from, from + PAGE_SIZE - 1);
+// --- Traducción -------------------------------------------------------------
 
-  if (filters.operacion) query = query.eq("operacion", filters.operacion as Operacion);
-  if (filters.tipo) query = query.eq("tipo", filters.tipo as TipoPropiedad);
-  if (filters.estado) query = query.eq("estado", filters.estado as EstadoPropiedad);
-  if (filters.vendedor) query = query.eq("user_id", filters.vendedor);
-  if (filters.userId) query = query.eq("user_id", filters.userId);
-  if (filters.q) {
-    const term = filters.q.replaceAll("%", "\\%").replaceAll(",", " ");
-    query = query.or(`titulo.ilike.%${term}%,direccion.ilike.%${term}%`);
+const num = (v: string | null): number | null => (v === null ? null : Number(v));
+
+function toCard(p: ApiProperty): PropertyCardData {
+  return {
+    id: p.id,
+    titulo: p.titulo,
+    operacion: p.operacion,
+    tipo: p.tipo,
+    precio: Number(p.precio),
+    moneda: p.moneda,
+    estado: p.estado,
+    zona: p.zona,
+    vendedor: p.user?.nombre ?? null,
+    // En el listado la API manda solo la portada (o nada, si no hay fotos).
+    portada: p.images?.[0]?.url ?? null,
+  };
+}
+
+function toProperty(p: ApiProperty): Property {
+  return {
+    id: p.id,
+    tenant_id: p.tenantId,
+    user_id: p.userId,
+    titulo: p.titulo,
+    operacion: p.operacion,
+    tipo: p.tipo,
+    precio: Number(p.precio),
+    moneda: p.moneda,
+    descripcion: p.descripcion,
+    direccion: p.direccion,
+    zona: p.zona,
+    ciudad: p.ciudad,
+    ambientes: p.ambientes,
+    dormitorios: p.dormitorios,
+    banios: p.banios,
+    sup_cubierta: num(p.supCubierta),
+    sup_total: num(p.supTotal),
+    estado: p.estado,
+    notas: p.notas,
+    created_at: p.createdAt,
+    updated_at: p.updatedAt,
+  };
+}
+
+function toImage(i: ApiImage): PropertyImage {
+  return {
+    id: i.id,
+    property_id: i.propertyId,
+    url: i.url,
+    es_portada: i.esPortada,
+    orden: i.orden,
+    created_at: i.createdAt,
+  };
+}
+
+// --- Filtros ----------------------------------------------------------------
+
+const OPERACIONES = ["venta", "alquiler"] as const;
+const TIPOS = ["casa", "departamento", "terreno", "local", "otro"] as const;
+const ESTADOS = ["disponible", "reservada", "vendida"] as const;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Los filtros llegan de la query string, así que pueden traer cualquier cosa.
+ * La API valida con zod y responde 400: preferimos ignorar el valor raro y
+ * mostrar el listado sin ese filtro, como hacía la versión anterior.
+ */
+function oneOf<T extends string>(values: readonly T[], value?: string): T | undefined {
+  return values.includes(value as T) ? (value as T) : undefined;
+}
+
+async function list(path: string, filters: PropertyFilters) {
+  const page = Math.max(1, filters.pagina || 1);
+
+  const { data, meta } = await apiFetch<ListResponse>(path, {
+    query: {
+      q: filters.q?.trim(),
+      operacion: oneOf(OPERACIONES, filters.operacion),
+      tipo: oneOf(TIPOS, filters.tipo),
+      estado: oneOf(ESTADOS, filters.estado),
+      vendedor: UUID.test(filters.vendedor ?? "") ? filters.vendedor : undefined,
+      page,
+      limit: PAGE_SIZE,
+    },
+  });
+
+  return { properties: data.map(toCard), count: meta.total, page: meta.page };
+}
+
+// --- Consultas --------------------------------------------------------------
+
+/** Todas las propiedades de la inmobiliaria. */
+export function getProperties(filters: PropertyFilters) {
+  return list("/v1/properties", filters);
+}
+
+/** Solo las del usuario logueado; el filtro lo aplica la API. */
+export function getMyProperties(filters: PropertyFilters) {
+  return list("/v1/properties/mine", filters);
+}
+
+export interface PropertyDetail {
+  property: Property;
+  vendedor: string | null;
+  images: PropertyImage[];
+}
+
+/** Devuelve null si no existe (o si el id ni siquiera es un uuid). */
+export async function getProperty(id: string): Promise<PropertyDetail | null> {
+  try {
+    const { property } = await apiFetch<{ property: ApiProperty }>(`/v1/properties/${id}`);
+    return {
+      property: toProperty(property),
+      vendedor: property.user?.nombre ?? null,
+      images: (property.images ?? []).map(toImage),
+    };
+  } catch (error) {
+    if (error instanceof ApiError && (error.status === 404 || error.status === 400)) {
+      return null;
+    }
+    throw error;
   }
-
-  const { data, count } = await query;
-
-  const properties: PropertyCardData[] = ((data as unknown as PropertyRow[]) ?? []).map(
-    (p) => ({
-      id: p.id,
-      titulo: p.titulo,
-      operacion: p.operacion,
-      tipo: p.tipo,
-      precio: p.precio,
-      moneda: p.moneda,
-      estado: p.estado,
-      zona: p.zona,
-      vendedor: p.users?.nombre ?? null,
-      portada:
-        p.property_images.find((i) => i.es_portada)?.url ??
-        p.property_images[0]?.url ??
-        null,
-    })
-  );
-
-  return { properties, count: count ?? 0, page };
 }
 
-export async function getVendedores() {
-  const supabase = await createClient();
-  const { data } = await supabase.from("users").select("id, nombre").order("nombre");
-  return data ?? [];
+/** Para el filtro por vendedor. La API ordena por antigüedad; acá alfabético. */
+export async function getVendedores(): Promise<{ id: string; nombre: string }[]> {
+  const { data } = await apiFetch<{ data: { id: string; nombre: string }[] }>("/v1/users", {
+    query: { estado: "activo" },
+  });
+
+  return data
+    .map((u) => ({ id: u.id, nombre: u.nombre }))
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+}
+
+export interface Perfil {
+  id: string;
+  nombre: string;
+  email: string;
+  rol: string;
+  created_at: string;
+}
+
+/**
+ * Datos del usuario logueado para la pantalla de perfil. `/auth/me` no manda
+ * la fecha de alta, así que la sacamos del listado de usuarios del tenant.
+ */
+export async function getPerfil(): Promise<Perfil | null> {
+  const me = await getCurrentUser();
+  if (!me) return null;
+
+  const { data } = await apiFetch<{ data: (Perfil & { createdAt: string })[] }>("/v1/users");
+  const row = data.find((u) => u.id === me.id);
+
+  return {
+    id: me.id,
+    nombre: me.nombre,
+    email: me.email,
+    rol: me.rol,
+    created_at: row?.createdAt ?? "",
+  };
+}
+
+// ── CRM: consultas ───────────────────────────────────────────────────────────
+
+interface ApiLead {
+  id: string;
+  nombre: string;
+  email: string | null;
+  telefono: string | null;
+  mensaje: string;
+  canal: CanalLead;
+  estado: EstadoLead;
+  assignedTo: string | null;
+  createdAt: string;
+  property?: { id: string; titulo: string; operacion?: Operacion; precio?: string } | null;
+  assignee?: { id: string; nombre: string } | null;
+  notes?: ApiLeadNote[];
+}
+
+interface ApiLeadNote {
+  id: string;
+  nota: string;
+  createdAt: string;
+  user?: { id: string; nombre: string } | null;
+}
+
+function toLead(l: ApiLead): Lead {
+  return {
+    id: l.id,
+    nombre: l.nombre,
+    email: l.email,
+    telefono: l.telefono,
+    mensaje: l.mensaje,
+    canal: l.canal,
+    estado: l.estado,
+    assigned_to: l.assignedTo,
+    propiedad: l.property
+      ? {
+          id: l.property.id,
+          titulo: l.property.titulo,
+          ...(l.property.operacion ? { operacion: l.property.operacion } : {}),
+          ...(l.property.precio ? { precio: Number(l.property.precio) } : {}),
+        }
+      : null,
+    created_at: l.createdAt,
+  };
+}
+
+export interface LeadFilters {
+  q?: string;
+  estado?: string;
+  canal?: string;
+  asignado?: string;
+  pagina?: number;
+}
+
+const ESTADOS_LEAD_VALUES = ["nueva", "en_contacto", "ganada", "perdida"] as const;
+const CANALES_VALUES = ["web", "whatsapp", "instagram", "messenger", "manual"] as const;
+
+export async function getLeads(filters: LeadFilters) {
+  const page = Math.max(1, filters.pagina || 1);
+
+  const { data, meta } = await apiFetch<{
+    data: ApiLead[];
+    meta: { page: number; limit: number; total: number };
+  }>("/v1/leads", {
+    query: {
+      q: filters.q?.trim(),
+      estado: oneOf(ESTADOS_LEAD_VALUES, filters.estado),
+      canal: oneOf(CANALES_VALUES, filters.canal),
+      assigned_to: UUID.test(filters.asignado ?? "") ? filters.asignado : undefined,
+      page,
+      limit: PAGE_SIZE,
+    },
+  });
+
+  return { leads: data.map(toLead), count: meta.total, page: meta.page };
+}
+
+/** Devuelve null si no existe o si el usuario no tiene permiso de verla. */
+export async function getLead(id: string): Promise<LeadDetalle | null> {
+  try {
+    const { lead } = await apiFetch<{ lead: ApiLead }>(`/v1/leads/${id}`);
+    return {
+      ...toLead(lead),
+      asignado: lead.assignee?.nombre ?? null,
+      notas: (lead.notes ?? []).map((n) => ({
+        id: n.id,
+        nota: n.nota,
+        autor: n.user?.nombre ?? null,
+        created_at: n.createdAt,
+      })),
+    };
+  } catch (error) {
+    if (error instanceof ApiError && [400, 403, 404].includes(error.status)) return null;
+    throw error;
+  }
+}
+
+// ── Equipo ───────────────────────────────────────────────────────────────────
+
+interface ApiUsuario {
+  id: string;
+  nombre: string;
+  email: string;
+  rol: Rol;
+  estado: EstadoUsuario;
+  createdAt: string;
+}
+
+/** Todos los del tenant, activos e inactivos. La API ordena por antigüedad. */
+export async function getUsuarios(): Promise<Usuario[]> {
+  const { data } = await apiFetch<{ data: ApiUsuario[] }>("/v1/users");
+  return data.map((u) => ({
+    id: u.id,
+    nombre: u.nombre,
+    email: u.email,
+    rol: u.rol,
+    estado: u.estado,
+    created_at: u.createdAt,
+  }));
+}
+
+/** Solo admin. Las vencidas y las ya aceptadas no vienen. */
+export async function getInvitaciones(): Promise<Invitacion[]> {
+  const { data } = await apiFetch<{
+    data: { id: string; email: string; rol: Rol; expiresAt: string; createdAt: string }[];
+  }>("/v1/invitations");
+  return data.map((i) => ({
+    id: i.id,
+    email: i.email,
+    rol: i.rol,
+    expira: i.expiresAt,
+    created_at: i.createdAt,
+  }));
+}
+
+// ── Sitio público ────────────────────────────────────────────────────────────
+
+/** Solo admin. Las revocadas no vienen. */
+export async function getApiKeys(): Promise<ApiKey[]> {
+  const { data } = await apiFetch<{
+    data: { id: string; nombre: string; prefix: string; lastUsedAt: string | null; createdAt: string }[];
+  }>("/v1/api-keys");
+  return data.map((k) => ({
+    id: k.id,
+    nombre: k.nombre,
+    prefix: k.prefix,
+    last_used_at: k.lastUsedAt,
+    created_at: k.createdAt,
+  }));
+}
+
+// ── Resumen de la home ───────────────────────────────────────────────────────
+
+export interface Resumen {
+  propiedades: Record<EstadoPropiedad, number>;
+  consultasNuevas: number;
+  ultimasConsultas: Lead[];
+  ultimasPropiedades: PropertyCardData[];
+}
+
+/**
+ * Un contador por estado sale de pedir una página de tamaño 1 y quedarse con
+ * `meta.total`: no traemos filas que no vamos a mostrar. Deliberadamente no usa
+ * `/v1/leads/stats`, que es solo para admins — así la home funciona igual para
+ * un vendedor, y RLS ya se encarga de que cada uno vea lo suyo.
+ */
+export async function getResumen(): Promise<Resumen> {
+  const total = (estado: EstadoPropiedad) =>
+    apiFetch<{ meta: { total: number } }>("/v1/properties", {
+      query: { estado, page: 1, limit: 1 },
+    }).then((r) => r.meta.total);
+
+  const [disponible, reservada, vendida, nuevas, consultas, propiedades] = await Promise.all([
+    total("disponible"),
+    total("reservada"),
+    total("vendida"),
+    apiFetch<{ meta: { total: number } }>("/v1/leads", {
+      query: { estado: "nueva", page: 1, limit: 1 },
+    }).then((r) => r.meta.total),
+    apiFetch<{ data: ApiLead[] }>("/v1/leads", { query: { page: 1, limit: 5 } }),
+    apiFetch<ListResponse>("/v1/properties", { query: { page: 1, limit: 4 } }),
+  ]);
+
+  return {
+    propiedades: { disponible, reservada, vendida },
+    consultasNuevas: nuevas,
+    ultimasConsultas: consultas.data.map(toLead),
+    ultimasPropiedades: propiedades.data.map(toCard),
+  };
+}
+
+/**
+ * Listado liviano para el select de "cargar consulta": solo id y titulo de las
+ * disponibles. Pide 100 (el máximo de la API) porque no tiene paginado: si
+ * alguna vez hay más propiedades que eso, hay que cambiarlo por un buscador.
+ */
+export async function getPropiedadesParaSelect(): Promise<{ id: string; titulo: string }[]> {
+  const { data } = await apiFetch<ListResponse>("/v1/properties", {
+    query: { estado: "disponible", page: 1, limit: 100 },
+  });
+
+  return data
+    .map((p) => ({ id: p.id, titulo: p.titulo }))
+    .sort((a, b) => a.titulo.localeCompare(b.titulo, "es"));
 }

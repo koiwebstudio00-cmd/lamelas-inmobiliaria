@@ -1,5 +1,7 @@
 # Plan de Implementación Rápida — MVP en 1 día
 
+> **Histórico.** Plan del MVP original sobre Supabase, ya ejecutado. Se conserva como registro.
+
 **Referencia:** `prd-mvp-registro-propiedades.md`, `arquitectura.md`, `historias-usuario.md`
 **Objetivo:** MVP funcional deployado hoy. Desarrollo asistido por agente de código (Claude Code), validación humana entre fases.
 

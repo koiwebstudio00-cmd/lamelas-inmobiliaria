@@ -1,7 +1,7 @@
 // Redimensiona una imagen client-side a máx. 1600px y la convierte a WebP
 // (regla 5 de CLAUDE.md / design-system). Devuelve un Blob listo para subir.
 // 1600px / calidad 0.75 ≈ ~150 KB por foto: con el límite de 20 fotos y
-// ~250 propiedades el total queda dentro del 1 GB del plan free de Supabase.
+// ~250 propiedades el total en R2 queda en el orden de 1 GB.
 const MAX_SIZE = 1600;
 const WEBP_QUALITY = 0.75;
 

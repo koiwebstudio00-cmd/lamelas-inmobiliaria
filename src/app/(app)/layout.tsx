@@ -1,48 +1,30 @@
-import Link from "next/link";
-import { Building2, Plus, User, UserCog, LogOut } from "lucide-react";
-import { Logo } from "@/components/logo";
-import { Button } from "@/components/ui/button";
-import { signOut } from "@/actions/auth";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { AppNav } from "@/components/nav/app-nav";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { getCurrentUser } from "@/lib/api";
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  // El middleware ya frena a quien no tiene sesión; esto cubre el caso de un
+  // access vencido entre medio y le da a la navegación el rol para filtrarse.
+  const me = await getCurrentUser();
+  if (!me) redirect("/login");
+
+  // `sidebar_state` la escribe el propio SidebarProvider al abrir o cerrar la
+  // barra. Leerla acá, en el server, evita que la primera pintura muestre la
+  // barra abierta y después salte a cerrada.
+  const cookieStore = await cookies();
+  const abiertaPorDefecto = cookieStore.get("sidebar_state")?.value !== "false";
+
   return (
-    <div className="min-h-dvh bg-secondary">
-      <header className="sticky top-0 z-40 border-b bg-background">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-4">
-          <Link href="/propiedades" className="flex items-center gap-2">
-            <Logo />
-            <span className="font-semibold">Lamelas & Chaumont</span>
-          </Link>
-          <nav className="flex items-center gap-1">
-            <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-              <Link href="/propiedades">
-                <Building2 /> Propiedades
-              </Link>
-            </Button>
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/mis-propiedades">
-                <User /> <span className="hidden sm:inline">Mis propiedades</span>
-              </Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link href="/propiedades/nueva">
-                <Plus /> <span className="hidden sm:inline">Nueva</span>
-              </Link>
-            </Button>
-            <Button asChild variant="ghost" size="icon" aria-label="Mi perfil">
-              <Link href="/perfil">
-                <UserCog />
-              </Link>
-            </Button>
-            <form action={signOut}>
-              <Button variant="ghost" size="icon" type="submit" aria-label="Cerrar sesión">
-                <LogOut />
-              </Button>
-            </form>
-          </nav>
-        </div>
-      </header>
-      <main className="mx-auto max-w-6xl p-4 sm:p-6">{children}</main>
-    </div>
+    <SidebarProvider defaultOpen={abiertaPorDefecto}>
+      <AppNav nombre={me.nombre} rol={me.rol} />
+      <SidebarInset className="bg-secondary">
+        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-4">
+          <SidebarTrigger />
+        </header>
+        <div className="mx-auto w-full max-w-6xl p-4 sm:p-6">{children}</div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

@@ -1,5 +1,7 @@
 # PRD — MVP: Registro de vendedores y propiedades
 
+> **Histórico.** Alcance del MVP original sobre Supabase. El producto siguió creciendo (sitio público, roles, invitaciones, multi-tenant) y el backend es propio. Se conserva como registro.
+
 **Producto:** Sistema interno Inmobiliaria Lamelas · **Cliente:** Koi Studio · **Fecha:** Julio 2026 · **Versión:** 1.0
 
 ## 1. Resumen

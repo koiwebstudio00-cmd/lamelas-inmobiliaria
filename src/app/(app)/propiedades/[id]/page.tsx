@@ -7,9 +7,9 @@ import { EstadoBadge } from "@/components/ui/badge";
 import { EstadoSelect } from "@/components/properties/estado-select";
 import { DeletePropertyButton } from "@/components/properties/delete-property-button";
 import { PhotoManager } from "@/components/properties/photo-manager";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/api";
+import { getProperty } from "@/lib/queries";
 import { formatPrice, imageUrl } from "@/lib/utils";
-import type { Property, PropertyImage } from "@/lib/types";
 
 const OPERACION_LABEL = { venta: "Venta", alquiler: "Alquiler" } as const;
 const TIPO_LABEL = {
@@ -26,28 +26,12 @@ export default async function PropiedadPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const supabase = await createClient();
+  const [detail, me] = await Promise.all([getProperty(id), getCurrentUser()]);
 
-  const [{ data: property }, { data: images }, { data: userData }] =
-    await Promise.all([
-      supabase
-        .from("properties")
-        .select("*, users(nombre)")
-        .eq("id", id)
-        .single<Property & { users: { nombre: string } | null }>(),
-      supabase
-        .from("property_images")
-        .select("*")
-        .eq("property_id", id)
-        .order("es_portada", { ascending: false })
-        .order("orden"),
-      supabase.auth.getUser(),
-    ]);
+  if (!detail) notFound();
 
-  if (!property) notFound();
-
-  const isOwner = userData.user?.id === property.user_id;
-  const gallery = (images ?? []) as PropertyImage[];
+  const { property, vendedor, images: gallery } = detail;
+  const isOwner = me?.id === property.user_id;
 
   const facts = [
     property.ambientes != null && {
@@ -157,7 +141,7 @@ export default async function PropiedadPage({
         )}
 
         <p className="border-t pt-3 text-xs text-muted-foreground">
-          Cargada por {property.users?.nombre ?? "—"} ·{" "}
+          Cargada por {vendedor ?? "—"} ·{" "}
           {new Date(property.created_at).toLocaleDateString("es-AR")}
         </p>
       </div>

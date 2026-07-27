@@ -7,10 +7,21 @@ import { Label } from "@/components/ui/label";
 
 export const metadata = { title: "Iniciar sesión — Lamelas & Chaumont" };
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ clave?: string }>;
+}) {
+  const { clave } = await searchParams;
+
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-semibold">Iniciar sesión</h1>
+      {clave === "actualizada" && (
+        <p className="text-sm text-primary">
+          Listo, cambiamos tu contraseña. Entrá con la nueva.
+        </p>
+      )}
       <AuthForm action={signIn} submitLabel="Entrar" pendingLabel="Entrando...">
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
@@ -33,10 +44,8 @@ export default function LoginPage() {
           </Link>
         </p>
         <p className="text-muted-foreground">
-          ¿No tenés cuenta?{" "}
-          <Link href="/registro" className="text-primary hover:underline">
-            Registrate
-          </Link>
+          Las cuentas las crea un administrador: si no tenés uno, pedile que te
+          invite.
         </p>
       </div>
     </div>

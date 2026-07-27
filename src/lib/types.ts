@@ -1,11 +1,29 @@
-// Tipos de la BD. Regenerar con:
-// npx supabase gen types typescript --linked > src/lib/types.ts
-// (versión manual equivalente a supabase/migrations/0001_init.sql)
+// Modelo que consumen los componentes del panel, en snake_case.
+// La API (back-lamelas) habla camelCase: la traducción vive en src/lib/queries.ts
+// y ningún componente conoce el formato de la API.
 
 export type Operacion = "venta" | "alquiler";
 export type TipoPropiedad = "casa" | "departamento" | "terreno" | "local" | "otro";
 export type Moneda = "ARS" | "USD";
 export type EstadoPropiedad = "disponible" | "reservada" | "vendida";
+
+export type Rol = "super_admin" | "admin" | "agente";
+
+export type Tenant = {
+  id: string;
+  nombre: string;
+  slug: string;
+}
+
+/** Lo que devuelve GET /v1/auth/me. Ojo: ahi la API no manda created_at. */
+export type SessionUser = {
+  id: string;
+  nombre: string;
+  email: string;
+  rol: Rol;
+  tenantId: string;
+  tenant: Tenant | null;
+}
 
 export type UserProfile = {
   id: string;
@@ -48,57 +66,6 @@ export type PropertyImage = {
   created_at: string;
 }
 
-type PropertyInsert = Pick<
-  Property,
-  "user_id" | "titulo" | "operacion" | "tipo" | "precio"
-> &
-  Partial<Omit<Property, "tenant_id" | "created_at" | "updated_at">>;
-
-type PropertyUpdate = Partial<Omit<Property, "id" | "tenant_id" | "user_id" | "created_at">>;
-
-type ImageInsert = Omit<PropertyImage, "id" | "created_at"> &
-  Partial<Pick<PropertyImage, "id" | "es_portada" | "orden">>;
-
-export type Database = {
-  public: {
-    Tables: {
-      tenants: {
-        Row: { id: string; nombre: string; created_at: string };
-        Insert: { id?: string; nombre: string };
-        Update: { nombre?: string };
-        Relationships: [];
-      };
-      users: {
-        Row: UserProfile;
-        Insert: Omit<UserProfile, "created_at" | "tenant_id">;
-        Update: Partial<Pick<UserProfile, "nombre">>;
-        Relationships: [];
-      };
-      properties: {
-        Row: Property;
-        Insert: PropertyInsert;
-        Update: PropertyUpdate;
-        Relationships: [];
-      };
-      property_images: {
-        Row: PropertyImage;
-        Insert: ImageInsert;
-        Update: Partial<Pick<PropertyImage, "es_portada" | "orden">>;
-        Relationships: [];
-      };
-    };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
-    Enums: {
-      operacion: Operacion;
-      tipo_propiedad: TipoPropiedad;
-      moneda: Moneda;
-      estado_propiedad: EstadoPropiedad;
-    };
-    CompositeTypes: Record<string, never>;
-  };
-}
-
 // Constantes para UI
 export const OPERACIONES: { value: Operacion; label: string }[] = [
   { value: "venta", label: "Venta" },
@@ -122,4 +89,101 @@ export const ESTADOS: { value: EstadoPropiedad; label: string }[] = [
   { value: "disponible", label: "Disponible" },
   { value: "reservada", label: "Reservada" },
   { value: "vendida", label: "Vendida" },
+];
+
+// ── CRM: consultas que entran por el sitio público o se cargan a mano ────────
+
+export type EstadoLead = "nueva" | "en_contacto" | "ganada" | "perdida";
+export type CanalLead = "web" | "whatsapp" | "instagram" | "messenger" | "manual";
+
+/** Propiedad por la que consultaron. La API manda solo lo mínimo para el link. */
+export type LeadPropiedad = {
+  id: string;
+  titulo: string;
+  operacion?: Operacion;
+  precio?: number;
+};
+
+export type Lead = {
+  id: string;
+  nombre: string;
+  email: string | null;
+  telefono: string | null;
+  mensaje: string;
+  canal: CanalLead;
+  estado: EstadoLead;
+  assigned_to: string | null;
+  propiedad: LeadPropiedad | null;
+  created_at: string;
+};
+
+export type LeadNota = {
+  id: string;
+  nota: string;
+  autor: string | null;
+  created_at: string;
+};
+
+export type LeadDetalle = Lead & {
+  /** Nombre del vendedor asignado, ya resuelto por la API. */
+  asignado: string | null;
+  notas: LeadNota[];
+};
+
+// ── Equipo ───────────────────────────────────────────────────────────────────
+
+export type EstadoUsuario = "activo" | "inactivo";
+
+export type Usuario = {
+  id: string;
+  nombre: string;
+  email: string;
+  rol: Rol;
+  estado: EstadoUsuario;
+  created_at: string;
+};
+
+/** Invitación pendiente: la API solo lista las no aceptadas y sin vencer. */
+export type Invitacion = {
+  id: string;
+  email: string;
+  rol: Rol;
+  expira: string;
+  created_at: string;
+};
+
+// ── Sitio público ────────────────────────────────────────────────────────────
+
+/**
+ * Key de lectura que usa lamelas-web. La key completa se ve una sola vez, al
+ * crearla: en la base queda solo el hash y el prefijo.
+ */
+export type ApiKey = {
+  id: string;
+  nombre: string;
+  prefix: string;
+  last_used_at: string | null;
+  created_at: string;
+};
+
+// Constantes para UI
+
+export const ESTADOS_LEAD: { value: EstadoLead; label: string }[] = [
+  { value: "nueva", label: "Nueva" },
+  { value: "en_contacto", label: "En contacto" },
+  { value: "ganada", label: "Ganada" },
+  { value: "perdida", label: "Perdida" },
+];
+
+export const CANALES: { value: CanalLead; label: string }[] = [
+  { value: "web", label: "Web" },
+  { value: "whatsapp", label: "WhatsApp" },
+  { value: "instagram", label: "Instagram" },
+  { value: "messenger", label: "Messenger" },
+  { value: "manual", label: "Carga manual" },
+];
+
+export const ROLES: { value: "admin" | "agente"; label: string }[] = [
+  { value: "admin", label: "Administrador" },
+  { value: "agente", label: "Vendedor" },
 ];

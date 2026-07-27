@@ -2,10 +2,9 @@ import Link from "next/link";
 import { Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PropertyCard } from "@/components/properties/property-card";
-import { Pagination } from "@/components/properties/pagination";
+import { Pagination } from "@/components/pagination";
 import { EstadoSelect } from "@/components/properties/estado-select";
-import { getProperties } from "@/lib/queries";
-import { createClient } from "@/lib/supabase/server";
+import { getMyProperties } from "@/lib/queries";
 
 export const metadata = { title: "Mis propiedades — Lamelas & Chaumont" };
 
@@ -15,21 +14,17 @@ export default async function MisPropiedadesPage({
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const params = await searchParams;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { properties, count, page } = await getProperties({
-    userId: user!.id,
+  const { properties, count, page } = await getMyProperties({
     pagina: params.pagina ? Number(params.pagina) : 1,
   });
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div>
         <h1 className="text-2xl font-semibold">Mis propiedades</h1>
-        <span className="text-sm text-muted-foreground">{count} en total</span>
+        <p className="text-sm text-muted-foreground">
+          Las que cargaste vos. {count} en total.
+        </p>
       </div>
 
       {properties.length === 0 ? (
