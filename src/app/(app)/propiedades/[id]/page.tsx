@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Pencil, MapPin, BedDouble, Bath, Ruler, LayoutGrid, StickyNote } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,9 +6,10 @@ import { EstadoBadge } from "@/components/ui/badge";
 import { EstadoSelect } from "@/components/properties/estado-select";
 import { DeletePropertyButton } from "@/components/properties/delete-property-button";
 import { PhotoManager } from "@/components/properties/photo-manager";
+import { PropertyGallery } from "@/components/properties/property-gallery";
 import { getCurrentUser } from "@/lib/api";
 import { getProperty } from "@/lib/queries";
-import { formatPrice, imageUrl } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 
 const OPERACION_LABEL = { venta: "Venta", alquiler: "Alquiler" } as const;
 const TIPO_LABEL = {
@@ -84,26 +84,16 @@ export default async function PropiedadPage({
         </div>
       )}
 
-      {/* Galería / gestión de fotos */}
-      {isOwner ? (
+      {gallery.length > 0 && (
+        <PropertyGallery images={gallery} title={property.titulo} />
+      )}
+
+      {/* Gestión de fotos */}
+      {isOwner && (
         <div className="border bg-background p-4">
           <PhotoManager propertyId={property.id} images={gallery} />
         </div>
-      ) : gallery.length > 0 ? (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {gallery.map((img) => (
-            <div key={img.id} className="relative aspect-[4/3] border bg-muted">
-              <Image
-                src={imageUrl(img.url)}
-                alt={property.titulo}
-                fill
-                sizes="(max-width: 640px) 50vw, 33vw"
-                className="object-cover"
-              />
-            </div>
-          ))}
-        </div>
-      ) : null}
+      )}
 
       <div className="space-y-4 border bg-background p-4 sm:p-6">
         {ubicacion && (
