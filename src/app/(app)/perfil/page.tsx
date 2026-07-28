@@ -1,33 +1,62 @@
-import { KeyRound, UserRound } from "lucide-react";
-import { updateProfile, changePassword } from "@/actions/profile";
+import { updateProfile } from "@/actions/profile";
 import { AuthForm } from "@/components/auth/auth-form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChangePasswordDialog } from "@/components/profile/change-password-dialog";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import type { Rol } from "@/lib/types";
 import { getPerfil } from "@/lib/queries";
 
 export const metadata = { title: "Mi perfil — Lamelas & Chaumont" };
+
+const ROL_LABEL: Record<Rol, string> = {
+  super_admin: "Soporte",
+  admin: "Administrador",
+  agente: "Vendedor",
+};
+
+function getIniciales(nombre: string) {
+  const partes = nombre.trim().split(/\s+/);
+  return ((partes[0]?.[0] ?? "") + (partes[1]?.[0] ?? "")).toUpperCase();
+}
 
 export default async function PerfilPage() {
   const profile = await getPerfil();
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
-      <h1 className="text-2xl font-semibold">Mi perfil</h1>
+      <div>
+        <h1 className="text-2xl font-semibold">Mi perfil</h1>
+        <p className="text-sm text-muted-foreground">Administra tu información personal</p>
+      </div>
 
       <Card>
-        <CardHeader className="flex-row items-center gap-2 space-y-0 border-b bg-muted/40 py-3">
-          <UserRound className="size-5 text-primary" />
-          <CardTitle className="text-base">Datos personales</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4 pt-4">
+        <CardContent className="flex flex-col items-center gap-3 pt-6 text-center">
+          <Avatar size="lg" className="size-20">
+            <AvatarFallback className="bg-primary/10 text-2xl font-semibold text-primary">
+              {profile ? getIniciales(profile.nombre) : ""}
+            </AvatarFallback>
+          </Avatar>
+
+          <div className="space-y-1">
+            <p className="text-lg font-semibold">{profile?.nombre}</p>
+            <p className="text-sm text-muted-foreground">{profile?.email}</p>
+          </div>
+
+          {profile && <Badge>{ROL_LABEL[profile.rol as Rol]}</Badge>}
+
+          <Separator className="my-2" />
+
           <AuthForm
             action={updateProfile}
             submitLabel="Guardar cambios"
             pendingLabel="Guardando..."
           >
-            <div className="space-y-2">
-              <Label htmlFor="nombre">Nombre completo</Label>
+            <div className="space-y-2 text-left">
+              <Label htmlFor="nombre">Nombre</Label>
               <Input
                 id="nombre"
                 name="nombre"
@@ -36,50 +65,18 @@ export default async function PerfilPage() {
                 required
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 text-left">
               <Label htmlFor="email">Email</Label>
               <Input id="email" type="email" value={profile?.email ?? ""} disabled />
-              <p className="text-xs text-muted-foreground">
-                El email es tu usuario de acceso y no se puede cambiar.
-              </p>
+              <p className="text-xs text-muted-foreground">El email no se puede cambiar</p>
             </div>
           </AuthForm>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader className="flex-row items-center gap-2 space-y-0 border-b bg-muted/40 py-3">
-          <KeyRound className="size-5 text-primary" />
-          <CardTitle className="text-base">Cambiar contraseña</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4 pt-4">
-          <AuthForm
-            action={changePassword}
-            submitLabel="Cambiar contraseña"
-            pendingLabel="Cambiando..."
-          >
-            <div className="space-y-2">
-              <Label htmlFor="current_password">Contraseña actual</Label>
-              <Input
-                id="current_password"
-                name="current_password"
-                type="password"
-                autoComplete="current-password"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="new_password">Contraseña nueva (mín. 8 caracteres)</Label>
-              <Input
-                id="new_password"
-                name="new_password"
-                type="password"
-                autoComplete="new-password"
-                minLength={8}
-                required
-              />
-            </div>
-          </AuthForm>
+          <Separator className="my-2" />
+
+          <div className="flex w-full flex-col items-start gap-2 text-left">
+            <ChangePasswordDialog />
+          </div>
         </CardContent>
       </Card>
 

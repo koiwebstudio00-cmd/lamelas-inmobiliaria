@@ -11,7 +11,7 @@ export default async function NuevaConsultaPage() {
   const propiedades = await getPropiedadesParaSelect();
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
+    <div className="mx-auto max-w-4xl space-y-4">
       <Button asChild variant="ghost" size="sm" className="-ml-2">
         <Link href="/consultas">
           <ArrowLeft /> Volver a consultas

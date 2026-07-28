@@ -4,9 +4,12 @@ import { Inbox, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LeadFilters } from "@/components/leads/lead-filters";
 import { LeadRow } from "@/components/leads/lead-row";
+import { LeadTable } from "@/components/leads/lead-table";
 import { Pagination } from "@/components/pagination";
+import { VistaToggle } from "@/components/vista-toggle";
 import { getCurrentUser } from "@/lib/api";
 import { getLeads, getVendedores } from "@/lib/queries";
+import { getVista } from "@/lib/vista";
 
 export const metadata = { title: "Consultas — Lamelas & Chaumont" };
 
@@ -21,7 +24,7 @@ export default async function ConsultasPage({
   const me = await getCurrentUser();
   const esAdmin = me?.rol === "admin" || me?.rol === "super_admin";
 
-  const [{ leads, count, page }, vendedores] = await Promise.all([
+  const [{ leads, count, page }, vendedores, vista] = await Promise.all([
     getLeads({
       q: params.q,
       estado: params.estado,
@@ -30,6 +33,7 @@ export default async function ConsultasPage({
       pagina: params.pagina ? Number(params.pagina) : 1,
     }),
     esAdmin ? getVendedores() : Promise.resolve([]),
+    getVista(),
   ]);
 
   return (
@@ -44,11 +48,14 @@ export default async function ConsultasPage({
             {count} en total.
           </p>
         </div>
-        <Button asChild size="sm">
-          <Link href="/consultas/nueva">
-            <Plus /> Cargar consulta
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <VistaToggle vista={vista} />
+          <Button asChild size="sm">
+            <Link href="/consultas/nueva">
+              <Plus /> Cargar consulta
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <Suspense>
@@ -63,14 +70,14 @@ export default async function ConsultasPage({
             Cuando alguien escriba desde el sitio público, va a aparecer acá.
           </p>
         </div>
+      ) : vista === "tabla" ? (
+        <LeadTable leads={leads} />
       ) : (
-        <>
-          <ul className="space-y-2">
-            {leads.map((lead) => (
-              <LeadRow key={lead.id} lead={lead} />
-            ))}
-          </ul>
-        </>
+        <ul className="space-y-2">
+          {leads.map((lead) => (
+            <LeadRow key={lead.id} lead={lead} />
+          ))}
+        </ul>
       )}
 
       <Pagination page={page} count={count} basePath="/consultas" searchParams={params} />

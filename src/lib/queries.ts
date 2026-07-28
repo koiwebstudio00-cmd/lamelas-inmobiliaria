@@ -7,6 +7,7 @@
  */
 
 import { ApiError, apiFetch, getCurrentUser } from "@/lib/api";
+import { esAdmin } from "@/lib/permisos";
 import type { PropertyCardData } from "@/components/properties/property-card";
 import type {
   ApiKey,
@@ -407,12 +408,22 @@ export interface Resumen {
 /**
  * Un contador por estado sale de pedir una página de tamaño 1 y quedarse con
  * `meta.total`: no traemos filas que no vamos a mostrar. Deliberadamente no usa
- * `/v1/leads/stats`, que es solo para admins — así la home funciona igual para
- * un vendedor, y RLS ya se encarga de que cada uno vea lo suyo.
+ * `/v1/leads/stats`, que es solo para admins.
+ *
+ * El vendedor ve su propio trabajo, no el de la inmobiliaria: sus propiedades
+ * salen de `/v1/properties/mine` y sus consultas de filtrar por `assigned_to`.
+ * RLS ya le impide ver lo ajeno; esto es para que la pantalla no le informe
+ * números del negocio que no le corresponden.
  */
 export async function getResumen(): Promise<Resumen> {
+  const me = await getCurrentUser();
+  const soloMio = me ? !esAdmin(me.rol) : false;
+
+  const pathPropiedades = soloMio ? "/v1/properties/mine" : "/v1/properties";
+  const misConsultas = soloMio && me ? { assigned_to: me.id } : {};
+
   const total = (estado: EstadoPropiedad) =>
-    apiFetch<{ meta: { total: number } }>("/v1/properties", {
+    apiFetch<{ meta: { total: number } }>(pathPropiedades, {
       query: { estado, page: 1, limit: 1 },
     }).then((r) => r.meta.total);
 
@@ -421,10 +432,12 @@ export async function getResumen(): Promise<Resumen> {
     total("reservada"),
     total("vendida"),
     apiFetch<{ meta: { total: number } }>("/v1/leads", {
-      query: { estado: "nueva", page: 1, limit: 1 },
+      query: { ...misConsultas, estado: "nueva", page: 1, limit: 1 },
     }).then((r) => r.meta.total),
-    apiFetch<{ data: ApiLead[] }>("/v1/leads", { query: { page: 1, limit: 5 } }),
-    apiFetch<ListResponse>("/v1/properties", { query: { page: 1, limit: 4 } }),
+    apiFetch<{ data: ApiLead[] }>("/v1/leads", {
+      query: { ...misConsultas, page: 1, limit: 5 },
+    }),
+    apiFetch<ListResponse>(pathPropiedades, { query: { page: 1, limit: 4 } }),
   ]);
 
   return {

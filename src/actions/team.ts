@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { ApiError, apiFetch } from "@/lib/api";
+import { ApiError, apiFetch, getCurrentUser } from "@/lib/api";
+import { esAdmin } from "@/lib/permisos";
 
 /**
  * Equipo: usuarios e invitaciones. Todo esto es solo para admins — lo impone
@@ -15,6 +16,17 @@ import { ApiError, apiFetch } from "@/lib/api";
 
 export type TeamState = { error?: string; success?: string };
 
+/**
+ * Defensa en profundidad. La API ya rechaza a un vendedor con 403, pero una
+ * Server Action es un endpoint HTTP real, alcanzable con un POST armado a
+ * mano: no quiero que la única barrera esté del otro lado de la red.
+ */
+async function soloAdmin(): Promise<string | null> {
+  const me = await getCurrentUser();
+  if (!me || !esAdmin(me.rol)) return "No tenés permiso para hacer esto.";
+  return null;
+}
+
 function message(error: unknown, fallback: string): string {
   return error instanceof ApiError ? error.message : fallback;
 }
@@ -25,6 +37,9 @@ const inviteSchema = z.object({
 });
 
 export async function inviteUser(_prev: TeamState, formData: FormData): Promise<TeamState> {
+  const denegado = await soloAdmin();
+  if (denegado) return { error: denegado };
+
   const parsed = inviteSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
@@ -41,6 +56,9 @@ export async function inviteUser(_prev: TeamState, formData: FormData): Promise<
 
 /** Devuelve el mensaje de error, o null si salió bien. */
 export async function revokeInvitation(id: string): Promise<string | null> {
+  const denegado = await soloAdmin();
+  if (denegado) return denegado;
+
   try {
     await apiFetch(`/v1/invitations/${id}`, { method: "DELETE" });
   } catch (error) {
@@ -65,6 +83,9 @@ export async function updateUsuario(
     })
     .safeParse(data);
   if (!parsed.success) return "Ese cambio no es válido.";
+
+  const denegado = await soloAdmin();
+  if (denegado) return denegado;
 
   try {
     await apiFetch(`/v1/users/${id}`, { method: "PATCH", body: parsed.data });

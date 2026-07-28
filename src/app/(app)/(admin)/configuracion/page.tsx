@@ -1,22 +1,17 @@
-import { redirect } from "next/navigation";
 import { KeyRound } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ApiKeyForm } from "@/components/settings/api-key-form";
 import { RevokeApiKeyButton } from "@/components/settings/revoke-api-key-button";
-import { getCurrentUser } from "@/lib/api";
 import { getApiKeys } from "@/lib/queries";
 import { formatDate } from "@/lib/utils";
 
 export const metadata = { title: "Configuración — Lamelas & Chaumont" };
 
 export default async function ConfiguracionPage() {
-  const me = await getCurrentUser();
-  if (!me || (me.rol !== "admin" && me.rol !== "super_admin")) redirect("/");
-
   const keys = await getApiKeys();
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
+    <div className="mx-auto max-w-4xl space-y-4">
       <div>
         <h1 className="text-2xl font-semibold">Configuración</h1>
         <p className="text-sm text-muted-foreground">

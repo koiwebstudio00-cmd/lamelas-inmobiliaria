@@ -4,16 +4,21 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Building2,
+  ChevronRight,
   Home,
   Inbox,
   KeyRound,
-  LogOut,
-  UserCog,
   Users,
   type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/components/logo";
-import { Button } from "@/components/ui/button";
+import { NavUser } from "@/components/nav/nav-user";
+import { esAdmin } from "@/lib/permisos";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   Sidebar,
   SidebarContent,
@@ -30,39 +35,51 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { signOut } from "@/actions/auth";
 import type { Rol } from "@/lib/types";
 
-type Item = {
+type Sub = {
   href: string;
+  label: string;
+  /** Rutas hijas que también marcan activo a este sub (ej. el detalle). */
+  incluye?: string[];
+};
+
+type Item = {
+  href?: string;
   label: string;
   icon: LucideIcon;
   soloAdmin: boolean;
-  subs: { href: string; label: string }[];
+  subs: Sub[];
 };
 
 /**
- * Navegación del panel, armada sobre el bloque `sidebar-03` de shadcn: un ítem
- * por sección y, colgando de las que tienen pantallas propias, un submenú.
+ * Navegación del panel. Las secciones con pantallas propias son grupos
+ * desplegables: tocar el padre abre y cierra, no navega — el listado de la
+ * sección es el primer hijo. Así cada fila hace una sola cosa, que en el
+ * celular es la diferencia entre abrir el grupo y salir navegando sin querer.
  */
 const ITEMS: Item[] = [
   { href: "/", label: "Inicio", icon: Home, soloAdmin: false, subs: [] },
   {
-    href: "/propiedades",
     label: "Propiedades",
     icon: Building2,
     soloAdmin: false,
     subs: [
+      // El detalle y la edición cuelgan de /propiedades/:id, así que marcan
+      // activo al listado. `nueva` es la excepción: tiene su propia fila.
+      { href: "/propiedades", label: "Todas las propiedades", incluye: ["/propiedades/"] },
       { href: "/mis-propiedades", label: "Mis propiedades" },
-      { href: "/propiedades/nueva", label: "Cargar propiedad" },
+      { href: "/propiedades/nueva", label: "Nueva propiedad" },
     ],
   },
   {
-    href: "/consultas",
     label: "Consultas",
     icon: Inbox,
     soloAdmin: false,
-    subs: [{ href: "/consultas/nueva", label: "Cargar consulta" }],
+    subs: [
+      { href: "/consultas", label: "Todas las consultas", incluye: ["/consultas/"] },
+      { href: "/consultas/nueva", label: "Nueva consulta" },
+    ],
   },
   { href: "/equipo", label: "Equipo", icon: Users, soloAdmin: true, subs: [] },
   {
@@ -72,7 +89,6 @@ const ITEMS: Item[] = [
     soloAdmin: true,
     subs: [],
   },
-  { href: "/perfil", label: "Mi perfil", icon: UserCog, soloAdmin: false, subs: [] },
 ];
 
 /** "/" solo marca activo en su propia ruta; el resto también en sus hijos. */
@@ -80,11 +96,29 @@ function esActivo(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function AppNav({ nombre, rol }: { nombre: string; rol: Rol }) {
+/**
+ * Un sub marca activo en su ruta exacta y, si lo declara, en los prefijos de
+ * `incluye`. Se evalúan de más específico a menos: `/propiedades/nueva` gana
+ * sobre el prefijo `/propiedades/` del listado.
+ */
+function subActivo(pathname: string, sub: Sub, hermanos: Sub[]) {
+  if (pathname === sub.href) return true;
+  if (!sub.incluye?.some((p) => pathname.startsWith(p))) return false;
+  return !hermanos.some((h) => h !== sub && pathname === h.href);
+}
+
+export function AppNav({
+  nombre,
+  email,
+  rol,
+}: {
+  nombre: string;
+  email: string;
+  rol: Rol;
+}) {
   const pathname = usePathname();
   const { isMobile, setOpenMobile } = useSidebar();
-  const esAdmin = rol === "admin" || rol === "super_admin";
-  const items = ITEMS.filter((i) => !i.soloAdmin || esAdmin);
+  const items = ITEMS.filter((i) => !i.soloAdmin || esAdmin(rol));
 
   // En el celular el cajón tapa la pantalla: al tocar un link hay que cerrarlo.
   // En escritorio la barra es fija y no hay nada que cerrar.
@@ -97,10 +131,17 @@ export function AppNav({ nombre, rol }: { nombre: string; rol: Rol }) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild size="lg">
+            <SidebarMenuButton
+              asChild
+              size="lg"
+              className="h-16 gap-3 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:gap-0 [&>svg]:size-10"
+            >
               <Link href="/" onClick={alNavegar}>
-                <Logo className="size-7 shrink-0" />
-                <span className="truncate font-semibold">Lamelas &amp; Chaumont</span>
+                <Logo className="shrink-0" />
+                <span className="flex flex-col font-semibold leading-tight">
+                  <span>Lamelas &amp;</span>
+                  <span>Chaumont</span>
+                </span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -112,43 +153,66 @@ export function AppNav({ nombre, rol }: { nombre: string; rol: Rol }) {
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => {
-                const subActivo = item.subs.some((s) => esActivo(pathname, s.href));
-                // El padre se apaga cuando el activo es un hijo, así nunca
-                // quedan dos ítems marcados a la vez.
-                const activo = esActivo(pathname, item.href) && !subActivo;
+                // Sección sin hijos: la fila es un link común.
+                if (item.subs.length === 0) {
+                  const activo = esActivo(pathname, item.href!);
+                  return (
+                    <SidebarMenuItem key={item.label}>
+                      <SidebarMenuButton asChild isActive={activo} tooltip={item.label}>
+                        <Link
+                          href={item.href!}
+                          onClick={alNavegar}
+                          aria-current={activo ? "page" : undefined}
+                        >
+                          <item.icon />
+                          <span>{item.label}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                }
+
+                // Grupo desplegable: arranca abierto si estás parado en alguno
+                // de sus hijos, para que nunca tengas que buscar dónde estás.
+                const hayHijoActivo = item.subs.some((s) => subActivo(pathname, s, item.subs));
+
                 return (
-                  <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton asChild isActive={activo} tooltip={item.label}>
-                      <Link
-                        href={item.href}
-                        onClick={alNavegar}
-                        aria-current={activo ? "page" : undefined}
-                      >
-                        <item.icon />
-                        <span>{item.label}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                    {item.subs.length > 0 && (
-                      <SidebarMenuSub>
-                        {item.subs.map((sub) => {
-                          const subEsActivo = esActivo(pathname, sub.href);
-                          return (
-                            <SidebarMenuSubItem key={sub.href}>
-                              <SidebarMenuSubButton asChild isActive={subEsActivo}>
-                                <Link
-                                  href={sub.href}
-                                  onClick={alNavegar}
-                                  aria-current={subEsActivo ? "page" : undefined}
-                                >
-                                  <span>{sub.label}</span>
-                                </Link>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          );
-                        })}
-                      </SidebarMenuSub>
-                    )}
-                  </SidebarMenuItem>
+                  <Collapsible
+                    key={item.label}
+                    asChild
+                    defaultOpen={hayHijoActivo}
+                    className="group/collapsible"
+                  >
+                    <SidebarMenuItem>
+                      <CollapsibleTrigger asChild>
+                        <SidebarMenuButton isActive={hayHijoActivo} tooltip={item.label}>
+                          <item.icon />
+                          <span>{item.label}</span>
+                          <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                        </SidebarMenuButton>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <SidebarMenuSub>
+                          {item.subs.map((sub) => {
+                            const activo = subActivo(pathname, sub, item.subs);
+                            return (
+                              <SidebarMenuSubItem key={sub.href}>
+                                <SidebarMenuSubButton asChild isActive={activo}>
+                                  <Link
+                                    href={sub.href}
+                                    onClick={alNavegar}
+                                    aria-current={activo ? "page" : undefined}
+                                  >
+                                    <span>{sub.label}</span>
+                                  </Link>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            );
+                          })}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    </SidebarMenuItem>
+                  </Collapsible>
                 );
               })}
             </SidebarMenu>
@@ -157,14 +221,7 @@ export function AppNav({ nombre, rol }: { nombre: string; rol: Rol }) {
       </SidebarContent>
 
       <SidebarFooter>
-        <div className="flex items-center justify-between gap-2 border-t pt-2">
-          <p className="min-w-0 truncate px-2 text-xs text-muted-foreground">{nombre}</p>
-          <form action={signOut}>
-            <Button variant="ghost" size="icon" type="submit" aria-label="Cerrar sesión">
-              <LogOut />
-            </Button>
-          </form>
-        </div>
+        <NavUser nombre={nombre} email={email} />
       </SidebarFooter>
 
       <SidebarRail />

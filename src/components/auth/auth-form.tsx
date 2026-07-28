@@ -18,7 +18,7 @@ export function AuthForm({
   const [state, formAction, pending] = useActionState(action, {});
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} className="w-full space-y-4">
       {children}
       {state.error && <p className="text-sm text-destructive">{state.error}</p>}
       {state.success && <p className="text-sm text-primary">{state.success}</p>}

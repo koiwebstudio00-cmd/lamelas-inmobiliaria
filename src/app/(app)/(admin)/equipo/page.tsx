@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { MailPlus, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,14 +18,17 @@ const ROL_LABEL: Record<Rol, string> = {
 };
 
 export default async function EquipoPage() {
-  const me = await getCurrentUser();
-  // La API rechaza igual a un vendedor; esto solo evita la pantalla de error.
-  if (!me || (me.rol !== "admin" && me.rol !== "super_admin")) redirect("/");
-
-  const [usuarios, invitaciones] = await Promise.all([getUsuarios(), getInvitaciones()]);
+  // El rol ya lo verificó el layout de (admin); acá `me` es solo para no
+  // ofrecerte acciones sobre vos mismo. Va sin request extra: getCurrentUser
+  // está cacheado y el layout ya lo resolvió en este render.
+  const [usuarios, invitaciones, me] = await Promise.all([
+    getUsuarios(),
+    getInvitaciones(),
+    getCurrentUser(),
+  ]);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
+    <div className="mx-auto max-w-4xl space-y-4">
       <div>
         <h1 className="text-2xl font-semibold">Equipo</h1>
         <p className="text-sm text-muted-foreground">
@@ -90,7 +92,7 @@ export default async function EquipoPage() {
                 </p>
                 <p className="truncate text-xs text-muted-foreground">{u.email}</p>
               </div>
-              <UserActions usuario={u} esYo={u.id === me.id} />
+              <UserActions usuario={u} esYo={u.id === me?.id} />
             </div>
           ))}
         </CardContent>

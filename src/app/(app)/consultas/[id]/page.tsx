@@ -37,7 +37,7 @@ export default async function ConsultaPage({
   ].filter(Boolean) as { icon: typeof Phone; label: string; href: string }[];
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
+    <div className="mx-auto max-w-5xl space-y-4">
       <Button asChild variant="ghost" size="sm" className="-ml-2">
         <Link href="/consultas">
           <ArrowLeft /> Volver a consultas

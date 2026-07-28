@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { ApiError, apiFetch } from "@/lib/api";
+import { ApiError, apiFetch, getCurrentUser } from "@/lib/api";
+import { esAdmin } from "@/lib/permisos";
 
 /**
  * Keys de lectura del sitio público (lamelas-web).
@@ -14,6 +15,17 @@ import { ApiError, apiFetch } from "@/lib/api";
 
 export type ApiKeyState = { error?: string; key?: string; nombre?: string };
 
+/**
+ * Defensa en profundidad. La API ya rechaza a un vendedor con 403, pero una
+ * Server Action es un endpoint HTTP real, alcanzable con un POST armado a
+ * mano: no quiero que la única barrera esté del otro lado de la red.
+ */
+async function soloAdmin(): Promise<string | null> {
+  const me = await getCurrentUser();
+  if (!me || !esAdmin(me.rol)) return "No tenés permiso para hacer esto.";
+  return null;
+}
+
 const nombreSchema = z
   .string()
   .trim()
@@ -24,6 +36,9 @@ export async function createApiKey(
   _prev: ApiKeyState,
   formData: FormData
 ): Promise<ApiKeyState> {
+  const denegado = await soloAdmin();
+  if (denegado) return { error: denegado };
+
   const parsed = nombreSchema.safeParse(formData.get("nombre"));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
@@ -45,6 +60,9 @@ export async function createApiKey(
  * el mensaje de error, o null si salió bien.
  */
 export async function revokeApiKey(id: string): Promise<string | null> {
+  const denegado = await soloAdmin();
+  if (denegado) return denegado;
+
   try {
     await apiFetch(`/v1/api-keys/${id}`, { method: "DELETE" });
   } catch (error) {

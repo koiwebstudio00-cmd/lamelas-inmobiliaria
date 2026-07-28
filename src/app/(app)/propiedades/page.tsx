@@ -1,9 +1,12 @@
 import { Suspense } from "react";
 import { SearchX } from "lucide-react";
 import { PropertyCard } from "@/components/properties/property-card";
+import { PropertyTable } from "@/components/properties/property-table";
 import { PropertyFilters } from "@/components/properties/filters";
 import { Pagination } from "@/components/pagination";
+import { VistaToggle } from "@/components/vista-toggle";
 import { getProperties, getVendedores } from "@/lib/queries";
+import { getVista } from "@/lib/vista";
 
 export const metadata = { title: "Propiedades — Lamelas & Chaumont" };
 
@@ -15,7 +18,7 @@ export default async function PropiedadesPage({
   searchParams: SearchParams;
 }) {
   const params = await searchParams;
-  const [{ properties, count, page }, vendedores] = await Promise.all([
+  const [{ properties, count, page }, vendedores, vista] = await Promise.all([
     getProperties({
       q: params.q,
       operacion: params.operacion,
@@ -25,15 +28,19 @@ export default async function PropiedadesPage({
       pagina: params.pagina ? Number(params.pagina) : 1,
     }),
     getVendedores(),
+    getVista(),
   ]);
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold">Propiedades</h1>
-        <p className="text-sm text-muted-foreground">
-          Todo lo que tiene cargado la inmobiliaria. {count} en total.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-semibold">Propiedades</h1>
+          <p className="text-sm text-muted-foreground">
+            Todo lo que tiene cargado la inmobiliaria. {count} en total.
+          </p>
+        </div>
+        <VistaToggle vista={vista} />
       </div>
 
       <Suspense>
@@ -48,6 +55,8 @@ export default async function PropiedadesPage({
             Probá limpiar los filtros o cargá una propiedad nueva.
           </p>
         </div>
+      ) : vista === "tabla" ? (
+        <PropertyTable properties={properties} />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {properties.map((p) => (

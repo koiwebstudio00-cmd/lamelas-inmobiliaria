@@ -5,7 +5,7 @@ export const metadata = { title: "Nueva propiedad — Lamelas & Chaumont" };
 
 export default function NuevaPropiedadPage() {
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
+    <div className="mx-auto max-w-4xl space-y-4">
       <h1 className="text-2xl font-semibold">Nueva propiedad</h1>
       <p className="text-sm text-muted-foreground">
         Solo título, operación, tipo y precio son obligatorios. Las fotos las

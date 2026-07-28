@@ -18,12 +18,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <SidebarProvider defaultOpen={abiertaPorDefecto}>
-      <AppNav nombre={me.nombre} rol={me.rol} />
+      <AppNav nombre={me.nombre} email={me.email} rol={me.rol} />
       <SidebarInset className="bg-secondary">
         <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-4">
           <SidebarTrigger />
         </header>
-        <div className="mx-auto w-full max-w-6xl p-4 sm:p-6">{children}</div>
+        <div className="mx-auto w-full p-4 sm:p-6">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );
