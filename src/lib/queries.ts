@@ -11,6 +11,7 @@ import { esAdmin } from "@/lib/permisos";
 import type { PropertyCardData } from "@/components/properties/property-card";
 import type {
   ApiKey,
+  ApiKeyScope,
   CanalLead,
   EstadoLead,
   EstadoPropiedad,
@@ -23,6 +24,7 @@ import type {
   Property,
   PropertyImage,
   Rol,
+  ScopeOption,
   TipoPropiedad,
   Usuario,
 } from "@/lib/types";
@@ -97,6 +99,7 @@ function toCard(p: ApiProperty): PropertyCardData {
     vendedor: p.user?.nombre ?? null,
     // En el listado la API manda solo la portada (o nada, si no hay fotos).
     portada: p.images?.[0]?.url ?? null,
+    created_at: p.createdAt,
   };
 }
 
@@ -380,20 +383,38 @@ export async function getInvitaciones(): Promise<Invitacion[]> {
   }));
 }
 
-// ── Sitio público ────────────────────────────────────────────────────────────
+// ── Integraciones ────────────────────────────────────────────────────────────
 
 /** Solo admin. Las revocadas no vienen. */
 export async function getApiKeys(): Promise<ApiKey[]> {
   const { data } = await apiFetch<{
-    data: { id: string; nombre: string; prefix: string; lastUsedAt: string | null; createdAt: string }[];
-  }>("/v1/api-keys");
+    data: {
+      id: string;
+      nombre: string;
+      prefix: string;
+      scopes: ApiKeyScope[];
+      lastUsedAt: string | null;
+      createdAt: string;
+    }[];
+  }>("/v1/integrations/api-keys");
   return data.map((k) => ({
     id: k.id,
     nombre: k.nombre,
     prefix: k.prefix,
+    scopes: k.scopes ?? [],
     last_used_at: k.lastUsedAt,
     created_at: k.createdAt,
   }));
+}
+
+/**
+ * Catálogo de permisos para armar el formulario. Se pide a la API en vez de
+ * hardcodear las etiquetas: si mañana aparece un scope nuevo (un portal, otra
+ * integración), el panel lo muestra sin tocar el código.
+ */
+export async function getApiKeyScopes(): Promise<ScopeOption[]> {
+  const { data } = await apiFetch<{ data: ScopeOption[] }>("/v1/integrations/scopes");
+  return data;
 }
 
 // ── Resumen de la home ───────────────────────────────────────────────────────

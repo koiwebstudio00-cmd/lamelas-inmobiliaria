@@ -1,71 +1,100 @@
 import { KeyRound } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ApiKeyForm } from "@/components/settings/api-key-form";
+import { Badge } from "@/components/ui/badge";
+import { ApiKeyDialog } from "@/components/settings/api-key-dialog";
 import { RevokeApiKeyButton } from "@/components/settings/revoke-api-key-button";
-import { getApiKeys } from "@/lib/queries";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { getApiKeys, getApiKeyScopes } from "@/lib/queries";
 import { formatDate } from "@/lib/utils";
 
 export const metadata = { title: "Configuración — Lamelas & Chaumont" };
 
 export default async function ConfiguracionPage() {
-  const keys = await getApiKeys();
+  const [keys, scopes] = await Promise.all([getApiKeys(), getApiKeyScopes()]);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold">Configuración</h1>
-        <p className="text-sm text-muted-foreground">
-          Las keys que usa el sitio público para leer las propiedades.
-        </p>
+    <div className="mx-auto max-w-5xl space-y-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">Configuración</h1>
+          <p className="text-sm text-muted-foreground">
+            Las keys que usan el sitio público y el agente de IA para hablar con
+            el sistema.
+          </p>
+        </div>
+        <ApiKeyDialog scopes={scopes} />
       </div>
 
-      <Card>
-        <CardHeader className="flex-row items-center gap-2 space-y-0 border-b bg-muted/40 py-3">
+      <section className="border bg-background">
+        <div className="flex items-center gap-2 border-b bg-muted/40 px-4 py-3">
           <KeyRound className="size-5 text-primary" />
-          <CardTitle className="text-base">Nueva key</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-4">
-          <ApiKeyForm />
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="border-b bg-muted/40 py-3">
-          <CardTitle className="text-base">Keys activas ({keys.length})</CardTitle>
-        </CardHeader>
-        <CardContent className="divide-y p-0">
+          <h2 className="font-semibold">Keys activas ({keys.length})</h2>
+        </div>
+        <div>
           {keys.length === 0 ? (
             <p className="p-6 text-center text-sm text-muted-foreground">
               No hay ninguna key activa. Sin una, el sitio público no puede leer
               las propiedades.
             </p>
           ) : (
-            keys.map((k) => (
-              <div
-                key={k.id}
-                className="flex flex-wrap items-center justify-between gap-2 p-4"
-              >
-                <div className="min-w-0">
-                  <p className="truncate font-medium">{k.nombre}</p>
-                  <p className="text-xs text-muted-foreground">
-                    <code className="font-mono">{k.prefix}…</code> · creada el{" "}
-                    {formatDate(k.created_at)} ·{" "}
-                    {k.last_used_at
-                      ? `usada por última vez el ${formatDate(k.last_used_at)}`
-                      : "todavía sin usar"}
-                  </p>
-                </div>
-                <RevokeApiKeyButton id={k.id} nombre={k.nombre} />
-              </div>
-            ))
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nombre</TableHead>
+                  <TableHead>Permisos</TableHead>
+                  <TableHead>Prefijo</TableHead>
+                  <TableHead>Creada</TableHead>
+                  <TableHead>Último uso</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {keys.map((k) => (
+                  <TableRow key={k.id}>
+                    <TableCell className="min-w-[12rem] font-medium">
+                      {k.nombre}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex min-w-[13rem] flex-wrap gap-1">
+                        {k.scopes.map((scope) => (
+                          <Badge key={scope} variant="outline" className="font-mono">
+                            {scope}
+                          </Badge>
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">
+                      {k.prefix}...
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
+                      {formatDate(k.created_at)}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
+                      {k.last_used_at ? formatDate(k.last_used_at) : "Todavía sin usar"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <RevokeApiKeyButton id={k.id} nombre={k.nombre} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
       <p className="text-xs text-muted-foreground">
-        Estas keys son de solo lectura y solo ven las propiedades de la
-        inmobiliaria: pueden viajar en el código del sitio público. Nunca uses
-        acá una contraseña ni compartas tu sesión del panel.
+        Cada key ve solo lo que le habilitan sus permisos, y siempre dentro de
+        esta inmobiliaria. La del sitio público es de solo lectura y puede
+        viajar en el código del sitio; la del agente escribe consultas y
+        derivaciones, así que va únicamente en la configuración del agente.
+        Nunca uses acá una contraseña ni compartas tu sesión del panel.
       </p>
     </div>
   );

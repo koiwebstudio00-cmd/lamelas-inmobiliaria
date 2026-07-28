@@ -16,6 +16,7 @@ export interface PropertyCardData {
   zona: string | null;
   vendedor: string | null;
   portada: string | null;
+  created_at?: string;
 }
 
 const OPERACION_LABEL: Record<Operacion, string> = {

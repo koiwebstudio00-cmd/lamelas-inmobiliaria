@@ -152,16 +152,29 @@ export type Invitacion = {
   created_at: string;
 };
 
-// ── Sitio público ────────────────────────────────────────────────────────────
+// ── Integraciones ────────────────────────────────────────────────────────────
 
 /**
- * Key de lectura que usa lamelas-web. La key completa se ve una sola vez, al
+ * Permisos de una key de integración. La lista la manda el backend
+ * (`lib/scopes.ts`); acá se replica solo la unión porque TypeScript la necesita
+ * en tiempo de compilación. Las etiquetas NO se duplican: salen del catálogo
+ * `GET /v1/integrations/scopes` (ver `getApiKeyScopes` en queries.ts).
+ */
+export type ApiKeyScope = "export:read" | "agent:read" | "agent:write";
+
+/** Una opción del catálogo de scopes, tal como la sirve la API. */
+export type ScopeOption = { scope: ApiKeyScope; label: string };
+
+/**
+ * Key de un sistema externo: hoy el sitio público (`export:read`) y el agente
+ * de IA (`agent:read` + `agent:write`). La key completa se ve una sola vez, al
  * crearla: en la base queda solo el hash y el prefijo.
  */
 export type ApiKey = {
   id: string;
   nombre: string;
   prefix: string;
+  scopes: ApiKeyScope[];
   last_used_at: string | null;
   created_at: string;
 };

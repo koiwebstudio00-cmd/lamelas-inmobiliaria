@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ImageOff } from "lucide-react";
 import { EstadoBadge } from "@/components/ui/badge";
+import { SharePropertyButton } from "@/components/properties/share-property-button";
 import {
   Table,
   TableBody,
@@ -46,12 +47,7 @@ export function PropertyTable({
             <TableHead>Zona</TableHead>
             <TableHead className="text-right">Precio</TableHead>
             <TableHead>Estado</TableHead>
-            <TableHead>Vendedor</TableHead>
-            {acciones && (
-              <TableHead>
-                <span className="sr-only">Acciones</span>
-              </TableHead>
-            )}
+            <TableHead>Acciones</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -98,14 +94,12 @@ export function PropertyTable({
               <TableCell>
                 <EstadoBadge estado={p.estado} />
               </TableCell>
-              <TableCell className="whitespace-nowrap text-muted-foreground">
-                {p.vendedor ?? "—"}
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <SharePropertyButton propertyId={p.id} compact />
+                  {acciones?.(p)}
+                </div>
               </TableCell>
-              {acciones && (
-                <TableCell>
-                  <div className="flex items-center gap-2">{acciones(p)}</div>
-                </TableCell>
-              )}
             </TableRow>
           ))}
         </TableBody>

@@ -7,6 +7,7 @@ import { EstadoSelect } from "@/components/properties/estado-select";
 import { DeletePropertyButton } from "@/components/properties/delete-property-button";
 import { PhotoManager } from "@/components/properties/photo-manager";
 import { PropertyGallery } from "@/components/properties/property-gallery";
+import { SharePropertyButton } from "@/components/properties/share-property-button";
 import { getCurrentUser } from "@/lib/api";
 import { getProperty } from "@/lib/queries";
 import { formatPrice } from "@/lib/utils";
@@ -69,7 +70,10 @@ export default async function PropiedadPage({
             {formatPrice(property.precio, property.moneda)}
           </p>
         </div>
-        <EstadoBadge estado={property.estado} />
+        <div className="flex items-center gap-2">
+          <SharePropertyButton propertyId={property.id} />
+          <EstadoBadge estado={property.estado} />
+        </div>
       </div>
 
       {isOwner && (
