@@ -101,7 +101,7 @@ export default async function HomePage() {
           <p className="text-sm text-muted-foreground">{textos.resumen}</p>
         </div>
         <Button asChild size="sm">
-          <Link href="/propiedades/nueva">
+          <Link href="/propiedades/nueva" prefetch={false}>
             <Plus /> Nueva propiedad
           </Link>
         </Button>
@@ -113,6 +113,7 @@ export default async function HomePage() {
           <Link
             key={c.estado}
             href={`${textos.verPropiedades}?estado=${c.estado}`}
+            prefetch={false}
             className="group relative overflow-hidden border bg-background p-4 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <span className="absolute inset-x-0 top-0 h-1" style={{ background: c.color }} />
@@ -136,6 +137,7 @@ export default async function HomePage() {
         ))}
         <Link
           href="/consultas?estado=nueva"
+          prefetch={false}
           className="group relative overflow-hidden border bg-background p-4 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <span className="absolute inset-x-0 top-0 h-1 bg-primary" />
@@ -163,7 +165,7 @@ export default async function HomePage() {
             <Inbox className="size-5 text-primary" /> {textos.consultas}
           </h2>
           <Button asChild variant="ghost" size="sm">
-            <Link href="/consultas">
+            <Link href="/consultas" prefetch={false}>
               Ver todas <ArrowRight />
             </Link>
           </Button>
@@ -183,7 +185,7 @@ export default async function HomePage() {
             <Building2 className="size-5 text-primary" /> {textos.propiedades}
           </h2>
           <Button asChild variant="ghost" size="sm">
-            <Link href={textos.verPropiedades}>
+            <Link href={textos.verPropiedades} prefetch={false}>
               Ver todas <ArrowRight />
             </Link>
           </Button>
@@ -219,6 +221,7 @@ function HomeLeadTable({ leads }: { leads: Lead[] }) {
               <TableCell className="min-w-[18rem] max-w-[26rem]">
                 <Link
                   href={`/consultas/${lead.id}`}
+                  prefetch={false}
                   className="block truncate font-medium hover:text-primary"
                 >
                   {lead.nombre}
@@ -244,6 +247,7 @@ function HomeLeadTable({ leads }: { leads: Lead[] }) {
                 {lead.propiedad ? (
                   <Link
                     href={`/propiedades/${lead.propiedad.id}`}
+                    prefetch={false}
                     className="block truncate text-muted-foreground hover:text-primary"
                   >
                     {lead.propiedad.titulo}
@@ -285,6 +289,7 @@ function HomePropertyTable({ properties }: { properties: PropertyCardData[] }) {
               <TableCell>
                 <Link
                   href={`/propiedades/${property.id}`}
+                  prefetch={false}
                   className="relative flex size-12 items-center justify-center bg-muted text-muted-foreground"
                 >
                   {property.portada ? (
@@ -303,6 +308,7 @@ function HomePropertyTable({ properties }: { properties: PropertyCardData[] }) {
               <TableCell className="min-w-[18rem] max-w-[28rem]">
                 <Link
                   href={`/propiedades/${property.id}`}
+                  prefetch={false}
                   className="block truncate font-medium hover:text-primary"
                 >
                   {property.titulo}

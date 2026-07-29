@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
+import { ChangeUserPasswordDialog } from "@/components/team/change-user-password-dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,6 +49,8 @@ export function UserActions({ usuario, esYo }: { usuario: Usuario; esYo: boolean
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      <ChangeUserPasswordDialog usuario={usuario} />
+
       <Select
         defaultValue={usuario.rol}
         disabled={pending}

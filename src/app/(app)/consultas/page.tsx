@@ -51,7 +51,7 @@ export default async function ConsultasPage({
         <div className="flex items-center gap-2">
           <VistaToggle vista={vista} />
           <Button asChild size="sm">
-            <Link href="/consultas/nueva">
+            <Link href="/consultas/nueva" prefetch={false}>
               <Plus /> Cargar consulta
             </Link>
           </Button>

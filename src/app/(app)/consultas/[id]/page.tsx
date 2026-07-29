@@ -39,7 +39,7 @@ export default async function ConsultaPage({
   return (
     <div className="mx-auto max-w-5xl space-y-4">
       <Button asChild variant="ghost" size="sm" className="-ml-2">
-        <Link href="/consultas">
+        <Link href="/consultas" prefetch={false}>
           <ArrowLeft /> Volver a consultas
         </Link>
       </Button>
@@ -110,7 +110,9 @@ export default async function ConsultaPage({
               )}
             </div>
             <Button asChild variant="outline" size="sm">
-              <Link href={`/propiedades/${lead.propiedad.id}`}>Ver la propiedad</Link>
+              <Link href={`/propiedades/${lead.propiedad.id}`} prefetch={false}>
+                Ver la propiedad
+              </Link>
             </Button>
           </CardContent>
         </Card>

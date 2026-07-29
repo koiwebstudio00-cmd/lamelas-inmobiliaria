@@ -33,6 +33,7 @@ export function LeadTable({ leads }: { leads: Lead[] }) {
               <TableCell className="max-w-[14rem]">
                 <Link
                   href={`/consultas/${lead.id}`}
+                  prefetch={false}
                   className="block truncate font-medium hover:text-primary"
                 >
                   {lead.nombre}
@@ -61,6 +62,7 @@ export function LeadTable({ leads }: { leads: Lead[] }) {
                 {lead.propiedad ? (
                   <Link
                     href={`/propiedades/${lead.propiedad.id}`}
+                    prefetch={false}
                     className="block truncate text-muted-foreground hover:text-primary"
                   >
                     {lead.propiedad.titulo}

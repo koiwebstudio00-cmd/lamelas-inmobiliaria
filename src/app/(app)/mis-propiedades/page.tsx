@@ -29,7 +29,7 @@ export default async function MisPropiedadesPage({
     <>
       <EstadoSelect propertyId={p.id} estado={p.estado} />
       <Button asChild variant="outline" size="sm">
-        <Link href={`/propiedades/${p.id}/editar`}>
+        <Link href={`/propiedades/${p.id}/editar`} prefetch={false}>
           <Pencil /> Editar
         </Link>
       </Button>
@@ -52,7 +52,7 @@ export default async function MisPropiedadesPage({
         <div className="flex flex-col items-center gap-3 border border-dashed p-12 text-center">
           <p className="font-medium">Todavía no cargaste propiedades</p>
           <Button asChild>
-            <Link href="/propiedades/nueva">
+            <Link href="/propiedades/nueva" prefetch={false}>
               <Plus /> Cargar la primera
             </Link>
           </Button>

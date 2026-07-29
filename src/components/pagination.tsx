@@ -31,7 +31,7 @@ export function Pagination({
     <div className="flex items-center justify-center gap-4">
       {page > 1 ? (
         <Button asChild variant="outline" size="sm">
-          <Link href={href(page - 1)}>
+          <Link href={href(page - 1)} prefetch={false}>
             <ChevronLeft /> Anterior
           </Link>
         </Button>
@@ -45,7 +45,7 @@ export function Pagination({
       </span>
       {page < totalPages ? (
         <Button asChild variant="outline" size="sm">
-          <Link href={href(page + 1)}>
+          <Link href={href(page + 1)} prefetch={false}>
             Siguiente <ChevronRight />
           </Link>
         </Button>

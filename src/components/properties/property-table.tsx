@@ -56,6 +56,7 @@ export function PropertyTable({
               <TableCell>
                 <Link
                   href={`/propiedades/${p.id}`}
+                  prefetch={false}
                   className="relative block size-12 bg-muted"
                 >
                   {p.portada ? (
@@ -76,6 +77,7 @@ export function PropertyTable({
               <TableCell className="max-w-[22rem]">
                 <Link
                   href={`/propiedades/${p.id}`}
+                  prefetch={false}
                   className="block truncate font-medium hover:text-primary"
                 >
                   {p.titulo}

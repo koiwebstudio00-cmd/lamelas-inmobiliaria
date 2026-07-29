@@ -13,7 +13,7 @@ export default async function NuevaConsultaPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-4">
       <Button asChild variant="ghost" size="sm" className="-ml-2">
-        <Link href="/consultas">
+        <Link href="/consultas" prefetch={false}>
           <ArrowLeft /> Volver a consultas
         </Link>
       </Button>

@@ -19,6 +19,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { signOut } from "@/actions/auth";
+import { cn } from "@/lib/utils";
 
 /**
  * Pie de la barra lateral: identidad de quien está adentro y sus dos acciones.
@@ -85,7 +86,11 @@ export function NavUser({ nombre, email }: { nombre: string; email: string }) {
             <DropdownMenuGroup>
               <DropdownMenuItem asChild>
                 {/* En el celular el cajón tapa la pantalla: al navegar hay que cerrarlo. */}
-                <Link href="/perfil" onClick={() => isMobile && setOpenMobile(false)}>
+                <Link
+                  href="/perfil"
+                  prefetch={false}
+                  onClick={() => isMobile && setOpenMobile(false)}
+                >
                   <UserCog />
                   Mi perfil
                 </Link>
@@ -96,12 +101,17 @@ export function NavUser({ nombre, email }: { nombre: string; email: string }) {
 
             {/* `signOut` es una Server Action: necesita un form que la dispare. */}
             <form action={signOut}>
-              <DropdownMenuItem asChild>
-                <button type="submit" className="w-full">
-                  <LogOut />
-                  Cerrar sesión
-                </button>
-              </DropdownMenuItem>
+              <button
+                type="submit"
+                className={cn(
+                  "relative flex w-full cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-hidden select-none",
+                  "focus:bg-accent focus:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground"
+                )}
+                onClick={() => isMobile && setOpenMobile(false)}
+              >
+                <LogOut />
+                Cerrar sesión
+              </button>
             </form>
           </DropdownMenuContent>
         </DropdownMenu>

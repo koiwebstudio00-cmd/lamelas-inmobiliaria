@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { ApiError, apiFetch, getCurrentUser } from "@/lib/api";
 import { esAdmin } from "@/lib/permisos";
+import { getUsuarios } from "@/lib/queries";
 
 /**
  * Equipo: usuarios e invitaciones. Todo esto es solo para admins — lo impone
@@ -94,5 +95,40 @@ export async function updateUsuario(
   }
   revalidatePath("/equipo");
   revalidatePath("/propiedades");
+  return null;
+}
+
+const changeUserPasswordSchema = z.object({
+  new_password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
+  notify: z.boolean().optional().default(true),
+});
+
+/** Cambia la contraseña temporal de otro usuario del tenant. */
+export async function changeUserPassword(
+  id: string,
+  data: { new_password: string; notify?: boolean }
+): Promise<string | null> {
+  const parsed = changeUserPasswordSchema.safeParse(data);
+  if (!parsed.success) return parsed.error.issues[0].message;
+
+  const denegado = await soloAdmin();
+  if (denegado) return denegado;
+
+  const target = (await getUsuarios()).find((u) => u.id === id);
+  if (!target) return "No encontramos ese usuario.";
+  if (target.rol === "super_admin") {
+    return "No se puede cambiar la contraseña de una cuenta de soporte.";
+  }
+
+  try {
+    await apiFetch(`/v1/users/${id}/password`, {
+      method: "POST",
+      body: parsed.data,
+    });
+  } catch (error) {
+    return message(error, "No pudimos cambiar la contraseña.");
+  }
+
+  revalidatePath("/equipo");
   return null;
 }

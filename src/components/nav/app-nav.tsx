@@ -136,7 +136,7 @@ export function AppNav({
               size="lg"
               className="h-16 gap-3 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:gap-0 [&>svg]:size-10"
             >
-              <Link href="/" onClick={alNavegar}>
+              <Link href="/" prefetch={false} onClick={alNavegar}>
                 <Logo className="shrink-0" />
                 <span className="flex flex-col font-semibold leading-tight">
                   <span>Lamelas &amp;</span>
@@ -161,6 +161,7 @@ export function AppNav({
                       <SidebarMenuButton asChild isActive={activo} tooltip={item.label}>
                         <Link
                           href={item.href!}
+                          prefetch={false}
                           onClick={alNavegar}
                           aria-current={activo ? "page" : undefined}
                         >
@@ -200,6 +201,7 @@ export function AppNav({
                                 <SidebarMenuSubButton asChild isActive={activo}>
                                   <Link
                                     href={sub.href}
+                                    prefetch={false}
                                     onClick={alNavegar}
                                     aria-current={activo ? "page" : undefined}
                                   >

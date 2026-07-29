@@ -35,6 +35,7 @@ export function PropertyCard({
     <div className="flex flex-col border bg-card shadow-sm">
       <Link
         href={`/propiedades/${property.id}`}
+        prefetch={false}
         className="relative block aspect-[4/3] bg-muted"
       >
         {property.portada ? (
@@ -59,6 +60,7 @@ export function PropertyCard({
         </p>
         <Link
           href={`/propiedades/${property.id}`}
+          prefetch={false}
           className="font-semibold hover:text-primary"
         >
           {property.titulo}

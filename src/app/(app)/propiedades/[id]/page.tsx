@@ -80,7 +80,7 @@ export default async function PropiedadPage({
         <div className="flex flex-wrap items-center gap-2 border bg-background p-3">
           <EstadoSelect propertyId={property.id} estado={property.estado} />
           <Button asChild variant="outline" size="sm">
-            <Link href={`/propiedades/${property.id}/editar`}>
+            <Link href={`/propiedades/${property.id}/editar`} prefetch={false}>
               <Pencil /> Editar
             </Link>
           </Button>

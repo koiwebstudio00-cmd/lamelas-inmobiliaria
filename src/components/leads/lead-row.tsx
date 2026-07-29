@@ -13,6 +13,7 @@ export function LeadRow({ lead }: { lead: Lead }) {
     <li className="border bg-background">
       <Link
         href={`/consultas/${lead.id}`}
+        prefetch={false}
         className="block p-4 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <div className="flex flex-wrap items-start justify-between gap-2">
