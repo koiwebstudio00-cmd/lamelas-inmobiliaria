@@ -18,7 +18,14 @@ const r2Hosts = (
 
 const nextConfig: NextConfig = {
   images: {
-    // La API ya devuelve la URL absoluta de cada foto.
+    // Las fotos ya llegan optimizadas: el navegador las redimensiona a 1600px y
+    // las pasa a WebP (~150 KB) antes de subirlas a R2. Volver a pasarlas por la
+    // optimización de imágenes de Vercel no aporta nada y consume la cuota del
+    // plan (con la cuota agotada, /_next/image responde 402 y la foto no carga).
+    // Por eso se sirven sin optimizar: next/image apunta directo a la URL de R2.
+    unoptimized: true,
+    // La API ya devuelve la URL absoluta de cada foto. Con unoptimized estos
+    // patterns no se aplican, pero se dejan por si se reactiva la optimización.
     remotePatterns: r2Hosts.map((hostname) => ({
       protocol: "https" as const,
       hostname,
