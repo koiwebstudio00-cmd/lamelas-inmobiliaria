@@ -33,24 +33,29 @@ export default async function ConsultaPage({
   const vendedores = esAdmin ? await getVendedores() : [];
 
   return (
-    <div className="space-y-4">
-      <Button asChild variant="outline" size="sm">
+    // En lg el detalle ocupa el alto de pantalla (100dvh menos header 3.5rem +
+    // padding 3rem del layout) y cada columna scrollea por dentro; en mobile es
+    // flujo normal y scrollea la página.
+    <div className="space-y-4 lg:flex lg:h-[calc(100dvh-6.5rem)] lg:flex-col">
+      <div className="space-y-4 lg:shrink-0">
+        <Button asChild variant="outline" size="sm">
           <Link href="/consultas" prefetch={false}>
             <ArrowLeft /> Volver
           </Link>
         </Button>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">{lead.nombre}</h1>
-          <p className="text-sm text-muted-foreground">
-            {lead.telefono ? `${lead.telefono} · ` : ""}Entró el {formatDateTime(lead.created_at)}
-          </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold">{lead.nombre}</h1>
+            <p className="text-sm text-muted-foreground">
+              {lead.telefono ? `${lead.telefono} · ` : ""}Entró el {formatDateTime(lead.created_at)}
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+      <div className="grid gap-4 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_340px]">
         {/* Columna principal: la conversación (o la consulta suelta) */}
-        <div className="min-w-0 space-y-4">
+        <div className="min-w-0 space-y-4 lg:min-h-0 lg:overflow-hidden">
           {chat ? (
             <LeadConversation
               conversacion={chat.conversacion}
@@ -70,8 +75,9 @@ export default async function ConsultaPage({
           )}
         </div>
 
-        {/* Sidebar: datos del lead, resumen del agente y notas internas */}
-        <div className="space-y-4">
+        {/* Sidebar: datos del lead, resumen del agente y notas internas.
+            Scrollea por dentro en lg para ver toda la info sin mover la página. */}
+        <div className="space-y-4 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
           <Card>
             <CardHeader className="border-b bg-muted/40 py-3">
               <CardTitle className="text-base">Datos del lead</CardTitle>

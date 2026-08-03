@@ -55,7 +55,7 @@ export function LeadConversation({
   const soltar = () => correr(() => releaseConversacion(conversacion.id, conversacion.lead_id));
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 lg:flex lg:h-full lg:min-h-0 lg:flex-col">
       {estado === "esperando_humano" && (
         <div className="flex flex-wrap items-center justify-between gap-3 border border-amber-200 bg-amber-50 p-4">
           <div className="flex items-start gap-2">
@@ -107,8 +107,8 @@ export function LeadConversation({
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <Card>
-        <CardHeader className="flex-row items-center justify-between gap-2 space-y-0 border-b bg-muted/40 py-3">
+      <Card className="lg:flex lg:min-h-0 lg:flex-1 lg:flex-col">
+        <CardHeader className="flex-row items-center justify-between gap-2 space-y-0 border-b bg-muted/40 py-3 lg:shrink-0">
           <div className="flex items-center gap-2">
             <MessageSquare className="size-5 text-primary" />
             <CardTitle className="text-base">Conversación</CardTitle>
@@ -123,8 +123,8 @@ export function LeadConversation({
             <RefreshCw className={cn(pending && "animate-spin")} /> Refrescar
           </Button>
         </CardHeader>
-        <CardContent className="p-0">
-          <div ref={scrollRef} className="h-[60vh] overflow-y-auto p-4">
+        <CardContent className="p-0 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col">
+          <div ref={scrollRef} className="h-[60vh] overflow-y-auto p-4 lg:h-auto lg:min-h-0 lg:flex-1">
             {mensajes.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 Todavía no hay mensajes en esta conversación.
