@@ -12,7 +12,11 @@ import type { PropertyCardData } from "@/components/properties/property-card";
 import type {
   ApiKey,
   ApiKeyScope,
+  CanalConversacion,
   CanalLead,
+  Conversacion,
+  ConversacionMensaje,
+  EstadoConversacion,
   EstadoLead,
   EstadoPropiedad,
   EstadoUsuario,
@@ -24,7 +28,9 @@ import type {
   Property,
   PropertyImage,
   Rol,
+  RolMensaje,
   ScopeOption,
+  TipoMensaje,
   TipoPropiedad,
   Usuario,
 } from "@/lib/types";
@@ -339,6 +345,101 @@ export async function getLead(id: string): Promise<LeadDetalle | null> {
         created_at: n.createdAt,
       })),
     };
+  } catch (error) {
+    if (error instanceof ApiError && [400, 403, 404].includes(error.status)) return null;
+    throw error;
+  }
+}
+
+// ── Agente de IA: conversaciones ─────────────────────────────────────────────
+// `/v1/conversations/*` ya viaja en snake_case (lo arma el módulo agent), así
+// que acá casi no hay traducción: solo normalizamos `zonas` (puede venir como
+// string suelto) y tipamos lo que consume el panel.
+
+interface ApiConversacion {
+  id: string;
+  lead_id: string;
+  canal: CanalConversacion;
+  canal_ref: string;
+  estado: EstadoConversacion;
+  bot_activo: boolean;
+  vendedor_id: string | null;
+  perfil: {
+    intencion: string | null;
+    tipo_propiedad: string | null;
+    ciudad: string | null;
+    zonas: string[] | string | null;
+    presupuesto_min: number | null;
+    presupuesto_max: number | null;
+    moneda: Moneda | null;
+    dormitorios_min: number | null;
+    property_id: string | null;
+    temperatura: string | null;
+  };
+  resumen_at: string | null;
+  creada_at: string;
+}
+
+interface ApiMensaje {
+  id: string;
+  rol: RolMensaje;
+  tipo: TipoMensaje;
+  contenido: string;
+  media_url: string | null;
+  creado_at: string;
+}
+
+function toConversacion(c: ApiConversacion): Conversacion {
+  const zonas = Array.isArray(c.perfil.zonas)
+    ? c.perfil.zonas
+    : c.perfil.zonas
+      ? [c.perfil.zonas]
+      : null;
+
+  return {
+    id: c.id,
+    lead_id: c.lead_id,
+    canal: c.canal,
+    canal_ref: c.canal_ref,
+    estado: c.estado,
+    bot_activo: c.bot_activo,
+    vendedor_id: c.vendedor_id,
+    perfil: { ...c.perfil, zonas },
+    resumen_at: c.resumen_at,
+    creada_at: c.creada_at,
+  };
+}
+
+function toMensaje(m: ApiMensaje): ConversacionMensaje {
+  return {
+    id: m.id,
+    rol: m.rol,
+    tipo: m.tipo,
+    contenido: m.contenido,
+    media_url: m.media_url,
+    creado_at: m.creado_at,
+  };
+}
+
+/**
+ * La conversación del agente para un lead (si la hay) junto con su hilo de
+ * mensajes. Un lead cargado a mano no tiene conversación: devuelve null.
+ */
+export async function getConversacionDeLead(
+  leadId: string
+): Promise<{ conversacion: Conversacion; mensajes: ConversacionMensaje[] } | null> {
+  try {
+    const { data } = await apiFetch<{ data: ApiConversacion[] }>("/v1/conversations", {
+      query: { lead_id: leadId, limit: 1 },
+    });
+    const conv = data[0];
+    if (!conv) return null;
+
+    const { data: mensajes } = await apiFetch<{ data: ApiMensaje[] }>(
+      `/v1/conversations/${conv.id}/messages`
+    );
+
+    return { conversacion: toConversacion(conv), mensajes: mensajes.map(toMensaje) };
   } catch (error) {
     if (error instanceof ApiError && [400, 403, 404].includes(error.status)) return null;
     throw error;

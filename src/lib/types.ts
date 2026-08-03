@@ -130,6 +130,59 @@ export type LeadDetalle = Lead & {
   notas: LeadNota[];
 };
 
+// ── Agente de IA: conversaciones ─────────────────────────────────────────────
+// Ojo: estos endpoints (`/v1/conversations/*`) ya devuelven snake_case, a
+// diferencia del resto de la API. La adaptación en queries.ts es casi identidad,
+// pero pasa por ahí igual para que ningún componente dependa del formato crudo.
+
+export type EstadoConversacion = "bot" | "esperando_humano" | "humano" | "cerrada";
+export type CanalConversacion = "whatsapp" | "web";
+export type RolMensaje = "lead" | "agente_ia" | "vendedor" | "sistema";
+export type TipoMensaje = "texto" | "audio" | "imagen" | "documento" | "plantilla";
+
+/** Lo que el agente fue infiriendo de lo que busca el lead. Todo opcional. */
+export type PerfilConversacion = {
+  intencion: string | null;
+  tipo_propiedad: string | null;
+  ciudad: string | null;
+  zonas: string[] | null;
+  presupuesto_min: number | null;
+  presupuesto_max: number | null;
+  moneda: Moneda | null;
+  dormitorios_min: number | null;
+  property_id: string | null;
+  temperatura: string | null;
+};
+
+export type Conversacion = {
+  id: string;
+  lead_id: string;
+  canal: CanalConversacion;
+  canal_ref: string;
+  estado: EstadoConversacion;
+  bot_activo: boolean;
+  vendedor_id: string | null;
+  perfil: PerfilConversacion;
+  resumen_at: string | null;
+  creada_at: string;
+};
+
+export type ConversacionMensaje = {
+  id: string;
+  rol: RolMensaje;
+  tipo: TipoMensaje;
+  contenido: string;
+  media_url: string | null;
+  creado_at: string;
+};
+
+export const ESTADOS_CONVERSACION: { value: EstadoConversacion; label: string }[] = [
+  { value: "bot", label: "Atiende el bot" },
+  { value: "esperando_humano", label: "Esperando que la tomen" },
+  { value: "humano", label: "La tomó un vendedor" },
+  { value: "cerrada", label: "Cerrada" },
+];
+
 // ── Equipo ───────────────────────────────────────────────────────────────────
 
 export type EstadoUsuario = "activo" | "inactivo";

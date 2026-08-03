@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Home, Mail, MessageSquare, Phone, UserCheck } from "lucide-react";
+import { ArrowLeft, Bot, Home, Mail, MessageSquare, Phone, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CanalBadge, LeadEstadoBadge } from "@/components/leads/estado-badge";
 import { LeadAssignSelect } from "@/components/leads/lead-assign-select";
+import { LeadConversation } from "@/components/leads/lead-conversation";
 import { LeadEstadoSelect } from "@/components/leads/lead-estado-select";
 import { LeadNotes } from "@/components/leads/lead-notes";
 import { getCurrentUser } from "@/lib/api";
-import { getLead, getVendedores } from "@/lib/queries";
+import { getConversacionDeLead, getLead, getVendedores } from "@/lib/queries";
 import { formatDateTime } from "@/lib/utils";
 
 export const metadata = { title: "Consulta — Lamelas & Chaumont" };
@@ -19,7 +20,11 @@ export default async function ConsultaPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [lead, me] = await Promise.all([getLead(id), getCurrentUser()]);
+  const [lead, me, chat] = await Promise.all([
+    getLead(id),
+    getCurrentUser(),
+    getConversacionDeLead(id),
+  ]);
 
   if (!lead) notFound();
 
@@ -82,6 +87,22 @@ export default async function ConsultaPage({
             </Button>
           ))}
         </div>
+      )}
+
+      {chat && (
+        <Card>
+          <CardHeader className="flex-row items-center gap-2 space-y-0 border-b bg-muted/40 py-3">
+            <Bot className="size-5 text-primary" />
+            <CardTitle className="text-base">Conversación con el agente</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <LeadConversation
+              conversacion={chat.conversacion}
+              mensajes={chat.mensajes}
+              leadNombre={lead.nombre}
+            />
+          </CardContent>
+        </Card>
       )}
 
       <Card>
