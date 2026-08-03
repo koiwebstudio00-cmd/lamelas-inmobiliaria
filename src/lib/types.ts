@@ -143,7 +143,7 @@ export type TipoMensaje = "texto" | "audio" | "imagen" | "documento" | "plantill
 /** Lo que el agente fue infiriendo de lo que busca el lead. Todo opcional. */
 export type PerfilConversacion = {
   intencion: string | null;
-  tipo_propiedad: string | null;
+  tipo_propiedad: string[] | null;
   ciudad: string | null;
   zonas: string[] | null;
   presupuesto_min: number | null;

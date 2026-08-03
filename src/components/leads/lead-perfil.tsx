@@ -9,7 +9,10 @@ const TEMPERATURA: Record<string, string> = {
   caliente: "Caliente",
 };
 
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+const cap = (s: string) => {
+  const t = String(s);
+  return t.charAt(0).toUpperCase() + t.slice(1);
+};
 
 function presupuesto(p: PerfilConversacion): string | null {
   if (p.presupuesto_min == null && p.presupuesto_max == null) return null;
@@ -25,9 +28,13 @@ function presupuesto(p: PerfilConversacion): string | null {
 export function LeadPerfil({ perfil }: { perfil: PerfilConversacion }) {
   const zona = perfil.zonas?.length ? perfil.zonas.join(", ") : perfil.ciudad;
 
+  const tipos = perfil.tipo_propiedad?.length
+    ? perfil.tipo_propiedad.map(cap).join(", ")
+    : null;
+
   const rows: [string, string][] = [];
   if (perfil.intencion) rows.push(["Intención", cap(perfil.intencion)]);
-  if (perfil.tipo_propiedad) rows.push(["Tipo", cap(perfil.tipo_propiedad)]);
+  if (tipos) rows.push(["Tipo", tipos]);
   if (zona) rows.push(["Zona", zona]);
   if (perfil.dormitorios_min) rows.push(["Dormitorios", `${perfil.dormitorios_min}+`]);
   const pres = presupuesto(perfil);

@@ -366,7 +366,7 @@ interface ApiConversacion {
   vendedor_id: string | null;
   perfil: {
     intencion: string | null;
-    tipo_propiedad: string | null;
+    tipo_propiedad: string[] | string | null;
     ciudad: string | null;
     zonas: string[] | string | null;
     presupuesto_min: number | null;
@@ -389,13 +389,12 @@ interface ApiMensaje {
   creado_at: string;
 }
 
-function toConversacion(c: ApiConversacion): Conversacion {
-  const zonas = Array.isArray(c.perfil.zonas)
-    ? c.perfil.zonas
-    : c.perfil.zonas
-      ? [c.perfil.zonas]
-      : null;
+// Algunos campos del perfil son arrays en la API (columnas de array en la BD),
+// pero pueden llegar como valor suelto: se normalizan a array acá.
+const aArray = (v: string[] | string | null): string[] | null =>
+  Array.isArray(v) ? v : v ? [v] : null;
 
+function toConversacion(c: ApiConversacion): Conversacion {
   return {
     id: c.id,
     lead_id: c.lead_id,
@@ -404,7 +403,11 @@ function toConversacion(c: ApiConversacion): Conversacion {
     estado: c.estado,
     bot_activo: c.bot_activo,
     vendedor_id: c.vendedor_id,
-    perfil: { ...c.perfil, zonas },
+    perfil: {
+      ...c.perfil,
+      tipo_propiedad: aArray(c.perfil.tipo_propiedad),
+      zonas: aArray(c.perfil.zonas),
+    },
     resumen_at: c.resumen_at,
     creada_at: c.creada_at,
   };
