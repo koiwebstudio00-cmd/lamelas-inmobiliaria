@@ -25,7 +25,7 @@ export function LeadAssignSelect({
       defaultValue={assignedTo ?? ""}
       disabled={pending}
       aria-label="Vendedor asignado"
-      className="h-9 w-48 text-sm"
+      className="h-9 text-sm"
       onChange={(e) => {
         const value = e.target.value;
         startTransition(async () => {

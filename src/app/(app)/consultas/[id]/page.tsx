@@ -33,7 +33,12 @@ export default async function ConsultaPage({
   const vendedores = esAdmin ? await getVendedores() : [];
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4">
+    <div className="space-y-4">
+      <Button asChild variant="outline" size="sm">
+          <Link href="/consultas" prefetch={false}>
+            <ArrowLeft /> Volver
+          </Link>
+        </Button>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold">{lead.nombre}</h1>
@@ -41,11 +46,6 @@ export default async function ConsultaPage({
             {lead.telefono ? `${lead.telefono} · ` : ""}Entró el {formatDateTime(lead.created_at)}
           </p>
         </div>
-        <Button asChild variant="outline" size="sm">
-          <Link href="/consultas" prefetch={false}>
-            <ArrowLeft /> Volver
-          </Link>
-        </Button>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">

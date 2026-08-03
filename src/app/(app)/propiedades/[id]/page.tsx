@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Pencil, MapPin, BedDouble, Bath, Ruler, LayoutGrid, StickyNote } from "lucide-react";
+import { Pencil, MapPin, BedDouble, Bath, Ruler, LayoutGrid, StickyNote, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EstadoBadge } from "@/components/ui/badge";
 import { EstadoSelect } from "@/components/properties/estado-select";
@@ -59,7 +59,12 @@ export default async function PropiedadPage({
     .join(" · ");
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6">
+      <Button asChild variant="outline" size="sm">
+          <Link href="/propiedades" prefetch={false}>
+            <ArrowLeft /> Volver
+          </Link>
+        </Button>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
           <p className="text-xs uppercase text-muted-foreground">

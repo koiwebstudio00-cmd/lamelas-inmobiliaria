@@ -20,7 +20,7 @@ export function LeadEstadoSelect({
       defaultValue={estado}
       disabled={pending}
       aria-label="Estado de la consulta"
-      className="h-9 w-40 text-sm"
+      className="h-9 text-sm"
       onChange={(e) => {
         const value = e.target.value;
         startTransition(async () => {
