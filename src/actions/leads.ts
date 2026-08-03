@@ -85,6 +85,45 @@ export async function addLeadNote(
   return { success: "Nota guardada." };
 }
 
+/** Editar los datos básicos del lead (nombre y email). El teléfono no se edita acá. */
+const datosSchema = z.object({
+  nombre: z.string().trim().min(1, "Ingresá el nombre de quien consulta"),
+  email: z.union([z.string().trim().email("Email inválido"), z.literal("")]).optional(),
+});
+
+export async function updateLeadDatos(
+  id: string,
+  _prev: LeadFormState,
+  formData: FormData
+): Promise<LeadFormState> {
+  const parsed = datosSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+  try {
+    // email "" borra el email en la API (lo normaliza a null).
+    await apiFetch(`/v1/leads/${id}`, {
+      method: "PATCH",
+      body: { nombre: parsed.data.nombre, email: parsed.data.email ?? "" },
+    });
+  } catch (error) {
+    return { error: message(error, "No pudimos guardar los cambios.") };
+  }
+  revalidar(id);
+  return { success: "Datos actualizados." };
+}
+
+/** Elimina la consulta (solo admin; la API rechaza a un vendedor). Borra en cascada. */
+export async function deleteLead(id: string): Promise<string | null> {
+  try {
+    await apiFetch(`/v1/leads/${id}`, { method: "DELETE" });
+  } catch (error) {
+    return message(error, "No pudimos eliminar la consulta.");
+  }
+  revalidatePath("/");
+  revalidatePath("/consultas");
+  redirect("/consultas");
+}
+
 /**
  * Alta manual: alguien llamó por teléfono o pasó por la oficina. La API la
  * asigna a quien la carga y la marca con canal "manual".

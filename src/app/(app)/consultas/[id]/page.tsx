@@ -1,17 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Home, Mail, MessageSquare, Phone } from "lucide-react";
+import { ArrowLeft, Home, Mail, MessageCircle, MessageSquare, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CanalBadge } from "@/components/leads/estado-badge";
 import { LeadAssignSelect } from "@/components/leads/lead-assign-select";
 import { LeadConversation } from "@/components/leads/lead-conversation";
+import { LeadEditarDatos } from "@/components/leads/lead-editar-datos";
+import { LeadEliminar } from "@/components/leads/lead-eliminar";
 import { LeadEstadoSelect } from "@/components/leads/lead-estado-select";
 import { LeadNotes } from "@/components/leads/lead-notes";
 import { LeadPerfil } from "@/components/leads/lead-perfil";
 import { getCurrentUser } from "@/lib/api";
 import { getConversacionDeLead, getLead, getVendedores } from "@/lib/queries";
-import { formatDateTime } from "@/lib/utils";
+import { formatDateTime, waLink } from "@/lib/utils";
 
 export const metadata = { title: "Consulta — Lamelas & Chaumont" };
 
@@ -31,6 +33,11 @@ export default async function ConsultaPage({
 
   const esAdmin = me?.rol === "admin" || me?.rol === "super_admin";
   const vendedores = esAdmin ? await getVendedores() : [];
+
+  // El brief del agente se guarda como nota con origen "agente"; se muestra en
+  // su propia card, aparte de las notas que escribe el equipo.
+  const notasAgente = lead.notas.filter((n) => n.origen === "agente");
+  const notasHumanas = lead.notas.filter((n) => n.origen !== "agente");
 
   return (
     // En lg el detalle ocupa el alto de pantalla (100dvh menos header 3.5rem +
@@ -79,8 +86,9 @@ export default async function ConsultaPage({
             Scrollea por dentro en lg para ver toda la info sin mover la página. */}
         <div className="space-y-4 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
           <Card>
-            <CardHeader className="border-b bg-muted/40 py-3">
+            <CardHeader className="flex-row items-center justify-between gap-2 space-y-0 border-b bg-muted/40 py-3">
               <CardTitle className="text-base">Datos del lead</CardTitle>
+              <LeadEditarDatos leadId={lead.id} nombre={lead.nombre} email={lead.email} />
             </CardHeader>
             <CardContent className="space-y-4 pt-4 text-sm">
               <div className="space-y-1.5">
@@ -139,16 +147,36 @@ export default async function ConsultaPage({
                   </dd>
                 </div>
               </dl>
+
+              {lead.canal === "whatsapp" && lead.telefono && (
+                <Button asChild variant="outline" size="sm" className="w-full">
+                  <a href={waLink(lead.telefono)} target="_blank" rel="noopener noreferrer">
+                    <MessageCircle /> Abrir WhatsApp
+                  </a>
+                </Button>
+              )}
             </CardContent>
           </Card>
 
-          {chat && (
+          {(chat || notasAgente.length > 0) && (
             <Card>
               <CardHeader className="border-b bg-muted/40 py-3">
                 <CardTitle className="text-base">Resumen del agente</CardTitle>
               </CardHeader>
-              <CardContent className="pt-4">
-                <LeadPerfil perfil={chat.conversacion.perfil} />
+              <CardContent className="space-y-4 pt-4">
+                {chat && <LeadPerfil perfil={chat.conversacion.perfil} />}
+                {notasAgente.length > 0 && (
+                  <div className="space-y-3 border-t pt-3">
+                    {notasAgente.map((n) => (
+                      <div key={n.id}>
+                        <p className="whitespace-pre-wrap text-sm">{n.nota}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {formatDateTime(n.created_at)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
@@ -182,9 +210,11 @@ export default async function ConsultaPage({
               <CardTitle className="text-base">Notas internas</CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
-              <LeadNotes leadId={lead.id} notas={lead.notas} />
+              <LeadNotes leadId={lead.id} notas={notasHumanas} />
             </CardContent>
           </Card>
+
+          {esAdmin && <LeadEliminar leadId={lead.id} />}
         </div>
       </div>
     </div>

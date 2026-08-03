@@ -1,3 +1,4 @@
+import { Globe, Instagram, MessageCircle, MessageSquare, PhoneCall } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { CanalLead, EstadoLead } from "@/lib/types";
 
@@ -45,9 +46,21 @@ const CANAL_LABELS: Record<CanalLead, string> = {
   manual: "Carga manual",
 };
 
+// lucide no trae el logo oficial de WhatsApp; se usa un ícono genérico de
+// mensaje. El resto sí tiene ícono propio.
+const CANAL_ICONS: Record<CanalLead, typeof Globe> = {
+  web: Globe,
+  whatsapp: MessageCircle,
+  instagram: Instagram,
+  messenger: MessageSquare,
+  manual: PhoneCall,
+};
+
 export function CanalBadge({ canal }: { canal: CanalLead }) {
+  const Icon = CANAL_ICONS[canal];
   return (
-    <span className="inline-flex items-center border px-2 py-0.5 text-xs text-muted-foreground">
+    <span className="inline-flex items-center gap-1 border px-2 py-0.5 text-xs text-muted-foreground">
+      <Icon className="size-3.5 shrink-0" />
       {CANAL_LABELS[canal]}
     </span>
   );

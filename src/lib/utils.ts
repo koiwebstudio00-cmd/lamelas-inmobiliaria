@@ -31,6 +31,22 @@ export function formatDate(iso: string) {
   }).format(new Date(iso));
 }
 
+/**
+ * Link `wa.me` para abrir un chat de WhatsApp con el teléfono del lead.
+ *
+ * Kapso guarda los números argentinos sin el `9` de celular (ej.
+ * `543815773949`), pero WhatsApp lo necesita para celulares. Si el número
+ * empieza en `54` y no tiene el `9` justo después, se lo inserta. Números de
+ * otros países quedan tal cual (solo se limpian los no-dígitos).
+ */
+export function waLink(telefono: string) {
+  let d = telefono.replace(/\D/g, "");
+  if (d.startsWith("54") && d[2] !== "9") {
+    d = "549" + d.slice(2);
+  }
+  return `https://wa.me/${d}`;
+}
+
 export function formatDateTime(iso: string) {
   return new Intl.DateTimeFormat("es-AR", {
     day: "2-digit",

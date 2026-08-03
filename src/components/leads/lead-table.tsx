@@ -22,7 +22,7 @@ export function LeadTable({ leads }: { leads: Lead[] }) {
             <TableHead>Nombre</TableHead>
             <TableHead>Contacto</TableHead>
             <TableHead>Canal</TableHead>
-            <TableHead>Propiedad</TableHead>
+            <TableHead>Consultó por</TableHead>
             <TableHead>Estado</TableHead>
             <TableHead className="text-right">Entró</TableHead>
           </TableRow>

@@ -117,10 +117,14 @@ export type Lead = {
   created_at: string;
 };
 
+export type OrigenNota = "humano" | "agente";
+
 export type LeadNota = {
   id: string;
   nota: string;
   autor: string | null;
+  /** Quién la escribió: el equipo (`humano`) o el agente de IA (`agente`). */
+  origen: OrigenNota;
   created_at: string;
 };
 

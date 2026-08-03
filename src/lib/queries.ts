@@ -274,6 +274,7 @@ interface ApiLead {
 interface ApiLeadNote {
   id: string;
   nota: string;
+  origen?: "humano" | "agente";
   createdAt: string;
   user?: { id: string; nombre: string } | null;
 }
@@ -342,6 +343,7 @@ export async function getLead(id: string): Promise<LeadDetalle | null> {
         id: n.id,
         nota: n.nota,
         autor: n.user?.nombre ?? null,
+        origen: n.origen ?? "humano",
         created_at: n.createdAt,
       })),
     };
