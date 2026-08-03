@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Bot, MessageSquare, Paperclip, RefreshCw, Undo2, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,8 +31,16 @@ export function LeadConversation({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const { estado } = conversacion;
+
+  // El hilo abre mostrando lo último (como cualquier chat). Se reancla cuando
+  // cambia la cantidad de mensajes (p. ej. tras "Refrescar").
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [mensajes.length]);
 
   function correr(fn: () => Promise<string | null>) {
     setError(null);
@@ -115,13 +123,14 @@ export function LeadConversation({
             <RefreshCw className={cn(pending && "animate-spin")} /> Refrescar
           </Button>
         </CardHeader>
-        <CardContent className="pt-4">
-          {mensajes.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Todavía no hay mensajes en esta conversación.
-            </p>
-          ) : (
-            <ul className="space-y-3">
+        <CardContent className="p-0">
+          <div ref={scrollRef} className="h-[60vh] overflow-y-auto p-4">
+            {mensajes.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Todavía no hay mensajes en esta conversación.
+              </p>
+            ) : (
+              <ul className="space-y-3">
               {mensajes.map((m) => {
                 const rol = ROL[m.rol];
                 const etiqueta = m.rol === "lead" ? leadNombre : rol.etiqueta;
@@ -167,8 +176,9 @@ export function LeadConversation({
                   </li>
                 );
               })}
-            </ul>
-          )}
+              </ul>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
