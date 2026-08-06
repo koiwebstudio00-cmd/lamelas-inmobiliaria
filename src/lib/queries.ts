@@ -20,6 +20,10 @@ import type {
   EstadoLead,
   EstadoPropiedad,
   EstadoUsuario,
+  FeedbackDetalle,
+  FeedbackEstado,
+  FeedbackItem,
+  FeedbackTipo,
   Invitacion,
   Lead,
   LeadDetalle,
@@ -588,4 +592,85 @@ export async function getPropiedadesParaSelect(): Promise<{ id: string; titulo: 
   return data
     .map((p) => ({ id: p.id, titulo: p.titulo }))
     .sort((a, b) => a.titulo.localeCompare(b.titulo, "es"));
+}
+
+// ── Feedback: sugerencias y reportes de error ────────────────────────────────
+
+interface ApiFeedback {
+  id: string;
+  tipo: FeedbackTipo;
+  titulo: string;
+  descripcion: string;
+  estado: FeedbackEstado;
+  urlContexto: string | null;
+  userAgent?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  autor?: { id: string; nombre: string } | null;
+  _count?: { adjuntos: number; comentarios: number };
+  adjuntos?: { id: string; url: string; orden: number }[];
+  comentarios?: { id: string; cuerpo: string; createdAt: string; autor?: { id: string; nombre: string } | null }[];
+}
+
+function toFeedback(f: ApiFeedback): FeedbackItem {
+  return {
+    id: f.id,
+    tipo: f.tipo,
+    titulo: f.titulo,
+    descripcion: f.descripcion,
+    estado: f.estado,
+    url_contexto: f.urlContexto,
+    autor: f.autor ? { id: f.autor.id, nombre: f.autor.nombre } : null,
+    adjuntos_count: f._count?.adjuntos ?? 0,
+    comentarios_count: f._count?.comentarios ?? 0,
+    created_at: f.createdAt,
+    updated_at: f.updatedAt,
+  };
+}
+
+export interface FeedbackListFilters {
+  tipo?: string;
+  estado?: string;
+  q?: string;
+  pagina?: number;
+}
+
+const FEEDBACK_TIPOS = ["sugerencia", "error"] as const;
+const FEEDBACK_ESTADOS = ["nuevo", "en_revision", "planificada", "resuelta", "descartada"] as const;
+
+export async function getFeedbackList(filters: FeedbackListFilters) {
+  const page = Math.max(1, filters.pagina || 1);
+  const { data, meta } = await apiFetch<{
+    data: ApiFeedback[];
+    meta: { page: number; limit: number; total: number };
+  }>("/v1/feedback", {
+    query: {
+      tipo: oneOf(FEEDBACK_TIPOS, filters.tipo),
+      estado: oneOf(FEEDBACK_ESTADOS, filters.estado),
+      q: filters.q?.trim(),
+      page,
+      limit: PAGE_SIZE,
+    },
+  });
+  return { items: data.map(toFeedback), count: meta.total, page: meta.page };
+}
+
+export async function getFeedbackItem(id: string): Promise<FeedbackDetalle | null> {
+  try {
+    const { item } = await apiFetch<{ item: ApiFeedback }>(`/v1/feedback/${id}`);
+    return {
+      ...toFeedback(item),
+      user_agent: item.userAgent ?? null,
+      adjuntos: (item.adjuntos ?? []).map((a) => ({ id: a.id, url: a.url, orden: a.orden })),
+      comentarios: (item.comentarios ?? []).map((c) => ({
+        id: c.id,
+        cuerpo: c.cuerpo,
+        autor: c.autor?.nombre ?? null,
+        created_at: c.createdAt,
+      })),
+    };
+  } catch (error) {
+    if (error instanceof ApiError && [400, 403, 404].includes(error.status)) return null;
+    throw error;
+  }
 }

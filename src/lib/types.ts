@@ -257,3 +257,47 @@ export const ROLES: { value: "admin" | "agente"; label: string }[] = [
   { value: "admin", label: "Administrador" },
   { value: "agente", label: "Vendedor" },
 ];
+
+// ── Feedback: sugerencias y reportes de error del panel ──────────────────────
+
+export type FeedbackTipo = "sugerencia" | "error";
+export type FeedbackEstado = "nuevo" | "en_revision" | "planificada" | "resuelta" | "descartada";
+
+export type FeedbackAutor = { id: string; nombre: string };
+
+export type FeedbackItem = {
+  id: string;
+  tipo: FeedbackTipo;
+  titulo: string;
+  descripcion: string;
+  estado: FeedbackEstado;
+  url_contexto: string | null;
+  autor: FeedbackAutor | null;
+  adjuntos_count: number;
+  comentarios_count: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type FeedbackAdjunto = { id: string; url: string; orden: number };
+
+export type FeedbackComentario = {
+  id: string;
+  cuerpo: string;
+  autor: string | null;
+  created_at: string;
+};
+
+export type FeedbackDetalle = FeedbackItem & {
+  user_agent: string | null;
+  adjuntos: FeedbackAdjunto[];
+  comentarios: FeedbackComentario[];
+};
+
+export const ESTADOS_FEEDBACK: { value: FeedbackEstado; label: string }[] = [
+  { value: "nuevo", label: "Nuevo" },
+  { value: "en_revision", label: "En revisión" },
+  { value: "planificada", label: "Planificada" },
+  { value: "resuelta", label: "Resuelta" },
+  { value: "descartada", label: "Descartada" },
+];

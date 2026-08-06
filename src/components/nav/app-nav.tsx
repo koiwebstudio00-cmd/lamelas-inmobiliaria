@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Bot,
   Building2,
   ChevronRight,
   Home,
   Inbox,
   KeyRound,
+  Megaphone,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -81,6 +83,16 @@ const ITEMS: Item[] = [
       { href: "/consultas/nueva", label: "Nueva consulta" },
     ],
   },
+  {
+    label: "Feedback",
+    icon: Megaphone,
+    soloAdmin: false,
+    subs: [
+      { href: "/feedback/sugerencias", label: "Sugerencias", incluye: ["/feedback/sugerencias/"] },
+      { href: "/feedback/reportes", label: "Reportes de error", incluye: ["/feedback/reportes/"] },
+    ],
+  },
+  { href: "/probar-agente", label: "Probar agente", icon: Bot, soloAdmin: true, subs: [] },
   { href: "/equipo", label: "Equipo", icon: Users, soloAdmin: true, subs: [] },
   {
     href: "/configuracion",
