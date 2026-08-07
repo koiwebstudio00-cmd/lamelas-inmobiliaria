@@ -267,6 +267,7 @@ interface ApiLead {
   telefono: string | null;
   mensaje: string;
   canal: CanalLead;
+  canalRef?: string | null;
   estado: EstadoLead;
   assignedTo: string | null;
   createdAt: string;
@@ -291,6 +292,7 @@ function toLead(l: ApiLead): Lead {
     telefono: l.telefono,
     mensaje: l.mensaje,
     canal: l.canal,
+    canal_ref: l.canalRef ?? null,
     estado: l.estado,
     assigned_to: l.assignedTo,
     propiedad: l.property
@@ -333,7 +335,8 @@ export async function getLeads(filters: LeadFilters) {
     },
   });
 
-  return { leads: data.map(toLead), count: meta.total, page: meta.page };
+  const leads = data.map(toLead).filter((l) => !(l.canal_ref ?? "").startsWith("prueba-"));
+  return { leads, count: meta.total, page: meta.page };
 }
 
 /** Devuelve null si no existe o si el usuario no tiene permiso de verla. */
@@ -574,7 +577,7 @@ export async function getResumen(): Promise<Resumen> {
   return {
     propiedades: { disponible, reservada, vendida },
     consultasNuevas: nuevas,
-    ultimasConsultas: consultas.data.map(toLead),
+    ultimasConsultas: consultas.data.map(toLead).filter((l) => !(l.canal_ref ?? "").startsWith("prueba-")),
     ultimasPropiedades: propiedades.data.map(toCard),
   };
 }
@@ -673,4 +676,33 @@ export async function getFeedbackItem(id: string): Promise<FeedbackDetalle | nul
     if (error instanceof ApiError && [400, 403, 404].includes(error.status)) return null;
     throw error;
   }
+}
+
+// ── Probador del agente ──────────────────────────────────────────────────────
+
+export interface ConversacionPrueba {
+  lead_id: string;
+  session_id: string;
+  estado: EstadoLead;
+  created_at: string;
+}
+
+/**
+ * Conversaciones de prueba: leads de canal `web` cuyo `canal_ref` (el session_id)
+ * empieza con `prueba-`. Se sobre-traen y filtran en el cliente (bien mientras el
+ * volumen sea bajo). Ordenadas de la más nueva a la más vieja.
+ */
+export async function getConversacionesPrueba(): Promise<ConversacionPrueba[]> {
+  const { data } = await apiFetch<{ data: ApiLead[]; meta: { total: number } }>("/v1/leads", {
+    query: { canal: "web", page: 1, limit: 100 },
+  });
+  return data
+    .filter((l) => (l.canalRef ?? "").startsWith("prueba-"))
+    .map((l) => ({
+      lead_id: l.id,
+      session_id: l.canalRef as string,
+      estado: l.estado,
+      created_at: l.createdAt,
+    }))
+    .sort((a, b) => b.created_at.localeCompare(a.created_at));
 }

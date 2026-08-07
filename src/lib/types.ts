@@ -111,6 +111,7 @@ export type Lead = {
   telefono: string | null;
   mensaje: string;
   canal: CanalLead;
+  canal_ref: string | null;
   estado: EstadoLead;
   assigned_to: string | null;
   propiedad: LeadPropiedad | null;
