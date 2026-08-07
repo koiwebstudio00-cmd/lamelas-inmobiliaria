@@ -53,6 +53,7 @@ export type Property = {
   sup_total: number | null;
   estado: EstadoPropiedad;
   notas: string | null;
+  requisitos: string | null;
   created_at: string;
   updated_at: string;
 }

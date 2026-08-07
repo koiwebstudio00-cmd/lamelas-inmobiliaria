@@ -8,6 +8,7 @@ import {
   BedDouble,
   Building2,
   Camera,
+  ClipboardList,
   DoorOpen,
   ImagePlus,
   MapPin,
@@ -272,6 +273,23 @@ export function PropertyForm({
               />
             </Field>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <SectionHeader icon={ClipboardList} title="Requisitos de alquiler" optional />
+        <CardContent className="space-y-3 pt-4">
+          <Field label="Requisitos para alquilar" htmlFor="requisitos" error={e.requisitos}>
+            <Textarea
+              id="requisitos"
+              name="requisitos"
+              defaultValue={property?.requisitos ?? ""}
+              placeholder="Garantía propietaria, recibo de sueldo, depósito, seguro de caución..."
+            />
+          </Field>
+          <p className="text-xs text-muted-foreground">
+            Sofi (el asistente) puede compartir estos requisitos con quien consulte por el alquiler.
+          </p>
         </CardContent>
       </Card>
 

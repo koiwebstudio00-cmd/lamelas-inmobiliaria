@@ -81,6 +81,7 @@ interface ApiProperty {
   supTotal: string | null;
   estado: EstadoPropiedad;
   notas: string | null;
+  requisitos: string | null;
   createdAt: string;
   updatedAt: string;
   images?: ApiImage[];
@@ -134,6 +135,7 @@ function toProperty(p: ApiProperty): Property {
     sup_total: num(p.supTotal),
     estado: p.estado,
     notas: p.notas,
+    requisitos: p.requisitos,
     created_at: p.createdAt,
     updated_at: p.updatedAt,
   };

@@ -39,6 +39,7 @@ export const propertySchema = z.object({
   banios: optionalInt,
   sup_cubierta: optionalDecimal,
   sup_total: optionalDecimal,
+  requisitos: optionalText,
   notas: optionalText,
 });
 

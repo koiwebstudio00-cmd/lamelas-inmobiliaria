@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Pencil, MapPin, BedDouble, Bath, Ruler, LayoutGrid, StickyNote, ArrowLeft } from "lucide-react";
+import { Pencil, MapPin, BedDouble, Bath, Ruler, LayoutGrid, ClipboardList, StickyNote, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EstadoBadge } from "@/components/ui/badge";
 import { EstadoSelect } from "@/components/properties/estado-select";
@@ -127,6 +127,15 @@ export default async function PropiedadPage({
               Descripción
             </h2>
             <p className="whitespace-pre-wrap text-sm">{property.descripcion}</p>
+          </div>
+        )}
+
+        {property.requisitos && (
+          <div>
+            <h2 className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+              <ClipboardList className="size-4" /> Requisitos de alquiler
+            </h2>
+            <p className="whitespace-pre-wrap text-sm">{property.requisitos}</p>
           </div>
         )}
 

@@ -99,7 +99,14 @@ export function NavUser({ nombre, email }: { nombre: string; email: string }) {
 
             <DropdownMenuSeparator />
 
-            {/* `signOut` es una Server Action: necesita un form que la dispare. */}
+            {/*
+              `signOut` es una Server Action: necesita un form que la dispare.
+              OJO: en mobile NO cerramos el cajón acá. Cerrarlo (setOpenMobile)
+              desmonta este <form> del DOM en el mismo click que el submit, y el
+              browser cancela el envío con "form is not connected" → el logout no
+              se dispara. Como `signOut` redirige a /login, el sidebar se
+              desmonta solo; no hace falta cerrarlo a mano.
+            */}
             <form action={signOut}>
               <button
                 type="submit"
@@ -107,7 +114,6 @@ export function NavUser({ nombre, email }: { nombre: string; email: string }) {
                   "relative flex w-full cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-hidden select-none",
                   "focus:bg-accent focus:text-accent-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground"
                 )}
-                onClick={() => isMobile && setOpenMobile(false)}
               >
                 <LogOut />
                 Cerrar sesión
