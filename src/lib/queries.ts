@@ -593,13 +593,18 @@ export async function getResumen(): Promise<Resumen> {
  * alguna vez hay más propiedades que eso, hay que cambiarlo por un buscador.
  */
 export async function getPropiedadesParaSelect(): Promise<{ id: string; titulo: string }[]> {
-  const { data } = await apiFetch<ListResponse>("/v1/properties", {
-    query: { estado: "disponible", page: 1, limit: 100 },
-  });
-
-  return data
-    .map((p) => ({ id: p.id, titulo: p.titulo }))
-    .sort((a, b) => a.titulo.localeCompare(b.titulo, "es"));
+  // Traemos TODAS las disponibles, no solo las primeras 100: la API topa el
+  // limit en 100, asi que paginamos hasta juntarlas todas (si no, una propiedad
+  // disponible "vieja" no aparecia en el selector).
+  const acc: { id: string; titulo: string }[] = [];
+  for (let page = 1; ; page++) {
+    const { data, meta } = await apiFetch<ListResponse>("/v1/properties", {
+      query: { estado: "disponible", page, limit: 100 },
+    });
+    acc.push(...data.map((p) => ({ id: p.id, titulo: p.titulo })));
+    if (data.length === 0 || acc.length >= meta.total) break;
+  }
+  return acc.sort((a, b) => a.titulo.localeCompare(b.titulo, "es"));
 }
 
 // ── Feedback: sugerencias y reportes de error ────────────────────────────────

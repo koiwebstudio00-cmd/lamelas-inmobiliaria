@@ -32,7 +32,12 @@ const leadSchema = z.object({
   telefono: z.string().trim().max(50).optional(),
   email: z.union([z.string().trim().email("Email inválido"), z.literal("")]).optional(),
   mensaje: z.string().trim().min(1, "Escribí de qué se trata la consulta"),
-  property_id: z.string().uuid().optional(),
+  // El <select> manda "" cuando es "Ninguna en particular"; z.uuid() lo
+  // rechaza, asi que normalizamos ese vacio a undefined antes de validar.
+  property_id: z.preprocess(
+    (v) => (v === "" ? undefined : v),
+    z.string().uuid("Elegí una propiedad válida de la lista.").optional()
+  ),
 });
 
 /** Devuelve el mensaje de error, o null si salió bien. */
