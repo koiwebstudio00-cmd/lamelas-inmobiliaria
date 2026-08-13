@@ -332,12 +332,15 @@ export async function getLeads(filters: LeadFilters) {
       estado: oneOf(ESTADOS_LEAD_VALUES, filters.estado),
       canal: oneOf(CANALES_VALUES, filters.canal),
       assigned_to: UUID.test(filters.asignado ?? "") ? filters.asignado : undefined,
+      // Separacion agente/consultas: el backend excluye las conversaciones del
+      // agente web (canal "web" con canal_ref). Asi count y paginacion salen bien.
+      excluir_agente_web: true,
       page,
       limit: PAGE_SIZE,
     },
   });
 
-  const leads = data.map(toLead).filter((l) => !(l.canal_ref ?? "").startsWith("prueba-"));
+  const leads = data.map(toLead);
   return { leads, count: meta.total, page: meta.page };
 }
 
@@ -568,10 +571,10 @@ export async function getResumen(): Promise<Resumen> {
     total("reservada"),
     total("vendida"),
     apiFetch<{ meta: { total: number } }>("/v1/leads", {
-      query: { ...misConsultas, estado: "nueva", page: 1, limit: 1 },
+      query: { ...misConsultas, estado: "nueva", excluir_agente_web: true, page: 1, limit: 1 },
     }).then((r) => r.meta.total),
     apiFetch<{ data: ApiLead[] }>("/v1/leads", {
-      query: { ...misConsultas, page: 1, limit: 5 },
+      query: { ...misConsultas, excluir_agente_web: true, page: 1, limit: 5 },
     }),
     apiFetch<ListResponse>(pathPropiedades, { query: { page: 1, limit: 4 } }),
   ]);
@@ -579,7 +582,7 @@ export async function getResumen(): Promise<Resumen> {
   return {
     propiedades: { disponible, reservada, vendida },
     consultasNuevas: nuevas,
-    ultimasConsultas: consultas.data.map(toLead).filter((l) => !(l.canal_ref ?? "").startsWith("prueba-")),
+    ultimasConsultas: consultas.data.map(toLead),
     ultimasPropiedades: propiedades.data.map(toCard),
   };
 }
