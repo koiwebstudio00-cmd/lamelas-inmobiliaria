@@ -40,7 +40,7 @@ Requiere `back-lamelas` corriendo en `API_URL` (por defecto `http://localhost:30
 2. **Mutations solo por Server Actions** en `src/actions/`, siempre validadas con Zod (schemas en `src/lib/validations/`). Lecturas en Server Components vía `src/lib/queries.ts`.
 3. **Nada de credenciales de la API en código cliente.** No hay claves en el bundle: la sesión es por cookie.
 4. **Fotos:** resize client-side (máx. 1600px, WebP) antes de subir, máx. 20 por propiedad, una sola portada.
-5. **Campos obligatorios de propiedad:** solo título, operación, tipo, precio. El resto (incl. `notas`) es opcional — no agregar `required` de más.
+5. **Campos obligatorios de propiedad:** solo título, operación, tipo, precio. El resto (incl. `notas`, campos de alquiler y mapa) es opcional — no agregar `required` de más. Los enums `tipo` y `estado` están ampliados y las propiedades de alquiler tienen campos propios (destino, plazo, ajuste, índice, expensas, mascotas, amoblado) + mapa Leaflet (`lat`/`lng`/`link_maps`); labels en `src/lib/types.ts`. El **admin gestiona (edita/elimina/cambia estado) todas** las propiedades del tenant, no solo las propias (gate de UI = `isOwner || esAdmin`).
 6. **Mobile-first.** Los vendedores cargan desde el celular; probar todo formulario en viewport móvil.
 7. **shadcn/ui es la única librería de componentes y lucide-react la única de íconos.** No instalar otras; si falta un componente, componerlo con primitivas shadcn/ui + Tailwind. Colores y tokens según `docs/design-system.md` (primario verde `#0E9145`).
 8. UI y textos en **español (Argentina)**. Código (variables, funciones) en inglés; los campos de la API están en español — respetarlos.
@@ -54,8 +54,8 @@ Secciones del panel, todas dentro de `(app)`:
 | Ruta | Qué es |
 | --- | --- |
 | `/` | Inicio: saludo, cuatro contadores que linkean a listados filtrados, últimas consultas y últimas propiedades. Se arma con `getResumen()`. |
-| `/propiedades`, `/mis-propiedades`, `/propiedades/[id]`, `/propiedades/nueva` | Catálogo interno y alta/edición. |
-| `/consultas`, `/consultas/[id]`, `/consultas/nueva` | Bandeja de leads: filtros por texto, estado, canal y vendedor; detalle con cambio de estado, reasignación y notas internas. |
+| `/propiedades`, `/mis-propiedades`, `/propiedades/[id]`, `/propiedades/nueva` | Catálogo interno y alta/edición. Filtros incl. **dormitorios**. Form con sección de alquiler condicional + mapa Leaflet. El admin edita/elimina cualquier propiedad del tenant. |
+| `/consultas`, `/consultas/[id]`, `/consultas/nueva` | Bandeja de leads: filtros por texto, estado, canal, **clasificación** y vendedor; contadores potencial/fantasma (admin); detalle con cambio de estado, **clasificación** (potencial/fantasma), reasignación y notas internas. |
 | `/equipo` | Usuarios e invitaciones (solo admin). |
 | `/configuracion` | API keys del sitio público (solo admin). |
 | `/perfil` | Datos de la propia cuenta. |

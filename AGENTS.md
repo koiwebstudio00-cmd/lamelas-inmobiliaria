@@ -65,11 +65,12 @@ npm run lint && npx tsc --noEmit && npm run build
 
 - **La autorización real está en la API (RLS en Postgres).** Los checks de UI son cosmética; todo cambio de permisos se hace en `back-lamelas`.
 - **Nada de credenciales en código cliente.** La sesión es por cookie `httpOnly`; el bundle no lleva claves.
-- Regla de negocio central: cualquier usuario autenticado **lee** todo el tenant; solo el creador **modifica/elimina** sus propiedades (los admin pueden más — lo resuelve la API).
+- Regla de negocio central: cualquier usuario autenticado **lee** todo el tenant; el vendedor **modifica/elimina** solo sus propiedades, y el **admin modifica/elimina todas** las del tenant. La RLS ya lo permite; el panel gatea la UI con `isOwner || esAdmin` (ver `propiedades/[id]/page.tsx` y `.../editar/page.tsx`).
 
 ## Reglas de producto
 
-- Campos obligatorios de propiedad: título, operación, tipo, precio. Todo lo demás (incl. `notas`) es opcional.
+- Campos obligatorios de propiedad: título, operación, tipo, precio. Todo lo demás (incl. `notas`, campos de alquiler y mapa) es opcional. Los enums `tipo`/`estado` están ampliados; las de alquiler tienen destino/plazo/ajuste/índice/expensas/mascotas/amoblado + mapa Leaflet (`lat`/`lng`/`link_maps`).
+- Consultas: cada lead tiene `clasificacion` (potencial/fantasma) — la pone el agente al conversar y el vendedor la corrige; hay filtro y contadores (admin) en `/consultas`.
 - Fotos: resize client-side a máx. 1600px en WebP, límite 20 por propiedad, una sola portada.
 - Mobile-first: verificar formularios y subida de fotos en viewport móvil.
 - La bandeja de consultas, el equipo y las API keys ya están hechos. No agregar alcance nuevo (métricas, webhooks, suspensión de tenants) sin pedido explícito.
