@@ -45,6 +45,10 @@ export default async function PropiedadPage({
 
   const { property, vendedor, images: gallery } = detail;
   const isOwner = me?.id === property.user_id;
+  const esAdmin = me?.rol === "admin" || me?.rol === "super_admin";
+  // El admin gestiona todas las propiedades del tenant (la RLS ya lo permite),
+  // no solo las propias. El vendedor solo las suyas.
+  const puedeGestionar = isOwner || esAdmin;
 
   const facts = [
     property.ambientes != null && {
@@ -123,7 +127,7 @@ export default async function PropiedadPage({
         </div>
       </div>
 
-      {isOwner && (
+      {puedeGestionar && (
         <div className="flex flex-wrap items-center gap-2 border bg-background p-3">
           <EstadoSelect propertyId={property.id} estado={property.estado} />
           <Button asChild variant="outline" size="sm">
@@ -140,7 +144,7 @@ export default async function PropiedadPage({
       )}
 
       {/* Gestión de fotos */}
-      {isOwner && (
+      {puedeGestionar && (
         <div className="border bg-background p-4">
           <PhotoManager propertyId={property.id} images={gallery} />
         </div>

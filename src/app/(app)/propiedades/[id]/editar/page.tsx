@@ -18,8 +18,10 @@ export default async function EditarPropiedadPage({
   if (!detail) notFound();
 
   const { property, images } = detail;
-  // La API ya bloquea el update ajeno; esto solo evita mostrar el form (HU-5)
-  if (property.user_id !== me?.id) redirect(`/propiedades/${id}`);
+  // El dueño edita lo suyo; el admin, cualquier propiedad del tenant (la RLS ya
+  // lo permite). Solo se redirige a un vendedor que abre una propiedad ajena.
+  const esAdmin = me?.rol === "admin" || me?.rol === "super_admin";
+  if (property.user_id !== me?.id && !esAdmin) redirect(`/propiedades/${id}`);
 
   const action = updateProperty.bind(null, id);
 
