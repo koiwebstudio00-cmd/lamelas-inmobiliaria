@@ -6,7 +6,7 @@ import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { CANALES, ESTADOS_LEAD } from "@/lib/types";
+import { CANALES, CLASIFICACIONES, ESTADOS_LEAD } from "@/lib/types";
 
 export function LeadFilters({
   vendedores,
@@ -41,7 +41,9 @@ export function LeadFilters({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
 
-  const hasFilters = ["q", "estado", "canal", "asignado"].some((k) => searchParams.get(k));
+  const hasFilters = ["q", "estado", "canal", "clasificacion", "asignado"].some((k) =>
+    searchParams.get(k)
+  );
 
   return (
     <div className="space-y-2">
@@ -58,8 +60,8 @@ export function LeadFilters({
       <div
         className={
           puedeFiltrarPorVendedor
-            ? "grid grid-cols-1 gap-2 sm:grid-cols-3"
-            : "grid grid-cols-2 gap-2"
+            ? "grid grid-cols-2 gap-2 sm:grid-cols-4"
+            : "grid grid-cols-2 gap-2 sm:grid-cols-3"
         }
       >
         <Select
@@ -83,6 +85,19 @@ export function LeadFilters({
         >
           <option value="">Canal</option>
           {CANALES.map((c) => (
+            <option key={c.value} value={c.value}>
+              {c.label}
+            </option>
+          ))}
+        </Select>
+        <Select
+          aria-label="Clasificación"
+          value={searchParams.get("clasificacion") ?? ""}
+          onChange={(e) => setParam("clasificacion", e.target.value)}
+          className="h-9 text-sm"
+        >
+          <option value="">Clasificación</option>
+          {CLASIFICACIONES.map((c) => (
             <option key={c.value} value={c.value}>
               {c.label}
             </option>

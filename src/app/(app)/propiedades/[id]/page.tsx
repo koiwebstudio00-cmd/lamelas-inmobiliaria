@@ -1,25 +1,37 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Pencil, MapPin, BedDouble, Bath, Ruler, LayoutGrid, ClipboardList, StickyNote, ArrowLeft } from "lucide-react";
+import { Pencil, MapPin, BedDouble, Bath, Ruler, LayoutGrid, ClipboardList, KeyRound, StickyNote, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EstadoBadge } from "@/components/ui/badge";
 import { EstadoSelect } from "@/components/properties/estado-select";
 import { DeletePropertyButton } from "@/components/properties/delete-property-button";
 import { PhotoManager } from "@/components/properties/photo-manager";
 import { PropertyGallery } from "@/components/properties/property-gallery";
+import { PropertyMap } from "@/components/properties/property-map";
 import { SharePropertyButton } from "@/components/properties/share-property-button";
 import { getCurrentUser } from "@/lib/api";
 import { getProperty } from "@/lib/queries";
 import { formatPrice } from "@/lib/utils";
+import {
+  TIPOS,
+  DESTINOS,
+  PLAZOS,
+  AJUSTES,
+  INDICES,
+  MASCOTAS,
+  AMOBLADO_OPCIONES,
+} from "@/lib/types";
 
 const OPERACION_LABEL = { venta: "Venta", alquiler: "Alquiler" } as const;
-const TIPO_LABEL = {
-  casa: "Casa",
-  departamento: "Departamento",
-  terreno: "Terreno",
-  local: "Local",
-  otro: "Otro",
-} as const;
+
+/** Busca la etiqueta de un valor canónico en una lista de opciones. */
+function labelOf(
+  list: { value: string; label: string }[],
+  value: string | null
+): string | null {
+  if (!value) return null;
+  return list.find((o) => o.value === value)?.label ?? value;
+}
 
 export default async function PropiedadPage({
   params,
@@ -58,6 +70,36 @@ export default async function PropiedadPage({
     .filter(Boolean)
     .join(" · ");
 
+  const mapsHref =
+    property.link_maps ??
+    (property.lat != null && property.lng != null
+      ? `https://www.google.com/maps?q=${property.lat},${property.lng}`
+      : null);
+
+  const plazoLabel =
+    property.plazo_contrato === "otro" ? property.plazo_otro : labelOf(PLAZOS, property.plazo_contrato);
+  const ajusteLabel =
+    property.ajuste === "otro" ? property.ajuste_otro : labelOf(AJUSTES, property.ajuste);
+  const indiceLabel =
+    property.indice_ajuste === "fijo"
+      ? property.indice_fijo_pct != null
+        ? `Fijo ${property.indice_fijo_pct}%`
+        : "Fijo"
+      : labelOf(INDICES, property.indice_ajuste);
+
+  const alquilerItems =
+    property.operacion === "alquiler"
+      ? ([
+          ["Destino", labelOf(DESTINOS, property.destino)],
+          ["Plazo de contrato", plazoLabel],
+          ["Ajuste", ajusteLabel],
+          ["Índice de ajuste", indiceLabel],
+          ["Expensas", property.expensas],
+          ["Mascotas", labelOf(MASCOTAS, property.mascotas)],
+          ["Amoblado", labelOf(AMOBLADO_OPCIONES, property.amoblado)],
+        ].filter(([, v]) => v) as [string, string][])
+      : [];
+
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <Button asChild variant="outline" size="sm">
@@ -68,7 +110,7 @@ export default async function PropiedadPage({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
           <p className="text-xs uppercase text-muted-foreground">
-            {OPERACION_LABEL[property.operacion]} · {TIPO_LABEL[property.tipo]}
+            {OPERACION_LABEL[property.operacion]} · {labelOf(TIPOS, property.tipo)}
           </p>
           <h1 className="text-2xl font-semibold">{property.titulo}</h1>
           <p className="text-xl font-semibold tabular-nums text-primary">
@@ -105,9 +147,20 @@ export default async function PropiedadPage({
       )}
 
       <div className="space-y-4 border bg-background p-4 sm:p-6">
-        {ubicacion && (
-          <p className="flex items-center gap-2 text-sm">
-            <MapPin className="size-4 shrink-0 text-muted-foreground" /> {ubicacion}
+        {(ubicacion || mapsHref) && (
+          <p className="flex flex-wrap items-center gap-2 text-sm">
+            <MapPin className="size-4 shrink-0 text-muted-foreground" />
+            {ubicacion}
+            {mapsHref && (
+              <a
+                href={mapsHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline underline-offset-2"
+              >
+                Ver en el mapa
+              </a>
+            )}
           </p>
         )}
 
@@ -118,6 +171,26 @@ export default async function PropiedadPage({
                 <f.icon className="size-4 text-muted-foreground" /> {f.label}
               </span>
             ))}
+          </div>
+        )}
+
+        {property.lat != null && property.lng != null && (
+          <PropertyMap initialLat={property.lat} initialLng={property.lng} readOnly />
+        )}
+
+        {alquilerItems.length > 0 && (
+          <div>
+            <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+              <KeyRound className="size-4" /> Condiciones de alquiler
+            </h2>
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-3">
+              {alquilerItems.map(([k, v]) => (
+                <div key={k}>
+                  <dt className="text-xs text-muted-foreground">{k}</dt>
+                  <dd>{v}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
         )}
 

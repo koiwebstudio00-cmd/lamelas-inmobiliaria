@@ -40,7 +40,9 @@ export function PropertyFilters({
   }, [q]);
 
   const hasFilters =
-    ["q", "operacion", "tipo", "estado", "vendedor"].some((k) => searchParams.get(k));
+    ["q", "operacion", "tipo", "estado", "vendedor", "dormitorios"].some((k) =>
+      searchParams.get(k)
+    );
 
   return (
     <div className="space-y-2">
@@ -54,7 +56,7 @@ export function PropertyFilters({
           aria-label="Buscar"
         />
       </div>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
         <Select
           aria-label="Operación"
           value={searchParams.get("operacion") ?? ""}
@@ -67,6 +69,18 @@ export function PropertyFilters({
               {o.label}
             </option>
           ))}
+        </Select>
+        <Select
+          aria-label="Dormitorios"
+          value={searchParams.get("dormitorios") ?? ""}
+          onChange={(e) => setParam("dormitorios", e.target.value)}
+          className="h-9 text-sm"
+        >
+          <option value="">Dormitorios</option>
+          <option value="1">1 o más</option>
+          <option value="2">2 o más</option>
+          <option value="3">3 o más</option>
+          <option value="4">4 o más</option>
         </Select>
         <Select
           aria-label="Tipo"

@@ -41,7 +41,7 @@ const ESTADO_CARDS = [
     icon: KeyRound,
   },
   {
-    estado: "reservada",
+    estado: "reservado",
     label: "Reservadas",
     detail: "Con operación en curso",
     color: "var(--estado-reservada-fg)",
@@ -68,7 +68,7 @@ export default async function HomePage() {
   const admin = me ? esAdmin(me.rol) : false;
   const total =
     resumen.propiedades.disponible +
-    resumen.propiedades.reservada +
+    resumen.propiedades.reservado +
     resumen.propiedades.vendida;
 
   // El vendedor está viendo su propio trabajo, no el de la inmobiliaria: los

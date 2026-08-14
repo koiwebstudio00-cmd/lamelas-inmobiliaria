@@ -8,7 +8,7 @@ import { LeadTable } from "@/components/leads/lead-table";
 import { Pagination } from "@/components/pagination";
 import { VistaToggle } from "@/components/vista-toggle";
 import { getCurrentUser } from "@/lib/api";
-import { getLeads, getVendedores } from "@/lib/queries";
+import { getLeads, getLeadStats, getVendedores } from "@/lib/queries";
 import { getVista } from "@/lib/vista";
 
 export const metadata = { title: "Consultas — Lamelas & Chaumont" };
@@ -24,17 +24,21 @@ export default async function ConsultasPage({
   const me = await getCurrentUser();
   const esAdmin = me?.rol === "admin" || me?.rol === "super_admin";
 
-  const [{ leads, count, page }, vendedores, vista] = await Promise.all([
+  const [{ leads, count, page }, vendedores, vista, stats] = await Promise.all([
     getLeads({
       q: params.q,
       estado: params.estado,
       canal: params.canal,
+      clasificacion: params.clasificacion,
       asignado: params.asignado,
       pagina: params.pagina ? Number(params.pagina) : 1,
     }),
     esAdmin ? getVendedores() : Promise.resolve([]),
     getVista(),
+    esAdmin ? getLeadStats() : Promise.resolve(null),
   ]);
+
+  const clasif = stats?.por_clasificacion;
 
   return (
     <div className="space-y-4">
@@ -57,6 +61,21 @@ export default async function ConsultasPage({
           </Button>
         </div>
       </div>
+
+      {clasif && (
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { label: "Potenciales", value: clasif.potencial ?? 0 },
+            { label: "Fantasmas", value: clasif.fantasma ?? 0 },
+            { label: "Sin clasificar", value: clasif.sin_clasificar ?? 0 },
+          ].map((s) => (
+            <div key={s.label} className="border bg-background p-3">
+              <p className="text-2xl font-semibold tabular-nums">{s.value}</p>
+              <p className="text-xs text-muted-foreground">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       <Suspense>
         <LeadFilters vendedores={vendedores} puedeFiltrarPorVendedor={esAdmin} />

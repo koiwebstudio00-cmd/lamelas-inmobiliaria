@@ -26,6 +26,8 @@ function revalidar(id?: string) {
 }
 
 const estadoSchema = z.enum(["nueva", "en_contacto", "ganada", "perdida"]);
+// "" = sin clasificar (borra la clasificación en la API con null).
+const clasificacionSchema = z.enum(["potencial", "fantasma", ""]);
 
 const leadSchema = z.object({
   nombre: z.string().trim().min(1, "Ingresá el nombre de quien consulta"),
@@ -48,6 +50,25 @@ export async function updateLeadEstado(id: string, estado: string): Promise<stri
     await apiFetch(`/v1/leads/${id}`, { method: "PATCH", body: { estado: parsed.data } });
   } catch (error) {
     return message(error, "No pudimos actualizar la consulta.");
+  }
+  revalidar(id);
+  return null;
+}
+
+/** Setea la clasificación (potencial/fantasma) o la borra con "". */
+export async function updateLeadClasificacion(
+  id: string,
+  clasificacion: string
+): Promise<string | null> {
+  const parsed = clasificacionSchema.safeParse(clasificacion);
+  if (!parsed.success) return "Esa clasificación no es válida.";
+  try {
+    await apiFetch(`/v1/leads/${id}`, {
+      method: "PATCH",
+      body: { clasificacion: parsed.data === "" ? null : parsed.data },
+    });
+  } catch (error) {
+    return message(error, "No pudimos actualizar la clasificación.");
   }
   revalidar(id);
   return null;

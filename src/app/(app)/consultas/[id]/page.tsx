@@ -9,6 +9,7 @@ import { LeadConversation } from "@/components/leads/lead-conversation";
 import { LeadEditarDatos } from "@/components/leads/lead-editar-datos";
 import { LeadEliminar } from "@/components/leads/lead-eliminar";
 import { LeadEstadoSelect } from "@/components/leads/lead-estado-select";
+import { LeadClasificacionSelect } from "@/components/leads/lead-clasificacion-select";
 import { LeadNotes } from "@/components/leads/lead-notes";
 import { LeadPerfil } from "@/components/leads/lead-perfil";
 import { getCurrentUser } from "@/lib/api";
@@ -94,6 +95,11 @@ export default async function ConsultaPage({
               <div className="space-y-1.5">
                 <p className="text-muted-foreground">Estado</p>
                 <LeadEstadoSelect leadId={lead.id} estado={lead.estado} />
+              </div>
+
+              <div className="space-y-1.5">
+                <p className="text-muted-foreground">Clasificación</p>
+                <LeadClasificacionSelect leadId={lead.id} clasificacion={lead.clasificacion} />
               </div>
 
               <div className="space-y-1.5">

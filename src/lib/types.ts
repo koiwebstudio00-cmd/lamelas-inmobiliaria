@@ -3,9 +3,33 @@
 // y ningún componente conoce el formato de la API.
 
 export type Operacion = "venta" | "alquiler";
-export type TipoPropiedad = "casa" | "departamento" | "terreno" | "local" | "otro";
+export type TipoPropiedad =
+  | "monoambiente"
+  | "departamento"
+  | "casa"
+  | "duplex"
+  | "local_comercial"
+  | "oficina"
+  | "galpon"
+  | "estacionamiento"
+  | "terreno"
+  | "otro";
 export type Moneda = "ARS" | "USD";
-export type EstadoPropiedad = "disponible" | "reservada" | "vendida";
+export type EstadoPropiedad =
+  | "disponible"
+  | "reservado"
+  | "proximamente"
+  | "pausado"
+  | "vendida"
+  | "alquilada";
+
+// Campos de alquiler (enums de la API). "otro" habilita el texto acompañante.
+export type DestinoAlquiler = "vivienda" | "comercial" | "profesional" | "otro";
+export type PlazoContrato = "meses_12" | "meses_18" | "meses_24" | "meses_36" | "otro";
+export type AjusteAlquiler = "trimestral" | "cuatrimestral" | "otro";
+export type IndiceAjuste = "icl" | "ipc" | "fijo";
+export type MascotasAlquiler = "se_permiten" | "no_se_permiten" | "sin_especificar";
+export type AmobladoAlquiler = "amoblado" | "sin_amoblar" | "sin_especificar";
 
 export type Rol = "super_admin" | "admin" | "agente";
 
@@ -54,6 +78,21 @@ export type Property = {
   estado: EstadoPropiedad;
   notas: string | null;
   requisitos: string | null;
+  // Alquiler (nullable)
+  destino: DestinoAlquiler | null;
+  plazo_contrato: PlazoContrato | null;
+  plazo_otro: string | null;
+  ajuste: AjusteAlquiler | null;
+  ajuste_otro: string | null;
+  indice_ajuste: IndiceAjuste | null;
+  indice_fijo_pct: number | null;
+  expensas: string | null;
+  mascotas: MascotasAlquiler | null;
+  amoblado: AmobladoAlquiler | null;
+  // Ubicación en el mapa
+  lat: number | null;
+  lng: number | null;
+  link_maps: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -74,10 +113,15 @@ export const OPERACIONES: { value: Operacion; label: string }[] = [
 ];
 
 export const TIPOS: { value: TipoPropiedad; label: string }[] = [
-  { value: "casa", label: "Casa" },
+  { value: "monoambiente", label: "Monoambiente" },
   { value: "departamento", label: "Departamento" },
+  { value: "casa", label: "Casa" },
+  { value: "duplex", label: "Dúplex" },
+  { value: "local_comercial", label: "Local comercial" },
+  { value: "oficina", label: "Oficina" },
+  { value: "galpon", label: "Galpón" },
+  { value: "estacionamiento", label: "Estacionamiento" },
   { value: "terreno", label: "Terreno" },
-  { value: "local", label: "Local" },
   { value: "otro", label: "Otro" },
 ];
 
@@ -88,14 +132,59 @@ export const MONEDAS: { value: Moneda; label: string }[] = [
 
 export const ESTADOS: { value: EstadoPropiedad; label: string }[] = [
   { value: "disponible", label: "Disponible" },
-  { value: "reservada", label: "Reservada" },
+  { value: "reservado", label: "Reservado" },
+  { value: "proximamente", label: "Próximamente" },
+  { value: "pausado", label: "Pausado" },
   { value: "vendida", label: "Vendida" },
+  { value: "alquilada", label: "Alquilada" },
+];
+
+// ── Opciones de alquiler (etiqueta ↔ valor canónico de la API) ───────────────
+export const DESTINOS: { value: DestinoAlquiler; label: string }[] = [
+  { value: "vivienda", label: "Vivienda" },
+  { value: "comercial", label: "Comercial" },
+  { value: "profesional", label: "Profesional" },
+  { value: "otro", label: "Otro" },
+];
+
+export const PLAZOS: { value: PlazoContrato; label: string }[] = [
+  { value: "meses_12", label: "12 meses" },
+  { value: "meses_18", label: "18 meses" },
+  { value: "meses_24", label: "24 meses" },
+  { value: "meses_36", label: "36 meses" },
+  { value: "otro", label: "Otro" },
+];
+
+export const AJUSTES: { value: AjusteAlquiler; label: string }[] = [
+  { value: "trimestral", label: "Trimestral" },
+  { value: "cuatrimestral", label: "Cuatrimestral" },
+  { value: "otro", label: "Otro" },
+];
+
+export const INDICES: { value: IndiceAjuste; label: string }[] = [
+  { value: "icl", label: "ICL" },
+  { value: "ipc", label: "IPC" },
+  { value: "fijo", label: "Fijo (%)" },
+];
+
+export const MASCOTAS: { value: MascotasAlquiler; label: string }[] = [
+  { value: "se_permiten", label: "Se permiten" },
+  { value: "no_se_permiten", label: "No se permiten" },
+  { value: "sin_especificar", label: "Sin especificar" },
+];
+
+export const AMOBLADO_OPCIONES: { value: AmobladoAlquiler; label: string }[] = [
+  { value: "amoblado", label: "Amoblado" },
+  { value: "sin_amoblar", label: "Sin amoblar" },
+  { value: "sin_especificar", label: "Sin especificar" },
 ];
 
 // ── CRM: consultas que entran por el sitio público o se cargan a mano ────────
 
 export type EstadoLead = "nueva" | "en_contacto" | "ganada" | "perdida";
 export type CanalLead = "web" | "whatsapp" | "instagram" | "messenger" | "manual";
+/** Clasificación comercial: cliente potencial vs fantasma (curioso). */
+export type ClasificacionLead = "potencial" | "fantasma";
 
 /** Propiedad por la que consultaron. La API manda solo lo mínimo para el link. */
 export type LeadPropiedad = {
@@ -114,6 +203,7 @@ export type Lead = {
   canal: CanalLead;
   canal_ref: string | null;
   estado: EstadoLead;
+  clasificacion: ClasificacionLead | null;
   assigned_to: string | null;
   propiedad: LeadPropiedad | null;
   created_at: string;
@@ -245,6 +335,11 @@ export const ESTADOS_LEAD: { value: EstadoLead; label: string }[] = [
   { value: "en_contacto", label: "En contacto" },
   { value: "ganada", label: "Ganada" },
   { value: "perdida", label: "Perdida" },
+];
+
+export const CLASIFICACIONES: { value: ClasificacionLead; label: string }[] = [
+  { value: "potencial", label: "Cliente potencial" },
+  { value: "fantasma", label: "Fantasma (curioso)" },
 ];
 
 export const CANALES: { value: CanalLead; label: string }[] = [

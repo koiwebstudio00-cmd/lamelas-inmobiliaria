@@ -11,6 +11,7 @@ import {
   ClipboardList,
   DoorOpen,
   ImagePlus,
+  KeyRound,
   MapPin,
   Ruler,
   StickyNote,
@@ -23,7 +24,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { OPERACIONES, TIPOS, MONEDAS, type Property } from "@/lib/types";
+import {
+  OPERACIONES,
+  TIPOS,
+  MONEDAS,
+  DESTINOS,
+  PLAZOS,
+  AJUSTES,
+  INDICES,
+  MASCOTAS,
+  AMOBLADO_OPCIONES,
+  type Operacion,
+  type Property,
+} from "@/lib/types";
+import { PropertyMap } from "@/components/properties/property-map";
 import type { PropertyFormState } from "@/actions/properties";
 
 const MAX_FOTOS = 20;
@@ -91,6 +105,13 @@ export function PropertyForm({
   const isNew = !property;
   const e = state.errors ?? {};
 
+  // La sección de alquiler y los campos "Otro"/"Fijo %" se muestran según lo elegido.
+  const [operacion, setOperacion] = useState<Operacion>(property?.operacion ?? "venta");
+  const [plazo, setPlazo] = useState(property?.plazo_contrato ?? "");
+  const [ajuste, setAjuste] = useState(property?.ajuste ?? "");
+  const [indice, setIndice] = useState(property?.indice_ajuste ?? "");
+  const esAlquiler = operacion === "alquiler";
+
   function addPhotos(files: FileList | null) {
     if (!files) return;
     const next = [...photos, ...Array.from(files)].slice(0, MAX_FOTOS);
@@ -145,7 +166,12 @@ export function PropertyForm({
 
           <div className="grid grid-cols-2 gap-4">
             <Field label="Operación *" htmlFor="operacion" error={e.operacion}>
-              <Select id="operacion" name="operacion" defaultValue={property?.operacion ?? "venta"}>
+              <Select
+                id="operacion"
+                name="operacion"
+                value={operacion}
+                onChange={(ev) => setOperacion(ev.target.value as Operacion)}
+              >
                 {OPERACIONES.map((o) => (
                   <option key={o.value} value={o.value}>
                     {o.label}
@@ -210,6 +236,26 @@ export function PropertyForm({
               <Input id="ciudad" name="ciudad" defaultValue={property?.ciudad ?? ""} />
             </Field>
           </div>
+
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1.5">
+              <MapPin className="size-4 text-muted-foreground" /> Ubicación en el mapa
+            </Label>
+            <PropertyMap
+              initialLat={property?.lat ?? null}
+              initialLng={property?.lng ?? null}
+            />
+          </div>
+
+          <Field label="Link de Google Maps (alternativa)" htmlFor="link_maps" error={e.link_maps}>
+            <Input
+              id="link_maps"
+              name="link_maps"
+              type="url"
+              defaultValue={property?.link_maps ?? ""}
+              placeholder="https://maps.app.goo.gl/..."
+            />
+          </Field>
         </CardContent>
       </Card>
 
@@ -275,6 +321,145 @@ export function PropertyForm({
           </div>
         </CardContent>
       </Card>
+
+      {esAlquiler && (
+        <Card>
+          <SectionHeader icon={KeyRound} title="Condiciones de alquiler" optional />
+          <CardContent className="space-y-4 pt-4">
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Destino" htmlFor="destino" error={e.destino}>
+                <Select id="destino" name="destino" defaultValue={property?.destino ?? ""} className="w-full">
+                  <option value="">Sin especificar</option>
+                  {DESTINOS.map((d) => (
+                    <option key={d.value} value={d.value}>
+                      {d.label}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Field label="Expensas" htmlFor="expensas" error={e.expensas}>
+                <Input
+                  id="expensas"
+                  name="expensas"
+                  defaultValue={property?.expensas ?? ""}
+                  placeholder="Incluidas, $45.000, sin expensas..."
+                />
+              </Field>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Plazo de contrato" htmlFor="plazo_contrato" error={e.plazo_contrato}>
+                <Select
+                  id="plazo_contrato"
+                  name="plazo_contrato"
+                  value={plazo}
+                  onChange={(ev) => setPlazo(ev.target.value as typeof plazo)}
+                >
+                  <option value="">Sin especificar</option>
+                  {PLAZOS.map((p) => (
+                    <option key={p.value} value={p.value}>
+                      {p.label}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              {plazo === "otro" && (
+                <Field label="Especificar plazo" htmlFor="plazo_otro" error={e.plazo_otro}>
+                  <Input
+                    id="plazo_otro"
+                    name="plazo_otro"
+                    defaultValue={property?.plazo_otro ?? ""}
+                    placeholder="Ej: 6 meses"
+                  />
+                </Field>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Ajuste" htmlFor="ajuste" error={e.ajuste}>
+                <Select
+                  id="ajuste"
+                  name="ajuste"
+                  value={ajuste}
+                  onChange={(ev) => setAjuste(ev.target.value as typeof ajuste)}
+                >
+                  <option value="">Sin especificar</option>
+                  {AJUSTES.map((a) => (
+                    <option key={a.value} value={a.value}>
+                      {a.label}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              {ajuste === "otro" && (
+                <Field label="Especificar ajuste" htmlFor="ajuste_otro" error={e.ajuste_otro}>
+                  <Input
+                    id="ajuste_otro"
+                    name="ajuste_otro"
+                    defaultValue={property?.ajuste_otro ?? ""}
+                    placeholder="Ej: semestral"
+                  />
+                </Field>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Índice de ajuste" htmlFor="indice_ajuste" error={e.indice_ajuste}>
+                <Select
+                  id="indice_ajuste"
+                  name="indice_ajuste"
+                  value={indice}
+                  onChange={(ev) => setIndice(ev.target.value as typeof indice)}
+                >
+                  <option value="">Sin especificar</option>
+                  {INDICES.map((i) => (
+                    <option key={i.value} value={i.value}>
+                      {i.label}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              {indice === "fijo" && (
+                <Field label="Porcentaje fijo (%)" htmlFor="indice_fijo_pct" error={e.indice_fijo_pct}>
+                  <Input
+                    id="indice_fijo_pct"
+                    name="indice_fijo_pct"
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    step="any"
+                    defaultValue={property?.indice_fijo_pct ?? ""}
+                    placeholder="Ej: 10"
+                  />
+                </Field>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Mascotas" htmlFor="mascotas" error={e.mascotas}>
+                <Select id="mascotas" name="mascotas" defaultValue={property?.mascotas ?? ""}>
+                  <option value="">Sin especificar</option>
+                  {MASCOTAS.map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Field label="Amoblado" htmlFor="amoblado" error={e.amoblado}>
+                <Select id="amoblado" name="amoblado" defaultValue={property?.amoblado ?? ""}>
+                  <option value="">Sin especificar</option>
+                  {AMOBLADO_OPCIONES.map((a) => (
+                    <option key={a.value} value={a.value}>
+                      {a.label}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <SectionHeader icon={ClipboardList} title="Requisitos de alquiler" optional />

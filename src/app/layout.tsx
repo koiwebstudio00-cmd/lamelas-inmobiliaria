@@ -9,9 +9,12 @@ export const metadata: Metadata = {
   title: "Lamelas & Chaumont",
   description: "Sistema interno de registro de propiedades",
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/apple-icon.png",
   },
 };
 

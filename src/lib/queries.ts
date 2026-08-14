@@ -14,6 +14,7 @@ import type {
   ApiKeyScope,
   CanalConversacion,
   CanalLead,
+  ClasificacionLead,
   Conversacion,
   ConversacionMensaje,
   EstadoConversacion,
@@ -47,6 +48,7 @@ export interface PropertyFilters {
   tipo?: string;
   estado?: string;
   vendedor?: string;
+  dormitorios?: string;
   pagina?: number;
 }
 
@@ -82,6 +84,19 @@ interface ApiProperty {
   estado: EstadoPropiedad;
   notas: string | null;
   requisitos: string | null;
+  destino: Property["destino"];
+  plazoContrato: Property["plazo_contrato"];
+  plazoOtro: string | null;
+  ajuste: Property["ajuste"];
+  ajusteOtro: string | null;
+  indiceAjuste: Property["indice_ajuste"];
+  indiceFijoPct: string | null;
+  expensas: string | null;
+  mascotas: Property["mascotas"];
+  amoblado: Property["amoblado"];
+  lat: string | null;
+  lng: string | null;
+  linkMaps: string | null;
   createdAt: string;
   updatedAt: string;
   images?: ApiImage[];
@@ -136,6 +151,19 @@ function toProperty(p: ApiProperty): Property {
     estado: p.estado,
     notas: p.notas,
     requisitos: p.requisitos,
+    destino: p.destino,
+    plazo_contrato: p.plazoContrato,
+    plazo_otro: p.plazoOtro,
+    ajuste: p.ajuste,
+    ajuste_otro: p.ajusteOtro,
+    indice_ajuste: p.indiceAjuste,
+    indice_fijo_pct: num(p.indiceFijoPct),
+    expensas: p.expensas,
+    mascotas: p.mascotas,
+    amoblado: p.amoblado,
+    lat: num(p.lat),
+    lng: num(p.lng),
+    link_maps: p.linkMaps,
     created_at: p.createdAt,
     updated_at: p.updatedAt,
   };
@@ -155,8 +183,26 @@ function toImage(i: ApiImage): PropertyImage {
 // --- Filtros ----------------------------------------------------------------
 
 const OPERACIONES = ["venta", "alquiler"] as const;
-const TIPOS = ["casa", "departamento", "terreno", "local", "otro"] as const;
-const ESTADOS = ["disponible", "reservada", "vendida"] as const;
+const TIPOS = [
+  "monoambiente",
+  "departamento",
+  "casa",
+  "duplex",
+  "local_comercial",
+  "oficina",
+  "galpon",
+  "estacionamiento",
+  "terreno",
+  "otro",
+] as const;
+const ESTADOS = [
+  "disponible",
+  "reservado",
+  "proximamente",
+  "pausado",
+  "vendida",
+  "alquilada",
+] as const;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
@@ -170,6 +216,10 @@ function oneOf<T extends string>(values: readonly T[], value?: string): T | unde
 
 async function list(path: string, filters: PropertyFilters) {
   const page = Math.max(1, filters.pagina || 1);
+  // Dormitorios como mínimo. Ignoramos valores no numéricos (query string).
+  const dormitorios = /^\d+$/.test(filters.dormitorios ?? "")
+    ? Number(filters.dormitorios)
+    : undefined;
 
   const { data, meta } = await apiFetch<ListResponse>(path, {
     query: {
@@ -178,6 +228,7 @@ async function list(path: string, filters: PropertyFilters) {
       tipo: oneOf(TIPOS, filters.tipo),
       estado: oneOf(ESTADOS, filters.estado),
       vendedor: UUID.test(filters.vendedor ?? "") ? filters.vendedor : undefined,
+      dormitorios,
       page,
       limit: PAGE_SIZE,
     },
@@ -271,6 +322,7 @@ interface ApiLead {
   canal: CanalLead;
   canalRef?: string | null;
   estado: EstadoLead;
+  clasificacion?: ClasificacionLead | null;
   assignedTo: string | null;
   createdAt: string;
   property?: { id: string; titulo: string; operacion?: Operacion; precio?: string } | null;
@@ -296,6 +348,7 @@ function toLead(l: ApiLead): Lead {
     canal: l.canal,
     canal_ref: l.canalRef ?? null,
     estado: l.estado,
+    clasificacion: l.clasificacion ?? null,
     assigned_to: l.assignedTo,
     propiedad: l.property
       ? {
@@ -313,12 +366,14 @@ export interface LeadFilters {
   q?: string;
   estado?: string;
   canal?: string;
+  clasificacion?: string;
   asignado?: string;
   pagina?: number;
 }
 
 const ESTADOS_LEAD_VALUES = ["nueva", "en_contacto", "ganada", "perdida"] as const;
 const CANALES_VALUES = ["web", "whatsapp", "instagram", "messenger", "manual"] as const;
+const CLASIF_VALUES = ["potencial", "fantasma"] as const;
 
 export async function getLeads(filters: LeadFilters) {
   const page = Math.max(1, filters.pagina || 1);
@@ -331,6 +386,7 @@ export async function getLeads(filters: LeadFilters) {
       q: filters.q?.trim(),
       estado: oneOf(ESTADOS_LEAD_VALUES, filters.estado),
       canal: oneOf(CANALES_VALUES, filters.canal),
+      clasificacion: oneOf(CLASIF_VALUES, filters.clasificacion),
       assigned_to: UUID.test(filters.asignado ?? "") ? filters.asignado : undefined,
       // Separacion agente/consultas: el backend excluye las conversaciones del
       // agente web (canal "web" con canal_ref). Asi count y paginacion salen bien.
@@ -342,6 +398,22 @@ export async function getLeads(filters: LeadFilters) {
 
   const leads = data.map(toLead);
   return { leads, count: meta.total, page: meta.page };
+}
+
+export interface LeadStats {
+  por_estado: Record<string, number>;
+  por_canal: Record<string, number>;
+  /** Cuenta por clasificación; los sin clasificar caen en "sin_clasificar". */
+  por_clasificacion: Record<string, number>;
+}
+
+/** Métricas de consultas (solo admin). Devuelve null si la API responde 403. */
+export async function getLeadStats(): Promise<LeadStats | null> {
+  try {
+    return await apiFetch<LeadStats>("/v1/leads/stats");
+  } catch {
+    return null;
+  }
 }
 
 /** Devuelve null si no existe o si el usuario no tiene permiso de verla. */
@@ -537,8 +609,9 @@ export async function getApiKeyScopes(): Promise<ScopeOption[]> {
 
 // ── Resumen de la home ───────────────────────────────────────────────────────
 
+// El resumen de la home muestra tres contadores; no necesita todos los estados.
 export interface Resumen {
-  propiedades: Record<EstadoPropiedad, number>;
+  propiedades: Record<"disponible" | "reservado" | "vendida", number>;
   consultasNuevas: number;
   ultimasConsultas: Lead[];
   ultimasPropiedades: PropertyCardData[];
@@ -566,9 +639,9 @@ export async function getResumen(): Promise<Resumen> {
       query: { estado, page: 1, limit: 1 },
     }).then((r) => r.meta.total);
 
-  const [disponible, reservada, vendida, nuevas, consultas, propiedades] = await Promise.all([
+  const [disponible, reservado, vendida, nuevas, consultas, propiedades] = await Promise.all([
     total("disponible"),
-    total("reservada"),
+    total("reservado"),
     total("vendida"),
     apiFetch<{ meta: { total: number } }>("/v1/leads", {
       query: { ...misConsultas, estado: "nueva", excluir_agente_web: true, page: 1, limit: 1 },
@@ -580,7 +653,7 @@ export async function getResumen(): Promise<Resumen> {
   ]);
 
   return {
-    propiedades: { disponible, reservada, vendida },
+    propiedades: { disponible, reservado, vendida },
     consultasNuevas: nuevas,
     ultimasConsultas: consultas.data.map(toLead),
     ultimasPropiedades: propiedades.data.map(toCard),

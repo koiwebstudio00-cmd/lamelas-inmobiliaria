@@ -56,10 +56,23 @@ const CANAL_ICONS: Record<CanalLead, typeof Globe> = {
   manual: PhoneCall,
 };
 
+const CANAL_STYLES: Record<CanalLead, string> = {
+  web: "border-blue-200 bg-blue-50 text-blue-700",
+  whatsapp: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  instagram: "border-pink-200 bg-pink-50 text-pink-700",
+  messenger: "border-sky-200 bg-sky-50 text-sky-700",
+  manual: "border-zinc-200 bg-zinc-100 text-zinc-700",
+};
+
 export function CanalBadge({ canal }: { canal: CanalLead }) {
   const Icon = CANAL_ICONS[canal];
   return (
-    <span className="inline-flex items-center gap-1 border px-2 py-0.5 text-xs text-muted-foreground">
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 border px-2 py-0.5 text-xs font-medium",
+        CANAL_STYLES[canal]
+      )}
+    >
       <Icon className="size-3.5 shrink-0" />
       {CANAL_LABELS[canal]}
     </span>
