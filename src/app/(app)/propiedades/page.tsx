@@ -32,6 +32,12 @@ export default async function PropiedadesPage({
     getVista(),
   ]);
 
+  // Filtro de operación activo: define qué precio se muestra en las "ambos".
+  const filtroOperacion =
+    params.operacion === "venta" || params.operacion === "alquiler"
+      ? params.operacion
+      : undefined;
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-2">
@@ -57,11 +63,11 @@ export default async function PropiedadesPage({
           </p>
         </div>
       ) : vista === "tabla" ? (
-        <PropertyTable properties={properties} />
+        <PropertyTable properties={properties} filtroOperacion={filtroOperacion} />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {properties.map((p) => (
-            <PropertyCard key={p.id} property={p} />
+            <PropertyCard key={p.id} property={p} filtroOperacion={filtroOperacion} />
           ))}
         </div>
       )}

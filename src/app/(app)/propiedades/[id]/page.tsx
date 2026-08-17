@@ -4,6 +4,7 @@ import { Pencil, MapPin, BedDouble, Bath, Ruler, LayoutGrid, ClipboardList, KeyR
 import { Button } from "@/components/ui/button";
 import { EstadoBadge } from "@/components/ui/badge";
 import { EstadoSelect } from "@/components/properties/estado-select";
+import { DestacarButton } from "@/components/properties/destacar-button";
 import { DeletePropertyButton } from "@/components/properties/delete-property-button";
 import { PhotoManager } from "@/components/properties/photo-manager";
 import { PropertyGallery } from "@/components/properties/property-gallery";
@@ -22,7 +23,11 @@ import {
   AMOBLADO_OPCIONES,
 } from "@/lib/types";
 
-const OPERACION_LABEL = { venta: "Venta", alquiler: "Alquiler" } as const;
+const OPERACION_LABEL = {
+  venta: "Venta",
+  alquiler: "Alquiler",
+  ambos: "Venta y alquiler",
+} as const;
 
 /** Busca la etiqueta de un valor canónico en una lista de opciones. */
 function labelOf(
@@ -92,7 +97,7 @@ export default async function PropiedadPage({
       : labelOf(INDICES, property.indice_ajuste);
 
   const alquilerItems =
-    property.operacion === "alquiler"
+    property.operacion === "alquiler" || property.operacion === "ambos"
       ? ([
           ["Destino", labelOf(DESTINOS, property.destino)],
           ["Plazo de contrato", plazoLabel],
@@ -118,7 +123,14 @@ export default async function PropiedadPage({
           </p>
           <h1 className="text-2xl font-semibold">{property.titulo}</h1>
           <p className="text-xl font-semibold tabular-nums text-primary">
+            {property.operacion === "ambos" ? "Venta: " : ""}
             {formatPrice(property.precio, property.moneda)}
+            {property.operacion === "ambos" && property.precio_alquiler != null && (
+              <span className="text-muted-foreground">
+                {" · Alquiler: "}
+                {formatPrice(property.precio_alquiler, property.moneda_alquiler ?? property.moneda)}
+              </span>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -130,6 +142,7 @@ export default async function PropiedadPage({
       {puedeGestionar && (
         <div className="flex flex-wrap items-center gap-2 border bg-background p-3">
           <EstadoSelect propertyId={property.id} estado={property.estado} />
+          <DestacarButton propertyId={property.id} destacada={property.destacada} />
           <Button asChild variant="outline" size="sm">
             <Link href={`/propiedades/${property.id}/editar`} prefetch={false}>
               <Pencil /> Editar

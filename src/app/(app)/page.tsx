@@ -61,6 +61,7 @@ const ESTADO_CARDS = [
 const OPERACION_LABEL: Record<Operacion, string> = {
   venta: "Venta",
   alquiler: "Alquiler",
+  ambos: "Venta y alquiler",
 };
 
 export default async function HomePage() {

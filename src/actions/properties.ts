@@ -36,11 +36,11 @@ function apiState(error: unknown, fallback: string): PropertyFormState {
 type PropertyInput = ReturnType<typeof propertySchema.parse>;
 
 /** Los campos que la API acepta en el alta rápida; el resto va por PATCH. */
-const CAMPOS_ALTA = ["titulo", "operacion", "tipo", "precio", "moneda"] as const;
+const CAMPOS_ALTA = ["titulo", "operacion", "tipo", "precio", "moneda", "estado"] as const;
 
 function altaRapida(data: PropertyInput) {
-  const { titulo, operacion, tipo, precio, moneda } = data;
-  return { titulo, operacion, tipo, precio, moneda };
+  const { titulo, operacion, tipo, precio, moneda, estado } = data;
+  return { titulo, operacion, tipo, precio, moneda, estado };
 }
 
 /** El resto de los campos, sin los vacíos (una propiedad nueva ya viene en null). */
@@ -136,6 +136,28 @@ export async function updateEstado(
     return error instanceof ApiError
       ? error.message
       : "No pudimos actualizar el estado.";
+  }
+
+  revalidatePath("/propiedades");
+  revalidatePath("/mis-propiedades");
+  revalidatePath(`/propiedades/${id}`);
+  return null;
+}
+
+/** Prende/apaga el destacado (botón rápido). Devuelve el error, o null si salió bien. */
+export async function updateDestacada(
+  id: string,
+  destacada: boolean
+): Promise<string | null> {
+  try {
+    await apiFetch(`/v1/properties/${id}/destacada`, {
+      method: "PATCH",
+      body: { destacada },
+    });
+  } catch (error) {
+    return error instanceof ApiError
+      ? error.message
+      : "No pudimos actualizar el destacado.";
   }
 
   revalidatePath("/propiedades");

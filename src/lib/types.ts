@@ -2,7 +2,7 @@
 // La API (back-lamelas) habla camelCase: la traducción vive en src/lib/queries.ts
 // y ningún componente conoce el formato de la API.
 
-export type Operacion = "venta" | "alquiler";
+export type Operacion = "venta" | "alquiler" | "ambos";
 export type TipoPropiedad =
   | "monoambiente"
   | "departamento"
@@ -21,7 +21,8 @@ export type EstadoPropiedad =
   | "proximamente"
   | "pausado"
   | "vendida"
-  | "alquilada";
+  | "alquilada"
+  | "privado";
 
 // Campos de alquiler (enums de la API). "otro" habilita el texto acompañante.
 export type DestinoAlquiler = "vivienda" | "comercial" | "profesional" | "otro";
@@ -66,6 +67,9 @@ export type Property = {
   tipo: TipoPropiedad;
   precio: number;
   moneda: Moneda;
+  // operacion=ambos: precio/moneda = venta; estos = alquiler (null si no aplica).
+  precio_alquiler: number | null;
+  moneda_alquiler: Moneda | null;
   descripcion: string | null;
   direccion: string | null;
   zona: string | null;
@@ -76,6 +80,7 @@ export type Property = {
   sup_cubierta: number | null;
   sup_total: number | null;
   estado: EstadoPropiedad;
+  destacada: boolean;
   notas: string | null;
   requisitos: string | null;
   // Alquiler (nullable)
@@ -110,6 +115,7 @@ export type PropertyImage = {
 export const OPERACIONES: { value: Operacion; label: string }[] = [
   { value: "venta", label: "Venta" },
   { value: "alquiler", label: "Alquiler" },
+  { value: "ambos", label: "Venta y alquiler" },
 ];
 
 export const TIPOS: { value: TipoPropiedad; label: string }[] = [
@@ -137,6 +143,7 @@ export const ESTADOS: { value: EstadoPropiedad; label: string }[] = [
   { value: "pausado", label: "Pausado" },
   { value: "vendida", label: "Vendida" },
   { value: "alquilada", label: "Alquilada" },
+  { value: "privado", label: "Privado (no se publica)" },
 ];
 
 // ── Opciones de alquiler (etiqueta ↔ valor canónico de la API) ───────────────
@@ -205,6 +212,8 @@ export type Lead = {
   estado: EstadoLead;
   clasificacion: ClasificacionLead | null;
   assigned_to: string | null;
+  /** Nombre del vendedor asignado, ya resuelto por la API (null si sin asignar). */
+  asignado: string | null;
   propiedad: LeadPropiedad | null;
   created_at: string;
 };

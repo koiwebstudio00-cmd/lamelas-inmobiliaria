@@ -6,6 +6,7 @@ import {
   Bot,
   Building2,
   ChevronRight,
+  HeartHandshake,
   Home,
   Inbox,
   KeyRound,
@@ -93,6 +94,7 @@ const ITEMS: Item[] = [
     ],
   },
   { href: "/probar-agente", label: "Probar agente", icon: Bot, soloAdmin: true, subs: [] },
+  { href: "/clientes", label: "Clientes", icon: HeartHandshake, soloAdmin: true, subs: [] },
   { href: "/equipo", label: "Equipo", icon: Users, soloAdmin: true, subs: [] },
   {
     href: "/configuracion",

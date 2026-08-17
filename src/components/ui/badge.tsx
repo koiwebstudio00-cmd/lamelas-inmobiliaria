@@ -26,7 +26,8 @@ function Badge({
 }
 
 // Badge de estado de propiedad (design-system.md §3):
-// verde disponible · amarillo reservado/proximamente · gris pausado · azul vendida/alquilada
+// verde disponible · amarillo reservado/proximamente · gris pausado · azul
+// vendida/alquilada · oscuro privado (no se publica)
 const ESTADO_STYLES: Record<EstadoPropiedad, string> = {
   disponible: "bg-[var(--estado-disponible-bg)] text-[var(--estado-disponible-fg)]",
   reservado: "bg-[var(--estado-reservada-bg)] text-[var(--estado-reservada-fg)]",
@@ -34,6 +35,7 @@ const ESTADO_STYLES: Record<EstadoPropiedad, string> = {
   pausado: "bg-muted text-muted-foreground",
   vendida: "bg-[var(--estado-vendida-bg)] text-[var(--estado-vendida-fg)]",
   alquilada: "bg-[var(--estado-vendida-bg)] text-[var(--estado-vendida-fg)]",
+  privado: "bg-foreground text-background",
 };
 
 const ESTADO_LABELS: Record<EstadoPropiedad, string> = {
@@ -43,6 +45,7 @@ const ESTADO_LABELS: Record<EstadoPropiedad, string> = {
   pausado: "Pausado",
   vendida: "Vendida",
   alquilada: "Alquilada",
+  privado: "Privado",
 };
 
 function EstadoBadge({ estado, className }: { estado: EstadoPropiedad; className?: string }) {

@@ -56,17 +56,25 @@ const ESTADOS_VALUES = [
   "pausado",
   "vendida",
   "alquilada",
+  "privado",
 ] as const;
 
 // RF-2.2: solo título, operación, tipo y precio son obligatorios
 export const propertySchema = z.object({
   titulo: z.string().trim().min(3, "El título es obligatorio (mín. 3 caracteres)"),
-  operacion: z.enum(["venta", "alquiler"], { message: "Elegí la operación" }),
+  operacion: z.enum(["venta", "alquiler", "ambos"], { message: "Elegí la operación" }),
   tipo: z.enum(TIPOS_VALUES, { message: "Elegí el tipo de propiedad" }),
   precio: z.coerce
     .number({ message: "Ingresá un precio válido" })
     .min(0, "El precio no puede ser negativo"),
   moneda: z.enum(["ARS", "USD"]).default("ARS"),
+  // Precio de alquiler: se usa cuando operacion=ambos (precio = venta).
+  precio_alquiler: optionalDecimal,
+  moneda_alquiler: optionalEnum(["ARS", "USD"] as const),
+  // El estado se puede fijar ya en el alta/edición (ej: cargar una privada).
+  estado: z.enum(ESTADOS_VALUES).default("disponible"),
+  // Checkbox: "on" cuando está tildado, ausente si no. Se normaliza a booleano.
+  destacada: z.preprocess((v) => v === "on" || v === true || v === "true", z.boolean()),
   descripcion: optionalText,
   direccion: optionalText,
   zona: optionalText,
@@ -103,7 +111,12 @@ export const propertySchema = z.object({
     .transform((v) => (v === "" ? null : v))
     .nullable()
     .optional(),
-});
+}).refine(
+  // En "Venta y alquiler" hacen falta los dos precios: `precio` (venta) y
+  // `precio_alquiler`.
+  (d) => d.operacion !== "ambos" || (d.precio_alquiler != null && d.precio_alquiler > 0),
+  { path: ["precio_alquiler"], message: "Ingresá el precio de alquiler." }
+);
 
 export const estadoSchema = z.object({
   estado: z.enum(ESTADOS_VALUES),

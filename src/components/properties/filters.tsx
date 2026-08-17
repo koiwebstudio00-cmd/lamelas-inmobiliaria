@@ -77,9 +77,9 @@ export function PropertyFilters({
           className="h-9 text-sm"
         >
           <option value="">Dormitorios</option>
-          <option value="1">1 o más</option>
-          <option value="2">2 o más</option>
-          <option value="3">3 o más</option>
+          <option value="1">1 dormitorio</option>
+          <option value="2">2 dormitorios</option>
+          <option value="3">3 dormitorios</option>
           <option value="4">4 o más</option>
         </Select>
         <Select

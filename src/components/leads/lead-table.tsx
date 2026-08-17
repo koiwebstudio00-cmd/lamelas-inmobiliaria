@@ -23,6 +23,7 @@ export function LeadTable({ leads }: { leads: Lead[] }) {
             <TableHead>Contacto</TableHead>
             <TableHead>Canal</TableHead>
             <TableHead>Consultó por</TableHead>
+            <TableHead>Vendedor</TableHead>
             <TableHead>Estado</TableHead>
             <TableHead className="text-right">Entró</TableHead>
           </TableRow>
@@ -69,6 +70,13 @@ export function LeadTable({ leads }: { leads: Lead[] }) {
                   </Link>
                 ) : (
                   <span className="text-muted-foreground">—</span>
+                )}
+              </TableCell>
+              <TableCell className="max-w-[10rem]">
+                {lead.asignado ? (
+                  <span className="block truncate text-sm">{lead.asignado}</span>
+                ) : (
+                  <span className="text-muted-foreground">Sin asignar</span>
                 )}
               </TableCell>
               <TableCell>

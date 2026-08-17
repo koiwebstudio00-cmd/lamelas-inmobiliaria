@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ImageOff } from "lucide-react";
+import { ImageOff, Star } from "lucide-react";
 import { EstadoBadge } from "@/components/ui/badge";
 import { SharePropertyButton } from "@/components/properties/share-property-button";
 import {
@@ -11,13 +11,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatPrice, imageUrl } from "@/lib/utils";
-import type { PropertyCardData } from "@/components/properties/property-card";
+import { imageUrl } from "@/lib/utils";
+import { preciosDeCard, type PropertyCardData } from "@/components/properties/property-card";
 import type { Operacion } from "@/lib/types";
 
 const OPERACION_LABEL: Record<Operacion, string> = {
   venta: "Venta",
   alquiler: "Alquiler",
+  ambos: "Venta y alquiler",
 };
 
 /**
@@ -28,10 +29,16 @@ const OPERACION_LABEL: Record<Operacion, string> = {
 export function PropertyTable({
   properties,
   acciones,
+  destacar,
+  filtroOperacion,
 }: {
   properties: PropertyCardData[];
+  /** Columna dedicada para prender/apagar destacado en "Mis propiedades". */
+  destacar?: (property: PropertyCardData) => React.ReactNode;
   /** Columna extra al final (cambiar estado, editar) para "Mis propiedades". */
   acciones?: (property: PropertyCardData) => React.ReactNode;
+  /** Operación filtrada: define qué precio se ve en las propiedades "ambos". */
+  filtroOperacion?: "venta" | "alquiler";
 }) {
   return (
     <div className="overflow-x-auto border bg-background">
@@ -47,11 +54,14 @@ export function PropertyTable({
             <TableHead>Zona</TableHead>
             <TableHead className="text-right">Precio</TableHead>
             <TableHead>Estado</TableHead>
+            {destacar && <TableHead>Destacado</TableHead>}
             <TableHead>Acciones</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {properties.map((p) => (
+          {properties.map((p) => {
+            const precios = preciosDeCard(p, filtroOperacion);
+            return (
             <TableRow key={p.id}>
               <TableCell>
                 <Link
@@ -78,9 +88,12 @@ export function PropertyTable({
                 <Link
                   href={`/propiedades/${p.id}`}
                   prefetch={false}
-                  className="block truncate font-medium hover:text-primary"
+                  className="flex items-center gap-1.5 truncate font-medium hover:text-primary"
                 >
-                  {p.titulo}
+                  {p.destacada && (
+                    <Star className="size-3.5 shrink-0 fill-amber-400 text-amber-500" aria-label="Destacada" />
+                  )}
+                  <span className="truncate">{p.titulo}</span>
                 </Link>
               </TableCell>
               <TableCell className="whitespace-nowrap">
@@ -91,11 +104,28 @@ export function PropertyTable({
                 {p.zona ?? "—"}
               </TableCell>
               <TableCell className="whitespace-nowrap text-right font-medium tabular-nums text-primary">
-                {formatPrice(p.precio, p.moneda)}
+                <span>
+                  {precios.principal.label && (
+                    <span className="mr-1 text-[11px] font-normal uppercase text-muted-foreground">
+                      {precios.principal.label}
+                    </span>
+                  )}
+                  {precios.principal.value}
+                </span>
+                {precios.secundaria && (
+                  <span className="block text-xs font-normal text-muted-foreground">
+                    {precios.secundaria.label} {precios.secundaria.value}
+                  </span>
+                )}
               </TableCell>
               <TableCell>
                 <EstadoBadge estado={p.estado} />
               </TableCell>
+              {destacar && (
+                <TableCell>
+                  {destacar(p)}
+                </TableCell>
+              )}
               <TableCell>
                 <div className="flex items-center gap-2">
                   <SharePropertyButton propertyId={p.id} compact />
@@ -103,7 +133,8 @@ export function PropertyTable({
                 </div>
               </TableCell>
             </TableRow>
-          ))}
+            );
+          })}
         </TableBody>
       </Table>
     </div>

@@ -72,6 +72,8 @@ interface ApiProperty {
   tipo: TipoPropiedad;
   precio: string;
   moneda: Moneda;
+  precioAlquiler: string | null;
+  monedaAlquiler: Moneda | null;
   descripcion: string | null;
   direccion: string | null;
   zona: string | null;
@@ -82,6 +84,7 @@ interface ApiProperty {
   supCubierta: string | null;
   supTotal: string | null;
   estado: EstadoPropiedad;
+  destacada: boolean;
   notas: string | null;
   requisitos: string | null;
   destino: Property["destino"];
@@ -120,7 +123,10 @@ function toCard(p: ApiProperty): PropertyCardData {
     tipo: p.tipo,
     precio: Number(p.precio),
     moneda: p.moneda,
+    precio_alquiler: p.precioAlquiler != null ? Number(p.precioAlquiler) : null,
+    moneda_alquiler: p.monedaAlquiler ?? null,
     estado: p.estado,
+    destacada: p.destacada,
     zona: p.zona,
     vendedor: p.user?.nombre ?? null,
     // En el listado la API manda solo la portada (o nada, si no hay fotos).
@@ -139,6 +145,8 @@ function toProperty(p: ApiProperty): Property {
     tipo: p.tipo,
     precio: Number(p.precio),
     moneda: p.moneda,
+    precio_alquiler: p.precioAlquiler != null ? Number(p.precioAlquiler) : null,
+    moneda_alquiler: p.monedaAlquiler ?? null,
     descripcion: p.descripcion,
     direccion: p.direccion,
     zona: p.zona,
@@ -149,6 +157,7 @@ function toProperty(p: ApiProperty): Property {
     sup_cubierta: num(p.supCubierta),
     sup_total: num(p.supTotal),
     estado: p.estado,
+    destacada: p.destacada,
     notas: p.notas,
     requisitos: p.requisitos,
     destino: p.destino,
@@ -350,6 +359,7 @@ function toLead(l: ApiLead): Lead {
     estado: l.estado,
     clasificacion: l.clasificacion ?? null,
     assigned_to: l.assignedTo,
+    asignado: l.assignee?.nombre ?? null,
     propiedad: l.property
       ? {
           id: l.property.id,

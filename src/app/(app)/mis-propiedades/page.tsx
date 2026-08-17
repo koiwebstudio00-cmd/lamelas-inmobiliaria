@@ -3,6 +3,7 @@ import { Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PropertyCard } from "@/components/properties/property-card";
 import { PropertyTable } from "@/components/properties/property-table";
+import { DestacarButton } from "@/components/properties/destacar-button";
 import { Pagination } from "@/components/pagination";
 import { EstadoSelect } from "@/components/properties/estado-select";
 import { VistaToggle } from "@/components/vista-toggle";
@@ -36,6 +37,10 @@ export default async function MisPropiedadesPage({
     </>
   );
 
+  const destacar = (p: (typeof properties)[number]) => (
+    <DestacarButton propertyId={p.id} destacada={p.destacada} />
+  );
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-2">
@@ -58,7 +63,7 @@ export default async function MisPropiedadesPage({
           </Button>
         </div>
       ) : vista === "tabla" ? (
-        <PropertyTable properties={properties} acciones={acciones} />
+        <PropertyTable properties={properties} destacar={destacar} acciones={acciones} />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {properties.map((p) => (

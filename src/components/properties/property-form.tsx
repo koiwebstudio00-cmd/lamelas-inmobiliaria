@@ -12,6 +12,7 @@ import {
   DoorOpen,
   ImagePlus,
   KeyRound,
+  Loader2,
   MapPin,
   Ruler,
   StickyNote,
@@ -28,6 +29,7 @@ import {
   OPERACIONES,
   TIPOS,
   MONEDAS,
+  ESTADOS,
   DESTINOS,
   PLAZOS,
   AJUSTES,
@@ -35,6 +37,7 @@ import {
   MASCOTAS,
   AMOBLADO_OPCIONES,
   type Operacion,
+  type TipoPropiedad,
   type Property,
 } from "@/lib/types";
 import { PropertyMap } from "@/components/properties/property-map";
@@ -111,6 +114,30 @@ export function PropertyForm({
   const [ajuste, setAjuste] = useState(property?.ajuste ?? "");
   const [indice, setIndice] = useState(property?.indice_ajuste ?? "");
   const esAlquiler = operacion === "alquiler";
+  const esAmbos = operacion === "ambos";
+  // Etiqueta del precio principal: en alquiler puro `precio` es el alquiler; en
+  // venta y en "ambos" es el de venta.
+  const precioLabel = esAlquiler ? "Precio de alquiler *" : "Precio de venta *";
+
+  // Un monoambiente no tiene ambientes ni dormitorios separados: se fuerzan a 0
+  // y se bloquea el ingreso. Por eso ambientes/dormitorios son controlados.
+  const [tipo, setTipo] = useState<TipoPropiedad>(property?.tipo ?? "casa");
+  const esMonoambiente = tipo === "monoambiente";
+  const initMono = (property?.tipo ?? "casa") === "monoambiente";
+  const [ambientes, setAmbientes] = useState(
+    initMono ? "0" : property?.ambientes != null ? String(property.ambientes) : ""
+  );
+  const [dormitorios, setDormitorios] = useState(
+    initMono ? "0" : property?.dormitorios != null ? String(property.dormitorios) : ""
+  );
+
+  function onTipoChange(next: TipoPropiedad) {
+    setTipo(next);
+    if (next === "monoambiente") {
+      setAmbientes("0");
+      setDormitorios("0");
+    }
+  }
 
   function addPhotos(files: FileList | null) {
     if (!files) return;
@@ -180,7 +207,12 @@ export function PropertyForm({
               </Select>
             </Field>
             <Field label="Tipo *" htmlFor="tipo" error={e.tipo}>
-              <Select id="tipo" name="tipo" defaultValue={property?.tipo ?? "casa"}>
+              <Select
+                id="tipo"
+                name="tipo"
+                value={tipo}
+                onChange={(ev) => onTipoChange(ev.target.value as TipoPropiedad)}
+              >
                 {TIPOS.map((t) => (
                   <option key={t.value} value={t.value}>
                     {t.label}
@@ -191,7 +223,7 @@ export function PropertyForm({
           </div>
 
           <div className="grid grid-cols-[1fr_110px] gap-4">
-            <Field label="Precio *" htmlFor="precio" error={e.precio}>
+            <Field label={precioLabel} htmlFor="precio" error={e.precio}>
               <Input
                 id="precio"
                 name="precio"
@@ -213,6 +245,65 @@ export function PropertyForm({
               </Select>
             </Field>
           </div>
+
+          {esAmbos && (
+            <div className="grid grid-cols-[1fr_110px] gap-4">
+              <Field label="Precio de alquiler *" htmlFor="precio_alquiler" error={e.precio_alquiler}>
+                <Input
+                  id="precio_alquiler"
+                  name="precio_alquiler"
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="any"
+                  defaultValue={property?.precio_alquiler ?? ""}
+                />
+              </Field>
+              <Field label="Moneda" htmlFor="moneda_alquiler" error={e.moneda_alquiler}>
+                <Select
+                  id="moneda_alquiler"
+                  name="moneda_alquiler"
+                  defaultValue={property?.moneda_alquiler ?? "ARS"}
+                >
+                  {MONEDAS.map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            </div>
+          )}
+
+          <Field label="Estado" htmlFor="estado" error={e.estado}>
+            <Select id="estado" name="estado" defaultValue={property?.estado ?? "disponible"}>
+              {ESTADOS.map((es) => (
+                <option key={es.value} value={es.value}>
+                  {es.label}
+                </option>
+              ))}
+            </Select>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Una propiedad privada no se publica en la web, pero el asistente de
+              IA sí la puede ofrecer a los clientes que encajen.
+            </p>
+          </Field>
+
+          <label className="flex items-start gap-2 pt-1">
+            <input
+              type="checkbox"
+              name="destacada"
+              defaultChecked={property?.destacada ?? false}
+              className="mt-0.5 size-4 accent-amber-500"
+            />
+            <span className="text-sm">
+              <span className="font-medium">Destacar esta propiedad</span>
+              <span className="block text-xs text-muted-foreground">
+                La sube al tope del listado de la web y de lo que ofrece el
+                asistente. Cada vendedor puede tener hasta 6 destacadas a la vez.
+              </span>
+            </span>
+          </label>
         </CardContent>
       </Card>
 
@@ -270,7 +361,11 @@ export function PropertyForm({
                 type="number"
                 inputMode="numeric"
                 min={0}
-                defaultValue={property?.ambientes ?? ""}
+                value={ambientes}
+                onChange={(ev) => setAmbientes(ev.target.value)}
+                readOnly={esMonoambiente}
+                aria-readonly={esMonoambiente}
+                className={esMonoambiente ? "bg-muted text-muted-foreground" : undefined}
               />
             </Field>
             <Field label="Dormitorios" htmlFor="dormitorios" icon={BedDouble} error={e.dormitorios}>
@@ -280,7 +375,11 @@ export function PropertyForm({
                 type="number"
                 inputMode="numeric"
                 min={0}
-                defaultValue={property?.dormitorios ?? ""}
+                value={dormitorios}
+                onChange={(ev) => setDormitorios(ev.target.value)}
+                readOnly={esMonoambiente}
+                aria-readonly={esMonoambiente}
+                className={esMonoambiente ? "bg-muted text-muted-foreground" : undefined}
               />
             </Field>
             <Field label="Baños" htmlFor="banios" icon={Bath} error={e.banios}>
@@ -294,6 +393,13 @@ export function PropertyForm({
               />
             </Field>
           </div>
+
+          {esMonoambiente && (
+            <p className="text-xs text-muted-foreground">
+              Un monoambiente se carga con 0 ambientes y 0 dormitorios (son un
+              único espacio); esos campos quedan bloqueados.
+            </p>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <Field label="Sup. cubierta (m²)" htmlFor="sup_cubierta" error={e.sup_cubierta}>
@@ -322,7 +428,7 @@ export function PropertyForm({
         </CardContent>
       </Card>
 
-      {esAlquiler && (
+      {(esAlquiler || esAmbos) && (
         <Card>
           <SectionHeader icon={KeyRound} title="Condiciones de alquiler" optional />
           <CardContent className="space-y-4 pt-4">
@@ -573,6 +679,7 @@ export function PropertyForm({
 
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={pending}>
+          {(pending || uploadingPhotos) && <Loader2 className="animate-spin" />}
           {uploadingPhotos ? "Subiendo fotos..." : pending ? "Guardando..." : submitLabel}
         </Button>
       </div>
