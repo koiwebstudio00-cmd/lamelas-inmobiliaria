@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Bot,
   Building2,
   ChevronRight,
   HeartHandshake,
@@ -12,8 +11,9 @@ import {
   KeyRound,
   Megaphone,
   Users,
-  type LucideIcon,
 } from "lucide-react";
+import type { ComponentType, SVGProps } from "react";
+import { WhatsappIcon } from "@/components/icons/whatsapp-icon";
 import { Logo } from "@/components/logo";
 import { NavUser } from "@/components/nav/nav-user";
 import { esAdmin } from "@/lib/permisos";
@@ -50,7 +50,7 @@ type Sub = {
 type Item = {
   href?: string;
   label: string;
-  icon: LucideIcon;
+  icon: ComponentType<SVGProps<SVGSVGElement>>;
   soloAdmin: boolean;
   subs: Sub[];
 };
@@ -93,7 +93,15 @@ const ITEMS: Item[] = [
       { href: "/feedback/reportes", label: "Reportes de error", incluye: ["/feedback/reportes/"] },
     ],
   },
-  { href: "/probar-agente", label: "Probar agente", icon: Bot, soloAdmin: true, subs: [] },
+  {
+    label: "WhatsApp",
+    icon: WhatsappIcon,
+    soloAdmin: true,
+    subs: [
+      { href: "/probar-agente", label: "Probar agente" },
+      { href: "/whatsapp/conectar", label: "Conectar número" },
+    ],
+  },
   { href: "/clientes", label: "Clientes", icon: HeartHandshake, soloAdmin: true, subs: [] },
   { href: "/equipo", label: "Equipo", icon: Users, soloAdmin: true, subs: [] },
   {

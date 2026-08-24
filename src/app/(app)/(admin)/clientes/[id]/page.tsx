@@ -8,10 +8,10 @@ import {
   IdCard,
   Mail,
   MapPin,
-  MessageCircle,
   Phone,
   UserRound,
 } from "lucide-react";
+import { WhatsappIcon } from "@/components/icons/whatsapp-icon";
 import { Badge, EstadoBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -114,7 +114,7 @@ export default async function ClienteDetallePage({
             </Button>
             <Button asChild size="sm">
               <a href={waLink(cliente.telefono)} target="_blank" rel="noopener noreferrer">
-                <MessageCircle /> WhatsApp
+                <WhatsappIcon /> WhatsApp
               </a>
             </Button>
           </div>
