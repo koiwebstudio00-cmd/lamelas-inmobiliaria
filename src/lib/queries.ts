@@ -14,6 +14,7 @@ import type {
   ApiKeyScope,
   CanalConversacion,
   CanalLead,
+  ChannelAccount,
   ClasificacionLead,
   Conversacion,
   ConversacionMensaje,
@@ -798,4 +799,14 @@ export async function getConversacionesPrueba(): Promise<ConversacionPrueba[]> {
       created_at: l.createdAt,
     }))
     .sort((a, b) => b.created_at.localeCompare(a.created_at));
+}
+
+/**
+ * Cuentas de mensajería conectadas por Zernio (hoy solo WhatsApp). La API ya
+ * las devuelve en snake_case porque `channelPayload` del backend las arma así
+ * — es de las pocas respuestas que no hay que traducir acá.
+ */
+export async function getChannels(): Promise<ChannelAccount[]> {
+  const { data } = await apiFetch<{ data: ChannelAccount[] }>("/v1/integrations/channels");
+  return data;
 }

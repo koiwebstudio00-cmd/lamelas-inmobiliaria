@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Home, Mail, MessageCircle, MessageSquare, Phone } from "lucide-react";
+import { ArrowLeft, Home, Mail, MessageSquare, Phone } from "lucide-react";
+import { WhatsappIcon } from "@/components/icons/whatsapp-icon";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CanalBadge } from "@/components/leads/estado-badge";
@@ -157,7 +158,7 @@ export default async function ConsultaPage({
               {lead.canal === "whatsapp" && lead.telefono && (
                 <Button asChild variant="outline" size="sm" className="w-full">
                   <a href={waLink(lead.telefono)} target="_blank" rel="noopener noreferrer">
-                    <MessageCircle /> Abrir WhatsApp
+                    <WhatsappIcon /> Abrir WhatsApp
                   </a>
                 </Button>
               )}

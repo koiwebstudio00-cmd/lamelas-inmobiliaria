@@ -328,6 +328,31 @@ export type ScopeOption = { scope: ApiKeyScope; label: string };
  * de IA (`agent:read` + `agent:write`). La key completa se ve una sola vez, al
  * crearla: en la base queda solo el hash y el prefijo.
  */
+/**
+ * Canales de mensajería que se pueden conectar por Zernio. Hoy solo WhatsApp:
+ * el backend acota el `check` de la columna a propósito, y lo amplía cuando
+ * haya pedido explícito de Instagram.
+ */
+export type ChannelCanal = "whatsapp";
+
+export type ChannelEstado = "activa" | "desconectada" | "error";
+
+/**
+ * Una cuenta de mensajería conectada. `display_name` y `display_phone` son un
+ * snapshot que guarda el backend al conectar, para no ir a pedirle los datos a
+ * Zernio cada vez que se abre la pantalla.
+ */
+export type ChannelAccount = {
+  id: string;
+  canal: ChannelCanal;
+  display_name: string | null;
+  display_phone: string | null;
+  estado: ChannelEstado;
+  conectada_por: string | null;
+  creada_at: string;
+  actualizada_at: string;
+};
+
 export type ApiKey = {
   id: string;
   nombre: string;
