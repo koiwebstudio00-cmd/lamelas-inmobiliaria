@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { Mail, Phone, Home } from "lucide-react";
-import { CanalBadge, LeadEstadoBadge } from "@/components/leads/estado-badge";
+import {
+  CanalBadge,
+  LeadEstadoBadge,
+  LeadSinTomarBadge,
+} from "@/components/leads/estado-badge";
 import { formatDateTime } from "@/lib/utils";
 import type { Lead } from "@/lib/types";
 
@@ -35,6 +39,7 @@ export function LeadRow({ lead }: { lead: Lead }) {
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <CanalBadge canal={lead.canal} />
+            {!lead.tomado_at && <LeadSinTomarBadge />}
             <LeadEstadoBadge estado={lead.estado} />
           </div>
         </div>

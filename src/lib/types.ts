@@ -214,6 +214,10 @@ export type Lead = {
   assigned_to: string | null;
   /** Nombre del vendedor asignado, ya resuelto por la API (null si sin asignar). */
   asignado: string | null;
+  tomado_at: string | null;
+  tomado_por: string | null;
+  /** Nombre de quien tomó la consulta por primera vez. */
+  tomado_por_nombre: string | null;
   propiedad: LeadPropiedad | null;
   created_at: string;
 };

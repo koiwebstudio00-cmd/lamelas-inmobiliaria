@@ -1,4 +1,4 @@
-import { Globe, Instagram, MessageSquare, PhoneCall } from "lucide-react";
+import { Clock3, Globe, Instagram, MessageSquare, PhoneCall } from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
 import { WhatsappIcon } from "@/components/icons/whatsapp-icon";
 import { cn } from "@/lib/utils";
@@ -37,6 +37,15 @@ export function LeadEstadoBadge({
     >
       {ESTADO_LABELS[estado]}
     </div>
+  );
+}
+
+export function LeadSinTomarBadge() {
+  return (
+    <span className="inline-flex items-center gap-1 border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
+      <Clock3 className="size-3.5 shrink-0" />
+      Sin tomar
+    </span>
   );
 }
 

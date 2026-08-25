@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Home, Mail, MessageSquare, Phone } from "lucide-react";
+import { ArrowLeft, Home, Mail, MessageSquare, Phone, UserCheck } from "lucide-react";
 import { WhatsappIcon } from "@/components/icons/whatsapp-icon";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CanalBadge } from "@/components/leads/estado-badge";
+import { CanalBadge, LeadSinTomarBadge } from "@/components/leads/estado-badge";
 import { LeadAssignSelect } from "@/components/leads/lead-assign-select";
 import { LeadConversation } from "@/components/leads/lead-conversation";
 import { LeadEditarDatos } from "@/components/leads/lead-editar-datos";
@@ -13,6 +13,7 @@ import { LeadEstadoSelect } from "@/components/leads/lead-estado-select";
 import { LeadClasificacionSelect } from "@/components/leads/lead-clasificacion-select";
 import { LeadNotes } from "@/components/leads/lead-notes";
 import { LeadPerfil } from "@/components/leads/lead-perfil";
+import { LeadTakeButton } from "@/components/leads/lead-take-button";
 import { getCurrentUser } from "@/lib/api";
 import { getConversacionDeLead, getLead, getVendedores } from "@/lib/queries";
 import { formatDateTime, waLink } from "@/lib/utils";
@@ -34,6 +35,9 @@ export default async function ConsultaPage({
   if (!lead) notFound();
 
   const esAdmin = me?.rol === "admin" || me?.rol === "super_admin";
+  const puedeTomar = esAdmin || !lead.assigned_to || lead.assigned_to === me?.id;
+  const puedeTomarseDesdeChat =
+    chat?.conversacion.estado === "bot" || chat?.conversacion.estado === "esperando_humano";
   const vendedores = esAdmin ? await getVendedores() : [];
 
   // El brief del agente se guarda como nota con origen "agente"; se muestra en
@@ -65,6 +69,23 @@ export default async function ConsultaPage({
       <div className="grid gap-4 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_340px]">
         {/* Columna principal: la conversación (o la consulta suelta) */}
         <div className="min-w-0 space-y-4 lg:min-h-0 lg:overflow-hidden">
+          {!lead.tomado_at && puedeTomar && !puedeTomarseDesdeChat ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 border border-amber-200 bg-amber-50 p-4">
+              <div className="flex items-start gap-2">
+                <UserCheck className="mt-0.5 size-5 shrink-0 text-amber-700" />
+                <div>
+                  <p className="text-sm font-medium text-amber-950">
+                    Consulta pendiente de atención
+                  </p>
+                  <p className="text-sm text-amber-800">
+                    Al tomarla, se te asignará y quedará registrada a tu nombre.
+                  </p>
+                </div>
+              </div>
+              <LeadTakeButton leadId={lead.id} />
+            </div>
+          ) : null}
+
           {chat ? (
             <LeadConversation
               conversacion={chat.conversacion}
@@ -113,6 +134,22 @@ export default async function ConsultaPage({
                   />
                 ) : (
                   <p className="font-medium">{lead.asignado ?? "Sin asignar"}</p>
+                )}
+              </div>
+
+              <div className="space-y-1.5 border-t pt-3">
+                <p className="text-muted-foreground">Atención</p>
+                {lead.tomado_at ? (
+                  <div>
+                    <p className="font-medium">
+                      Tomada por {lead.tomado_por_nombre ?? "un usuario del equipo"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDateTime(lead.tomado_at)}
+                    </p>
+                  </div>
+                ) : (
+                  <LeadSinTomarBadge />
                 )}
               </div>
 
