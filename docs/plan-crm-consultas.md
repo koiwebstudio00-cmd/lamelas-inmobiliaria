@@ -12,6 +12,48 @@ Objetivo: completar el CRM de consultas con cambios graduales, verificables y re
 - Validar backend antes de tocar UI dependiente.
 - Cada fase debe cerrar con pruebas o chequeos concretos antes de pasar a la siguiente.
 
+## Estado de implementacion
+
+Ultima actualizacion: 2026-08-24.
+
+Equivalencias de nombres usadas en este documento:
+
+- `back-lamelas` corresponde al repo actual `back-lamela`.
+- `lamelas` corresponde al repo actual `lamelas-sistema`.
+
+| Fase | Estado | Resultado |
+| --- | --- | --- |
+| 0. Criterios | completada | Reglas de asignacion, toma, fallback y WhatsApp cerradas |
+| 1. Modelo de toma | implementada | `tomado_at`, `tomado_por`, relacion con usuario e indice de pendientes personales |
+| 2. Endpoint universal | implementada | `POST /v1/leads/:id/take`, idempotente, atomico y protegido por RLS |
+| 3. Round-robin web | implementada | Web general y agente comparten reparto; se excluyen vendedores inactivos/no disponibles |
+| 4. WhatsApp y toma | implementada | Tomar chat toma el lead sin reasignarlo; timeout no reasigna leads tomados |
+| 5. Panel | pendiente | Tipos, boton universal, datos de toma y badge visual |
+| 6. Contador personal | pendiente | Consultas asignadas al usuario actual con `tomado_at is null` |
+| 7. Verificacion E2E | pendiente | Flujo completo con BD de test y panel |
+
+Implementacion acumulada en `back-lamela`:
+
+- Migracion `20260824000000_lead_toma`: campos de toma, FK e indice parcial por tenant/responsable.
+- Migracion `20260824100000_lead_take_rls`: acceso seguro a leads libres y transicion de conversaciones.
+- Migracion `20260824200000_public_lead_assignment_rls`: reparto desde el alta publica en contexto `auth`.
+- Nuevo repo CRM para toma transaccional y modulo compartido de asignacion round-robin.
+- Contrato de API y webhooks actualizado.
+- Pruebas agregadas en `test/crm.test.ts` y `test/agent.test.ts`.
+
+Validacion disponible:
+
+- Prisma generate, lint, typecheck y build: correctos.
+- Suites sin BD: 16 tests aprobados.
+- Las pruebas CRM, agente y RLS que requieren Postgres estan escritas pero no se pudieron ejecutar: el entorno local no tiene `DATABASE_URL_TEST` configurada y Docker no esta disponible. Las fases 1 a 4 se consideran implementadas, con validacion de integracion pendiente antes de deploy.
+
+Reglas confirmadas durante la implementacion:
+
+- Tomar un lead libre tambien lo asigna al usuario que lo toma.
+- Tomar un lead ya asignado no cambia su responsable; reasignar es una accion manual aparte.
+- Si un admin tiene un lead asignado y lo toma, el lead sigue siendo del admin hasta una reasignacion manual.
+- El contador futuro es personal: `assigned_to = usuario_actual and tomado_at is null`. No es el total del tenant ni equivale a `estado = nueva`.
+
 ## Regla funcional objetivo
 
 | Origen | Asignacion | Toma |
@@ -219,14 +261,15 @@ Criterio para avanzar:
 
 ## Fase 6. Contador de consultas sin tomar en sidebar
 
-Objetivo: agregar visibilidad operativa sin mezclarla con `estado=nueva`.
+Objetivo: mostrar a cada usuario cuantas consultas tiene asignadas y todavia no atendio, sin mezclarlo con `estado=nueva`.
 
 Backend:
 
-- Agregar soporte de conteo:
-  - opcion A: extender `/v1/leads/stats` con `sin_tomar`
-  - opcion B: permitir `GET /v1/leads?sin_tomar=true&limit=1` y usar `meta.total`
-- Recomendacion: usar stats si admin/vendedor necesitan el mismo dato con permisos ya resueltos.
+- Agregar un conteo calculado por el backend con el usuario autenticado:
+  - `assigned_to = current_user`
+  - `tomado_at is null`
+- No aceptar un `assigned_to` arbitrario enviado por el panel para calcular este contador.
+- Las consultas sin asignar no cuentan para ningun usuario.
 
 Panel:
 
@@ -237,8 +280,8 @@ Panel:
 
 Tests/chequeos:
 
-- Admin ve total sin tomar del tenant.
-- Vendedor ve solo las consultas sin tomar que puede ver.
+- Admin ve solo sus propias consultas asignadas sin tomar, no el total del tenant.
+- Vendedor ve solo sus propias consultas asignadas sin tomar.
 - Sidebar no rompe si falla el contador; usar fallback `0` o no mostrar badge.
 
 Comandos de cierre:
@@ -248,7 +291,7 @@ Comandos de cierre:
 
 Criterio para avanzar:
 
-- El contador refleja `tomado_at is null`, no `estado=nueva`.
+- El contador refleja `assigned_to = current_user and tomado_at is null`, no `estado=nueva`.
 
 ## Fase 7. Verificacion end-to-end
 
