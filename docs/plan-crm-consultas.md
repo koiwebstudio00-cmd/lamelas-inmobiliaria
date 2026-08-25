@@ -6,7 +6,7 @@ Objetivo: completar el CRM de consultas con cambios graduales, verificables y re
 
 ## Principios del plan
 
-- Separar asignacion de toma: `assigned_to` indica responsable; `tomado_por/tomado_at` indica quien tomo la consulta y cuando.
+- Separar asignacion de toma: `assigned_to` indica responsable actual; `tomado_por/tomado_at` registra quien tomo la consulta y cuando. Tomar transfiere la responsabilidad al usuario que realiza la accion.
 - No romper el flujo web con propiedad: debe seguir asignando al usuario que cargo la propiedad, incluido admin.
 - No perder consultas publicas: si no hay vendedores activos, el lead debe crearse igual.
 - Validar backend antes de tocar UI dependiente.
@@ -32,7 +32,7 @@ Cambios:
 - Confirmar que consulta web con propiedad cargada por admin se asigna al admin.
 - Confirmar que WhatsApp se asigna al derivar a humano, no al primer mensaje.
 - Confirmar fallback sin vendedores activos: crear lead sin asignar y notificar admins.
-- Confirmar que tomar un lead asignado no cambia responsable automaticamente.
+- Confirmar que tomar un lead asignado transfiere la responsabilidad al usuario que lo toma.
 
 Chequeo:
 
@@ -84,7 +84,7 @@ Backend:
 - Agregar `POST /v1/leads/:id/take`.
 - Reglas:
   - Si `tomado_at` ya existe, responder idempotente con el lead sin modificarlo.
-  - Si el lead tiene `assigned_to`, puede tomarlo admin o el usuario asignado.
+  - Si el lead tiene `assigned_to`, puede tomarlo admin o el usuario asignado; quien lo toma pasa a ser el nuevo `assigned_to`.
   - Si el lead no tiene `assigned_to`, puede tomarlo admin o vendedor del tenant; al tomarlo se setea tambien `assigned_to=current_user`.
   - No cambiar `estado` automaticamente.
   - Emitir evento `lead.updated` o `lead.taken`.
@@ -102,6 +102,7 @@ Tests:
 
 - Vendedor asignado toma correctamente.
 - Admin toma lead de su tenant.
+- Admin que toma un lead asignado pasa a ser su responsable.
 - Lead sin asignar queda asignado y tomado por quien lo toma.
 - Vendedor ajeno recibe forbidden/not found segun patron actual.
 - Tomar dos veces no pisa `tomado_por/tomado_at`.
@@ -226,7 +227,7 @@ Backend:
 - Agregar soporte de conteo:
   - opcion A: extender `/v1/leads/stats` con `sin_tomar`
   - opcion B: permitir `GET /v1/leads?sin_tomar=true&limit=1` y usar `meta.total`
-- Recomendacion: usar stats si admin/vendedor necesitan el mismo dato con permisos ya resueltos.
+- Decision implementada: opcion B, para reutilizar el listado ya habilitado para ambos roles y su visibilidad RLS sin ampliar el endpoint de stats exclusivo de admin.
 
 Panel:
 

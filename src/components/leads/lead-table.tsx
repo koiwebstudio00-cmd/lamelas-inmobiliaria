@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { Mail, Phone } from "lucide-react";
-import { CanalBadge, LeadEstadoBadge } from "@/components/leads/estado-badge";
+import {
+  CanalBadge,
+  LeadEstadoBadge,
+  LeadSinTomarBadge,
+} from "@/components/leads/estado-badge";
 import {
   Table,
   TableBody,
@@ -80,7 +84,10 @@ export function LeadTable({ leads }: { leads: Lead[] }) {
                 )}
               </TableCell>
               <TableCell>
-                <LeadEstadoBadge estado={lead.estado} />
+                <div className="flex flex-wrap gap-1.5">
+                  <LeadEstadoBadge estado={lead.estado} />
+                  {!lead.tomado_at && <LeadSinTomarBadge />}
+                </div>
               </TableCell>
               <TableCell className="whitespace-nowrap text-right text-xs tabular-nums text-muted-foreground">
                 {formatDateTime(lead.created_at)}

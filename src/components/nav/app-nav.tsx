@@ -30,6 +30,7 @@ import {
   SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -133,10 +134,12 @@ export function AppNav({
   nombre,
   email,
   rol,
+  consultasSinTomar,
 }: {
   nombre: string;
   email: string;
   rol: Rol;
+  consultasSinTomar: number;
 }) {
   const pathname = usePathname();
   const { isMobile, setOpenMobile } = useSidebar();
@@ -198,6 +201,9 @@ export function AppNav({
                 // Grupo desplegable: arranca abierto si estás parado en alguno
                 // de sus hijos, para que nunca tengas que buscar dónde estás.
                 const hayHijoActivo = item.subs.some((s) => subActivo(pathname, s, item.subs));
+                const pendientes = item.label === "Consultas" ? consultasSinTomar : 0;
+                const tooltip =
+                  pendientes > 0 ? `${item.label} (${pendientes} sin tomar)` : item.label;
 
                 return (
                   <Collapsible
@@ -208,12 +214,24 @@ export function AppNav({
                   >
                     <SidebarMenuItem>
                       <CollapsibleTrigger asChild>
-                        <SidebarMenuButton isActive={hayHijoActivo} tooltip={item.label}>
+                        <SidebarMenuButton
+                          isActive={hayHijoActivo}
+                          tooltip={tooltip}
+                          className={pendientes > 0 ? "pr-14" : undefined}
+                        >
                           <item.icon />
                           <span>{item.label}</span>
                           <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                         </SidebarMenuButton>
                       </CollapsibleTrigger>
+                      {pendientes > 0 ? (
+                        <SidebarMenuBadge
+                          className="right-7 bg-amber-100 text-amber-900"
+                          aria-label={`${pendientes} consultas sin tomar`}
+                        >
+                          {pendientes > 99 ? "99+" : pendientes}
+                        </SidebarMenuBadge>
+                      ) : null}
                       <CollapsibleContent>
                         <SidebarMenuSub>
                           {item.subs.map((sub) => {
