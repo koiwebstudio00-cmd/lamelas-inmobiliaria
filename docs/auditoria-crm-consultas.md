@@ -175,7 +175,7 @@ Recomendacion:
 
 Decision a cerrar:
 
-- Si un admin toma un lead asignado a un vendedor, debe cambiar `assigned_to` al admin o solo marcar `tomado_por=admin`. Recomendacion inicial: si ya tiene `assigned_to`, no cambiar responsable salvo reasignacion explicita.
+- Si un admin toma un lead asignado a un vendedor, `assigned_to` cambia al admin: tomar implica asumir la responsabilidad operativa.
 
 ### H7. Falta distintivo y contador de consultas sin tomar
 
@@ -227,7 +227,7 @@ Regla propuesta:
 - Un lead se considera sin tomar cuando `tomado_at is null`.
 - Tomar un lead setea `tomado_at=now()` y `tomado_por=current_user`.
 - Tomar no cambia `estado` automaticamente.
-- Tomar no reasigna un lead que ya tiene responsable, salvo que negocio lo pida explicitamente.
+- Tomar reasigna el lead al usuario que realiza la accion.
 - Tomar un lead sin responsable lo asigna al usuario que lo toma.
 - Una vez tomado, no debe entrar en procesos automaticos de reasignacion.
 
@@ -314,7 +314,7 @@ Regla propuesta:
 ### Decisiones pendientes
 
 - WhatsApp: asignar al primer contacto o solo al derivar a humano.
-- Admin tomando lead asignado: marcar toma sin cambiar responsable o reasignar al admin.
+- Admin tomando lead asignado: reasignar al admin, confirmado.
 - Consulta web con propiedad cargada por admin: queda asignada al admin, confirmado.
 - Fallback sin vendedores activos: recomendado crear sin asignar y alertar admins.
 

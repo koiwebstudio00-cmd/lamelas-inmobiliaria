@@ -334,9 +334,12 @@ interface ApiLead {
   estado: EstadoLead;
   clasificacion?: ClasificacionLead | null;
   assignedTo: string | null;
+  tomadoAt: string | null;
+  tomadoPor: string | null;
   createdAt: string;
   property?: { id: string; titulo: string; operacion?: Operacion; precio?: string } | null;
   assignee?: { id: string; nombre: string } | null;
+  takenBy?: { id: string; nombre: string } | null;
   notes?: ApiLeadNote[];
 }
 
@@ -361,6 +364,9 @@ function toLead(l: ApiLead): Lead {
     clasificacion: l.clasificacion ?? null,
     assigned_to: l.assignedTo,
     asignado: l.assignee?.nombre ?? null,
+    tomado_at: l.tomadoAt,
+    tomado_por: l.tomadoPor,
+    tomado_por_nombre: l.takenBy?.nombre ?? null,
     propiedad: l.property
       ? {
           id: l.property.id,
@@ -409,6 +415,23 @@ export async function getLeads(filters: LeadFilters) {
 
   const leads = data.map(toLead);
   return { leads, count: meta.total, page: meta.page };
+}
+
+/** Cantidad de consultas pendientes visibles para el usuario actual. */
+export async function getConsultasSinTomarCount(): Promise<number> {
+  try {
+    const { meta } = await apiFetch<{ meta: { total: number } }>("/v1/leads", {
+      query: {
+        sin_tomar: true,
+        excluir_agente_web: true,
+        page: 1,
+        limit: 1,
+      },
+    });
+    return meta.total;
+  } catch {
+    return 0;
+  }
 }
 
 export interface LeadStats {

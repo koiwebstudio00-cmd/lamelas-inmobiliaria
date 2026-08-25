@@ -92,6 +92,18 @@ export async function assignLead(id: string, userId: string): Promise<string | n
   return null;
 }
 
+/** Registra la primera atención del lead sin cambiar su etapa comercial. */
+export async function takeLead(id: string): Promise<string | null> {
+  if (!z.string().uuid().safeParse(id).success) return "La consulta no es válida.";
+  try {
+    await apiFetch(`/v1/leads/${id}/take`, { method: "POST" });
+  } catch (error) {
+    return message(error, "No pudimos tomar la consulta.");
+  }
+  revalidar(id);
+  return null;
+}
+
 /** Nota interna: no la ve quien consultó, solo el equipo. */
 export async function addLeadNote(
   leadId: string,
