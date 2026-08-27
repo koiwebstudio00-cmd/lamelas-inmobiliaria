@@ -16,15 +16,25 @@ export const metadata = { title: "Conectando… — Lamelas & Chaumont" };
 export default async function CallbackConexionPage({
   searchParams,
 }: {
-  searchParams: Promise<{ canal?: string }>;
+  searchParams: Promise<{
+    canal?: string;
+    connected?: string;
+    accountId?: string;
+    error?: string;
+  }>;
 }) {
-  const { canal } = await searchParams;
+  const params = await searchParams;
+  const canal = params.canal ?? params.connected;
   const destino = "/whatsapp/conectar";
+
+  if (params.error) {
+    redirect(`${destino}?error=${encodeURIComponent(params.error)}`);
+  }
 
   if (canal !== "whatsapp") {
     redirect(`${destino}?error=${encodeURIComponent("Canal desconocido en la vuelta de Meta.")}`);
   }
 
-  const { error } = await completarConexion(canal as ChannelCanal);
+  const { error } = await completarConexion(canal as ChannelCanal, params.accountId);
   redirect(error ? `${destino}?error=${encodeURIComponent(error)}` : `${destino}?conectado=1`);
 }

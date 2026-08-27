@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { PlugZap, RefreshCw, Unplug } from "lucide-react";
 import { toast } from "sonner";
 import { WhatsappIcon } from "@/components/icons/whatsapp-icon";
@@ -26,6 +27,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  completarConexion,
   desconectarCanal,
   obtenerUrlDeConexion,
   verificarCanal,
@@ -134,14 +136,37 @@ function AccionesCuenta({ cuenta }: { cuenta: ChannelAccount }) {
 }
 
 export function ChannelManager({ cuentas }: { cuentas: ChannelAccount[] }) {
-  const hayActiva = cuentas.some((c) => c.estado === "activa");
+  const router = useRouter();
+  const recuperacionIniciada = useRef(false);
+  const [, startRecovery] = useTransition();
+  const activas = cuentas.filter((c) => c.estado === "activa").length;
+  const hayActiva = activas > 0;
+
+  // Facebook puede volver al tab original con #_=_ en vez de navegar al
+  // redirect_url de Zernio. Si todavía no hay fila local, completamos contra
+  // la cuenta activa del profile y dejamos la URL limpia.
+  useEffect(() => {
+    if (cuentas.length > 0 || window.location.hash !== "#_=_" || recuperacionIniciada.current) {
+      return;
+    }
+    recuperacionIniciada.current = true;
+    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+    startRecovery(async () => {
+      const { error } = await completarConexion("whatsapp");
+      if (error) toast.error(error);
+      else {
+        toast.success("Número conectado correctamente.");
+        router.refresh();
+      }
+    });
+  }, [cuentas.length, router]);
 
   return (
     <section className="border bg-background">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-muted/40 px-4 py-3">
         <div className="flex items-center gap-2">
           <WhatsappIcon className="size-5 text-primary" />
-          <h2 className="font-semibold">Números conectados ({cuentas.length})</h2>
+          <h2 className="font-semibold">Números conectados ({activas})</h2>
         </div>
         {hayActiva ? (
           <p className="text-xs text-muted-foreground">
