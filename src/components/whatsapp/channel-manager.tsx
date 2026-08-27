@@ -101,6 +101,10 @@ function AccionesCuenta({ cuenta }: { cuenta: ChannelAccount }) {
     });
   }
 
+  if (cuenta.estado !== "activa") {
+    return <span className="text-sm text-muted-foreground">Sin acciones</span>;
+  }
+
   return (
     <div className="flex justify-end gap-1">
       <Button size="sm" variant="ghost" onClick={verificar} disabled={pendiente}>
