@@ -55,13 +55,16 @@ export async function obtenerUrlDeConexion(
  * usuario. Confirma contra Zernio qué cuenta quedó conectada y la guarda.
  */
 export async function completarConexion(
-  canal: ChannelCanal
+  canal: ChannelCanal,
+  accountId?: string
 ): Promise<{ error?: string }> {
   const denegado = await soloAdmin();
   if (denegado) return { error: denegado };
 
   try {
-    await apiFetch(`/v1/integrations/channels/callback`, { query: { canal } });
+    await apiFetch(`/v1/integrations/channels/callback`, {
+      query: { canal, account_id: accountId },
+    });
     revalidatePath(RUTA);
     return {};
   } catch (error) {
