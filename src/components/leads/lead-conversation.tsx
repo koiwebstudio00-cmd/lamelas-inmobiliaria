@@ -23,10 +23,12 @@ export function LeadConversation({
   conversacion,
   mensajes,
   leadNombre,
+  atencionExterna = false,
 }: {
   conversacion: Conversacion;
   mensajes: ConversacionMensaje[];
   leadNombre: string;
+  atencionExterna?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -78,9 +80,13 @@ export function LeadConversation({
           <div className="flex items-start gap-2">
             <UserCheck className="mt-0.5 size-5 shrink-0 text-primary" />
             <div>
-              <p className="text-sm font-medium">La estás atendiendo vos</p>
+              <p className="text-sm font-medium">
+                {atencionExterna ? "Atendida desde WhatsApp Business" : "La estás atendiendo vos"}
+              </p>
               <p className="text-sm text-muted-foreground">
-                El bot no responde mientras tengas el chat tomado.
+                {atencionExterna
+                  ? "El bot quedó pausado al detectar una respuesta enviada desde el teléfono."
+                  : "El bot no responde mientras tengas el chat tomado."}
               </p>
             </div>
           </div>

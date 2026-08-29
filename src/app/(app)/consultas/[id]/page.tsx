@@ -91,6 +91,7 @@ export default async function ConsultaPage({
               conversacion={chat.conversacion}
               mensajes={chat.mensajes}
               leadNombre={lead.nombre}
+              atencionExterna={lead.tomado_origen === "whatsapp_business_app"}
             />
           ) : (
             <Card>
@@ -142,7 +143,9 @@ export default async function ConsultaPage({
                 {lead.tomado_at ? (
                   <div>
                     <p className="font-medium">
-                      Tomada por {lead.tomado_por_nombre ?? "un usuario del equipo"}
+                      {lead.tomado_origen === "whatsapp_business_app"
+                        ? "Atendida desde WhatsApp Business"
+                        : `Tomada por ${lead.tomado_por_nombre ?? "un usuario del equipo"}`}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {formatDateTime(lead.tomado_at)}

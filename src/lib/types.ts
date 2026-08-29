@@ -216,6 +216,7 @@ export type Lead = {
   asignado: string | null;
   tomado_at: string | null;
   tomado_por: string | null;
+  tomado_origen: "panel" | "whatsapp_business_app" | "sistema" | null;
   /** Nombre de quien tomó la consulta por primera vez. */
   tomado_por_nombre: string | null;
   propiedad: LeadPropiedad | null;
