@@ -336,6 +336,7 @@ interface ApiLead {
   assignedTo: string | null;
   tomadoAt: string | null;
   tomadoPor: string | null;
+  tomadoOrigen?: "panel" | "whatsapp_business_app" | "sistema" | null;
   createdAt: string;
   property?: { id: string; titulo: string; operacion?: Operacion; precio?: string } | null;
   assignee?: { id: string; nombre: string } | null;
@@ -366,6 +367,7 @@ function toLead(l: ApiLead): Lead {
     asignado: l.assignee?.nombre ?? null,
     tomado_at: l.tomadoAt,
     tomado_por: l.tomadoPor,
+    tomado_origen: l.tomadoOrigen ?? null,
     tomado_por_nombre: l.takenBy?.nombre ?? null,
     propiedad: l.property
       ? {
