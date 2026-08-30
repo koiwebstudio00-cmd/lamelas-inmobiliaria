@@ -10,6 +10,8 @@ import { ApiError, apiFetch, getCurrentUser } from "@/lib/api";
 import { esAdmin } from "@/lib/permisos";
 import type { PropertyCardData } from "@/components/properties/property-card";
 import type {
+  AnalyticsLeads,
+  AnalyticsOverview,
   ApiKey,
   ApiKeyScope,
   CanalConversacion,
@@ -450,6 +452,59 @@ export async function getLeadStats(): Promise<LeadStats | null> {
   } catch {
     return null;
   }
+}
+
+// ── Analíticas comerciales ─────────────────────────────────────────────────
+
+export interface AnalyticsFilters {
+  from?: string;
+  to?: string;
+  canal?: string;
+  vendedor?: string;
+  operacion?: string;
+  tipo?: string;
+  zona?: string;
+  clasificacion?: string;
+}
+
+function analyticsQuery(filters: AnalyticsFilters) {
+  return {
+    from: filters.from,
+    to: filters.to,
+    timezone: "America/Argentina/Tucuman",
+    canal: oneOf(CANALES_VALUES, filters.canal),
+    seller_id: UUID.test(filters.vendedor ?? "") ? filters.vendedor : undefined,
+    operacion: oneOf(["venta", "alquiler", "ambos"] as const, filters.operacion),
+    tipo: oneOf(
+      [
+        "monoambiente",
+        "departamento",
+        "casa",
+        "duplex",
+        "local_comercial",
+        "oficina",
+        "galpon",
+        "estacionamiento",
+        "terreno",
+        "otro",
+      ] as const,
+      filters.tipo
+    ),
+    zona: filters.zona?.trim(),
+    clasificacion: oneOf(CLASIF_VALUES, filters.clasificacion),
+  };
+}
+
+export function getAnalyticsOverview(filters: AnalyticsFilters) {
+  return apiFetch<AnalyticsOverview>("/v1/analytics/overview", {
+    query: analyticsQuery(filters),
+  });
+}
+
+export function getAnalyticsLeads(filters: AnalyticsFilters) {
+  return apiFetch<AnalyticsLeads>("/v1/analytics/leads", {
+    query: analyticsQuery(filters),
+  });
 }
 
 /** Devuelve null si no existe o si el usuario no tiene permiso de verla. */
