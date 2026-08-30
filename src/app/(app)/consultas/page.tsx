@@ -6,6 +6,7 @@ import { LeadFilters } from "@/components/leads/lead-filters";
 import { LeadRow } from "@/components/leads/lead-row";
 import { LeadTable } from "@/components/leads/lead-table";
 import { Pagination } from "@/components/pagination";
+import { RefreshButton } from "@/components/refresh-button";
 import { VistaToggle } from "@/components/vista-toggle";
 import { getCurrentUser } from "@/lib/api";
 import { getLeads, getLeadStats, getVendedores } from "@/lib/queries";
@@ -54,6 +55,7 @@ export default async function ConsultasPage({
         </div>
         <div className="flex items-center gap-2">
           <VistaToggle vista={vista} />
+          <RefreshButton label="Actualizar consultas" />
           <Button asChild size="sm">
             <Link href="/consultas/nueva" prefetch={false}>
               <Plus /> Cargar consulta

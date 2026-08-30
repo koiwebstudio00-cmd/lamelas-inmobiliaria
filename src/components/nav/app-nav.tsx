@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Building2,
+  ChartNoAxesCombined,
   ChevronRight,
   HeartHandshake,
   Home,
@@ -84,6 +85,13 @@ const ITEMS: Item[] = [
       { href: "/consultas", label: "Todas las consultas", incluye: ["/consultas/"] },
       { href: "/consultas/nueva", label: "Nueva consulta" },
     ],
+  },
+  {
+    href: "/analiticas",
+    label: "Analíticas",
+    icon: ChartNoAxesCombined,
+    soloAdmin: true,
+    subs: [],
   },
   {
     label: "Feedback",

@@ -34,6 +34,56 @@ export type AmobladoAlquiler = "amoblado" | "sin_amoblar" | "sin_especificar";
 
 export type Rol = "super_admin" | "admin" | "agente";
 
+// ── Analíticas comerciales (cohortes con datos actuales) ────────────────────
+
+export type AnalyticsPeriod = {
+  from: string;
+  to: string;
+  timezone: string;
+  cohort_definition: string;
+};
+
+export type AnalyticsOverview = {
+  period: AnalyticsPeriod;
+  kpis: {
+    leads_created: number;
+    leads_taken: number;
+    take_rate: number;
+    median_take_minutes: number | null;
+    nuevas: number;
+    en_contacto: number;
+    ganadas: number;
+    perdidas: number;
+    cohort_conversion_rate: number;
+    sofia_conversations: number;
+    handed_off_conversations: number;
+    handoff_rate: number;
+    active_properties: number;
+    active_properties_without_leads: number;
+  };
+};
+
+export type AnalyticsLeads = {
+  period: AnalyticsPeriod;
+  summary: {
+    total: number;
+    taken: number;
+    untaken: number;
+    take_rate: number;
+    assigned: number;
+    unassigned: number;
+    median_take_minutes: number | null;
+    p90_take_minutes: number | null;
+  };
+  by_channel: Record<string, number>;
+  by_state: Record<string, number>;
+  by_classification: Record<string, number>;
+  by_property_relation: Record<string, number>;
+  by_taken_origin: Record<string, number>;
+  pending_by_age: Record<string, number>;
+  daily: { date: string; canal: string; count: number }[];
+};
+
 export type Tenant = {
   id: string;
   nombre: string;
