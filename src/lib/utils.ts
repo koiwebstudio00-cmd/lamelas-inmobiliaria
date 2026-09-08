@@ -25,6 +25,7 @@ export function formatPrice(precio: number, moneda: string) {
 
 export function formatDate(iso: string) {
   return new Intl.DateTimeFormat("es-AR", {
+    timeZone: "America/Argentina/Tucuman",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -49,6 +50,7 @@ export function waLink(telefono: string) {
 
 export function formatDateTime(iso: string) {
   return new Intl.DateTimeFormat("es-AR", {
+    timeZone: "America/Argentina/Tucuman",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

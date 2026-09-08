@@ -82,6 +82,14 @@ export type AnalyticsLeads = {
   by_taken_origin: Record<string, number>;
   pending_by_age: Record<string, number>;
   daily: { date: string; canal: string; count: number }[];
+  /** Ranking de propiedades por consultas recibidas en el período — ver
+   * DestacarButton, es donde el admin decide qué destacar con este dato. */
+  top_properties: {
+    property_id: string;
+    titulo: string;
+    destacada: boolean;
+    consultas: number;
+  }[];
 };
 
 export type Tenant = {

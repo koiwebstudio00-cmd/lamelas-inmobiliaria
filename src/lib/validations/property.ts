@@ -73,8 +73,8 @@ export const propertySchema = z.object({
   moneda_alquiler: optionalEnum(["ARS", "USD"] as const),
   // El estado se puede fijar ya en el alta/edición (ej: cargar una privada).
   estado: z.enum(ESTADOS_VALUES).default("disponible"),
-  // Checkbox: "on" cuando está tildado, ausente si no. Se normaliza a booleano.
-  destacada: z.preprocess((v) => v === "on" || v === true || v === "true", z.boolean()),
+  // `destacada` NO está en este schema: este form nunca la toca. Se cambia
+  // solo con el botón "Destacar" del detalle (admin-only) — ver [[destacadas]].
   descripcion: optionalText,
   direccion: optionalText,
   zona: optionalText,

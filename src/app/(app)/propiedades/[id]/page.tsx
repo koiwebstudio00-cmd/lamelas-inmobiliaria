@@ -142,7 +142,9 @@ export default async function PropiedadPage({
       {puedeGestionar && (
         <div className="flex flex-wrap items-center gap-2 border bg-background p-3">
           <EstadoSelect propertyId={property.id} estado={property.estado} />
-          <DestacarButton propertyId={property.id} destacada={property.destacada} />
+          {esAdmin && (
+            <DestacarButton propertyId={property.id} destacada={property.destacada} />
+          )}
           <Button asChild variant="outline" size="sm">
             <Link href={`/propiedades/${property.id}/editar`} prefetch={false}>
               <Pencil /> Editar
