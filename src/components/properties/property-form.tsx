@@ -289,21 +289,9 @@ export function PropertyForm({
             </p>
           </Field>
 
-          <label className="flex items-start gap-2 pt-1">
-            <input
-              type="checkbox"
-              name="destacada"
-              defaultChecked={property?.destacada ?? false}
-              className="mt-0.5 size-4 accent-amber-500"
-            />
-            <span className="text-sm">
-              <span className="font-medium">Destacar esta propiedad</span>
-              <span className="block text-xs text-muted-foreground">
-                La sube al tope del listado de la web y de lo que ofrece el
-                asistente. Cada vendedor puede tener hasta 6 destacadas a la vez.
-              </span>
-            </span>
-          </label>
+          {/* Destacar NO tiene checkbox acá a propósito: es un único camino
+              (el botón del detalle, admin-only) para que este form nunca
+              pueda pisar el destacado al guardar otro cambio. Ver [[destacadas]]. */}
         </CardContent>
       </Card>
 

@@ -108,6 +108,7 @@ export async function updateProperty(
 
   try {
     // Mandamos todo, nulls incluidos: así se vacía un campo que se borró.
+    // `destacada` no viaja nunca por acá — ni está en propertySchema.
     await apiFetch(`/v1/properties/${id}`, { method: "PATCH", body: parsed.data });
   } catch (error) {
     return apiState(error, "No pudimos actualizar la propiedad.");
@@ -163,6 +164,9 @@ export async function updateDestacada(
   revalidatePath("/propiedades");
   revalidatePath("/mis-propiedades");
   revalidatePath(`/propiedades/${id}`);
+  // El ranking de "más consultadas" en analíticas muestra el estado de
+  // destacada — si se togglea desde ahí, tiene que refrescarse ahí también.
+  revalidatePath("/analiticas");
   return null;
 }
 

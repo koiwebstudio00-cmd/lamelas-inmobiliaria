@@ -14,6 +14,7 @@ import {
 import { AnalyticsFilters } from "@/components/analytics/analytics-filters";
 import { DailyVolume } from "@/components/analytics/daily-volume";
 import { AnalyticsMetric, Breakdown } from "@/components/analytics/metric";
+import { TopProperties } from "@/components/analytics/top-properties";
 import { Button } from "@/components/ui/button";
 import {
   getAnalyticsLeads,
@@ -205,6 +206,13 @@ function Leads({ data }: { data: Awaited<ReturnType<typeof getAnalyticsLeads>> }
           <Breakdown title="Canal de entrada" values={data.by_channel} labels={CHANNEL_LABELS} />
           <Breakdown title="Consulta general o por propiedad" values={data.by_property_relation} labels={PROPERTY_LABELS} />
         </div>
+      </AnalyticsSection>
+
+      <AnalyticsSection
+        title="Demanda por propiedad"
+        description="Qué propiedades concentran las consultas del período — la base para decidir qué destacar."
+      >
+        <TopProperties rows={data.top_properties} />
       </AnalyticsSection>
 
       <AnalyticsSection
