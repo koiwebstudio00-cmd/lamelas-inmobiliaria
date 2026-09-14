@@ -6,7 +6,7 @@ Contexto para Claude Code al trabajar en este repo.
 
 Panel **interno** de Inmobiliaria Lamelas: los vendedores cargan y gestionan propiedades con fotos. Lo que se publica acá aparece en el sitio público `lamelas-web` (repo `../lamelas-web`).
 
-Ya **no usa Supabase**. Todos los datos, la sesión y las fotos viven en el backend propio `back-lamelas` (repo `../back-lamelas`). Los documentos de `docs/` describen el MVP original sobre Supabase: valen como historia del producto, no como referencia técnica actual. La fuente de verdad técnica es `../back-lamelas/docs/api.md` y `../back-lamelas/src/modules/`.
+Ya **no usa Supabase**. Todos los datos, la sesión y las fotos viven en el backend propio `back-lamelas` (repo `../back-lamelas`). Los documentos que lo indican explícitamente describen el MVP original y se conservan como historia. La fuente de verdad técnica es `../back-lamelas/docs/api-spec.md`, `../back-lamelas/src/modules/` y el código actual de este repo.
 
 ## Stack
 
@@ -57,7 +57,12 @@ Secciones del panel, todas dentro de `(app)`:
 | `/propiedades`, `/mis-propiedades`, `/propiedades/[id]`, `/propiedades/nueva` | Catálogo interno y alta/edición. Filtros incl. **dormitorios**. Form con sección de alquiler condicional + mapa Leaflet. El admin edita/elimina cualquier propiedad del tenant. |
 | `/consultas`, `/consultas/[id]`, `/consultas/nueva` | Bandeja de leads: filtros por texto, estado, canal, **clasificación** y vendedor; contadores potencial/fantasma (admin); detalle con cambio de estado, **clasificación** (potencial/fantasma), reasignación y notas internas. |
 | `/equipo` | Usuarios e invitaciones (solo admin). |
-| `/configuracion` | API keys del sitio público (solo admin). |
+| `/analiticas` | Resumen y analíticas de consultas (solo admin). |
+| `/feedback/*` | Sugerencias, reportes, altas y detalle de feedback. |
+| `/probar-agente` | Probador web de Sofi con sesiones separadas (solo admin). |
+| `/whatsapp/conectar` | Conexión y estado de WhatsApp mediante Zernio (solo admin). |
+| `/clientes`, `/clientes/[id]` | Vista previa con datos de ejemplo; no persiste clientes todavía (solo admin). |
+| `/configuracion` | API keys del sitio y del agente, con scopes (solo admin). |
 | `/perfil` | Datos de la propia cuenta. |
 
 Notas de estructura que conviene tener a mano:

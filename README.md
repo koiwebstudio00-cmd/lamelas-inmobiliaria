@@ -22,6 +22,9 @@ npm run dev                  # http://localhost:3000
 
 Necesita `back-lamelas` corriendo (por defecto en `http://localhost:3001`).
 
+Para usar `/probar-agente`, configurar además `AGENT_CHAT_WEBHOOK_URL` con el
+webhook sincrónico del workflow web de n8n. La URL queda solo en el servidor.
+
 Las cuentas se crean por invitación: un admin invita desde la API y la persona entra por `/aceptar-invitacion?token=`.
 
 ## Antes de dar algo por terminado
@@ -30,4 +33,6 @@ Las cuentas se crean por invitación: un admin invita desde la API y la persona 
 npm run lint && npx tsc --noEmit && npm run build
 ```
 
-Para trabajar en el código, leer `CLAUDE.md` / `AGENTS.md`. Los documentos de `docs/` describen el MVP original sobre Supabase y se conservan como historia del producto.
+Para trabajar en el código, leer `CLAUDE.md` / `AGENTS.md`. Los documentos de
+`docs/` marcados como históricos describen el MVP original sobre Supabase; el
+contrato actual está en `../back-lamelas/docs/api-spec.md`.

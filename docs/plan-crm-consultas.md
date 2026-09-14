@@ -1,6 +1,6 @@
 # Plan CRM de consultas
 
-Fecha: 2026-08-24
+Fecha original: 2026-08-24 · Revision contra codigo: 2026-09-13
 Base: `docs/auditoria-crm-consultas.md`
 Objetivo: completar el CRM de consultas con cambios graduales, verificables y reversibles por etapa.
 
@@ -14,12 +14,7 @@ Objetivo: completar el CRM de consultas con cambios graduales, verificables y re
 
 ## Estado de implementacion
 
-Ultima actualizacion: 2026-08-24.
-
-Equivalencias de nombres usadas en este documento:
-
-- `back-lamelas` corresponde al repo actual `back-lamela`.
-- `lamelas` corresponde al repo actual `lamelas-sistema`.
+Ultima actualizacion: 2026-09-13.
 
 | Fase | Estado | Resultado |
 | --- | --- | --- |
@@ -28,11 +23,11 @@ Equivalencias de nombres usadas en este documento:
 | 2. Endpoint universal | implementada | `POST /v1/leads/:id/take`, idempotente, atomico y protegido por RLS |
 | 3. Round-robin web | implementada | Web general y agente comparten reparto; se excluyen vendedores inactivos/no disponibles |
 | 4. WhatsApp y toma | implementada | Tomar chat toma el lead sin reasignarlo; timeout no reasigna leads tomados |
-| 5. Panel | pendiente | Tipos, boton universal, datos de toma y badge visual |
-| 6. Contador personal | pendiente | Consultas asignadas al usuario actual con `tomado_at is null` |
+| 5. Panel | implementada | Tipos, boton universal, datos de toma y badge visual |
+| 6. Contador personal | implementada | Consultas asignadas al usuario actual con `tomado_at is null` |
 | 7. Verificacion E2E | pendiente | Flujo completo con BD de test y panel |
 
-Implementacion acumulada en `back-lamela`:
+Implementacion acumulada en `back-lamelas` y `lamelas`:
 
 - Migracion `20260824000000_lead_toma`: campos de toma, FK e indice parcial por tenant/responsable.
 - Migracion `20260824100000_lead_take_rls`: acceso seguro a leads libres y transicion de conversaciones.
@@ -40,19 +35,20 @@ Implementacion acumulada en `back-lamela`:
 - Nuevo repo CRM para toma transaccional y modulo compartido de asignacion round-robin.
 - Contrato de API y webhooks actualizado.
 - Pruebas agregadas en `test/crm.test.ts` y `test/agent.test.ts`.
+- UI de toma, distintivos y contador personal en el panel.
 
 Validacion disponible:
 
 - Prisma generate, lint, typecheck y build: correctos.
 - Suites sin BD: 16 tests aprobados.
-- Las pruebas CRM, agente y RLS que requieren Postgres estan escritas pero no se pudieron ejecutar: el entorno local no tiene `DATABASE_URL_TEST` configurada y Docker no esta disponible. Las fases 1 a 4 se consideran implementadas, con validacion de integracion pendiente antes de deploy.
+- Las pruebas CRM, agente y RLS que requieren Postgres estan escritas. En la revisión 2026-09-13 no pudieron ejecutarse porque no había Postgres en `localhost:5432`; la verificación E2E sigue pendiente.
 
 Reglas confirmadas durante la implementacion:
 
 - Tomar un lead libre tambien lo asigna al usuario que lo toma.
-- Tomar un lead ya asignado no cambia su responsable; reasignar es una accion manual aparte.
-- Si un admin tiene un lead asignado y lo toma, el lead sigue siendo del admin hasta una reasignacion manual.
-- El contador futuro es personal: `assigned_to = usuario_actual and tomado_at is null`. No es el total del tenant ni equivale a `estado = nueva`.
+- Tomar un lead transfiere `assigned_to` al usuario que realiza la toma, incluso si antes estaba asignado a otra persona autorizada.
+- La primera toma es idempotente: no pisa `tomado_por` ni `tomado_at`.
+- El contador es personal: `assigned_to = usuario_actual and tomado_at is null`. No es el total del tenant ni equivale a `estado = nueva`.
 
 ## Regla funcional objetivo
 
@@ -61,9 +57,9 @@ Reglas confirmadas durante la implementacion:
 | Web con propiedad | usuario que cargo la propiedad | manual desde CRM |
 | Web sin propiedad | round-robin entre vendedores activos | manual desde CRM |
 | WhatsApp/agente | round-robin al derivar a humano | al tomar chat/lead |
-| Manual panel | usuario que carga el lead | opcional: puede quedar tomado por quien carga o pendiente, a definir antes de implementar |
+| Manual panel | usuario que carga el lead | queda pendiente hasta una toma explícita |
 
-Decision recomendada para manuales: dejarlos asignados al creador pero sin tomar, salvo que el negocio quiera considerarlos ya tomados.
+Decisión implementada para manuales: quedan asignados al creador pero sin tomar.
 
 ## Fase 0. Congelar criterios y baseline
 
@@ -266,18 +262,10 @@ Objetivo: mostrar a cada usuario cuantas consultas tiene asignadas y todavia no 
 
 Backend:
 
-<<<<<<< HEAD
-- Agregar un conteo calculado por el backend con el usuario autenticado:
-  - `assigned_to = current_user`
-  - `tomado_at is null`
-- No aceptar un `assigned_to` arbitrario enviado por el panel para calcular este contador.
-- Las consultas sin asignar no cuentan para ningun usuario.
-=======
 - Agregar soporte de conteo:
   - opcion A: extender `/v1/leads/stats` con `sin_tomar`
   - opcion B: permitir `GET /v1/leads?sin_tomar=true&limit=1` y usar `meta.total`
 - Decision implementada: opcion B, para reutilizar el listado ya habilitado para ambos roles y su visibilidad RLS sin ampliar el endpoint de stats exclusivo de admin.
->>>>>>> 8b790a39e8a7e5260eed30bb3abf36bcbfa7fbcd
 
 Panel:
 
@@ -336,7 +324,7 @@ Comandos finales por repo:
 - `lamelas`: `npm run lint`, `npx tsc --noEmit`, `npm run build`
 - `lamelas-web`: `npm run build`
 
-## Orden de merge sugerido
+## Orden de merge ejecutado/histórico
 
 1. `lamelas-web`: fix de `property_id` en ficha publica, porque es chico y desbloquea asignacion correcta con propiedad.
 2. `back-lamelas` fases 1 y 2: modelo y endpoint de toma.
