@@ -698,6 +698,30 @@ export async function getApiKeyScopes(): Promise<ScopeOption[]> {
   return data;
 }
 
+export interface FollowupSettings {
+  agentEnabled: boolean;
+  enabled: boolean;
+  firstMessage: string;
+  secondMessage: string;
+}
+
+export async function getFollowupSettings(): Promise<FollowupSettings> {
+  const { tenant } = await apiFetch<{
+    tenant: {
+      agentEnabled: boolean;
+      followupEnabled: boolean;
+      followupFirstMessage: string;
+      followupSecondMessage: string;
+    };
+  }>("/v1/tenants/current");
+  return {
+    agentEnabled: tenant.agentEnabled,
+    enabled: tenant.followupEnabled,
+    firstMessage: tenant.followupFirstMessage,
+    secondMessage: tenant.followupSecondMessage
+  };
+}
+
 // ── Resumen de la home ───────────────────────────────────────────────────────
 
 // El resumen de la home muestra tres contadores; no necesita todos los estados.

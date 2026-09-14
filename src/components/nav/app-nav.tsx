@@ -108,6 +108,7 @@ const ITEMS: Item[] = [
     soloAdmin: true,
     subs: [
       { href: "/probar-agente", label: "Probar agente" },
+      { href: "/whatsapp/ajustes-agente", label: "Ajustes del agente" },
       { href: "/whatsapp/conectar", label: "Conectar número" },
     ],
   },

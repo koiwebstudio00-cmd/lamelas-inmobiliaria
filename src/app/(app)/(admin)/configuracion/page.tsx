@@ -24,8 +24,7 @@ export default async function ConfiguracionPage() {
         <div>
           <h1 className="text-2xl font-semibold">Configuración</h1>
           <p className="text-sm text-muted-foreground">
-            Las keys que usan el sitio público y el agente de IA para hablar con
-            el sistema.
+            Las keys que usan el sitio público y el agente para comunicarse con el sistema.
           </p>
         </div>
         <ApiKeyDialog scopes={scopes} />

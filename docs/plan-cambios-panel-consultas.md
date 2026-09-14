@@ -2,6 +2,11 @@
 
 Fecha: 2026-08-03 · Estado: **IMPLEMENTADO** (2026-08-03). Decisiones: sin teléfono en la edición · borrado solo admin · columna renombrada a "Consultó por". Falta: test de integración del `DELETE` y deploy del backend.
 
+> **Plan histórico.** Conserva el detalle de implementación de esa entrega. Las
+> referencias a Kapso y a endpoints “por crear” describen el punto de partida,
+> no el sistema actual; WhatsApp usa Zernio y el contrato vigente está en
+> `../back-lamelas/docs/api-spec.md`.
+
 Seis pedidos sobre el listado y el detalle de consultas. Este doc verifica cada uno contra el backend (`back-lamelas`) y define el alcance. Al final, el orden de implementación sugerido.
 
 Leyenda de alcance: **[Panel]** solo `lamelas` · **[Backend]** requiere tocar `back-lamelas` (migración/endpoint) · **[Doc]** solo explicación.

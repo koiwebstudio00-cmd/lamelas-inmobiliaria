@@ -1,5 +1,10 @@
 # Auditoria CRM de consultas
 
+> **Auditoría histórica.** Sus hallazgos dieron origen al plan de CRM y varios ya
+> fueron corregidos (round-robin web, toma universal y campos de toma). Para el
+> estado implementado ver `plan-crm-consultas.md`, el código actual y
+> `../back-lamelas/docs/api-spec.md`.
+
 Fecha: 2026-08-24
 Estado: borrador para planificacion
 Alcance: panel `lamelas`, backend `back-lamelas`, sitio publico `lamelas-web` y flujo agente/WhatsApp.
