@@ -1,8 +1,9 @@
-import { Clock3, Globe, Instagram, MessageSquare, PhoneCall } from "lucide-react";
+import { Clock3, Ghost, Globe, Instagram, MessageSquare, PhoneCall, TriangleAlert } from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
 import { WhatsappIcon } from "@/components/icons/whatsapp-icon";
 import { cn } from "@/lib/utils";
-import type { CanalLead, EstadoLead } from "@/lib/types";
+import { MOTIVOS_DERIVACION } from "@/lib/types";
+import type { CanalLead, EstadoLead, MotivoDerivacion } from "@/lib/types";
 
 // Mismo criterio que el badge de propiedades: los colores viven en globals.css
 // como variables, así una sola línea cambia el tono en toda la app.
@@ -45,6 +46,33 @@ export function LeadSinTomarBadge() {
     <span className="inline-flex items-center gap-1 border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
       <Clock3 className="size-3.5 shrink-0" />
       Sin tomar
+    </span>
+  );
+}
+
+/**
+ * Sofía derivó y nadie tomó el chat: alguien del equipo tiene que atenderlo.
+ * Es el badge más fuerte de la bandeja a propósito — es lo único que pide una
+ * acción humana ahora mismo.
+ */
+export function LeadAtencionBadge({ motivo }: { motivo: MotivoDerivacion }) {
+  return (
+    <span className="inline-flex items-center gap-1 border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700">
+      <TriangleAlert className="size-3.5 shrink-0" />
+      {MOTIVOS_DERIVACION[motivo]}
+    </span>
+  );
+}
+
+/**
+ * Sofía le hizo seguimiento y el lead no contestó. Va en gris y al final: es
+ * información, no una tarea.
+ */
+export function LeadFantasmaBadge() {
+  return (
+    <span className="inline-flex items-center gap-1 border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600">
+      <Ghost className="size-3.5 shrink-0" />
+      Fantasma
     </span>
   );
 }

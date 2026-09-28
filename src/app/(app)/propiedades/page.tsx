@@ -26,6 +26,7 @@ export default async function PropiedadesPage({
       estado: params.estado,
       vendedor: params.vendedor,
       dormitorios: params.dormitorios,
+      zona_revisar: params.zona_revisar,
       pagina: params.pagina ? Number(params.pagina) : 1,
     }),
     getVendedores(),

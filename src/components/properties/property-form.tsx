@@ -30,6 +30,9 @@ import {
   TIPOS,
   MONEDAS,
   ESTADOS,
+  ZONAS,
+  OTRA_ZONA,
+  CIUDADES,
   DESTINOS,
   PLAZOS,
   AJUSTES,
@@ -107,6 +110,15 @@ export function PropertyForm({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isNew = !property;
   const e = state.errors ?? {};
+  const currentZone = property?.zona?.trim() ?? "";
+  // La zona se carga desde una lista cerrada (ZONAS) con un escape "Otra":
+  // sin eso, un barrio nuevo dejaría al vendedor trabado hasta un redeploy.
+  // Un valor viejo que no está en la lista abre el form directamente en "Otra"
+  // con el texto cargado, así no se pierde al editar la propiedad.
+  const zonaEnLista = currentZone !== "" && ZONAS.some((zone) => zone === currentZone);
+
+  const [zonaOtra, setZonaOtra] = useState(currentZone !== "" && !zonaEnLista);
+  const [zonaLista, setZonaLista] = useState(zonaEnLista ? currentZone : "");
 
   // La sección de alquiler y los campos "Otro"/"Fijo %" se muestran según lo elegido.
   const [operacion, setOperacion] = useState<Operacion>(property?.operacion ?? "venta");
@@ -309,12 +321,67 @@ export function PropertyForm({
 
           <div className="grid grid-cols-2 gap-4">
             <Field label="Barrio / Zona" htmlFor="zona" error={e.zona}>
-              <Input id="zona" name="zona" defaultValue={property?.zona ?? ""} />
+              <Select
+                id="zona"
+                name={zonaOtra ? undefined : "zona"}
+                value={zonaOtra ? OTRA_ZONA : zonaLista}
+                onChange={(ev) => {
+                  const value = ev.target.value;
+                  setZonaOtra(value === OTRA_ZONA);
+                  if (value !== OTRA_ZONA) setZonaLista(value);
+                }}
+              >
+                <option value="">Seleccioná una zona</option>
+                {ZONAS.map((zone) => (
+                  <option key={zone} value={zone}>
+                    {zone}
+                  </option>
+                ))}
+                <option value={OTRA_ZONA}>Otra (especificar)</option>
+              </Select>
+              {zonaOtra && (
+                <Input
+                  name="zona"
+                  aria-label="Otra zona"
+                  className="mt-2"
+                  defaultValue={zonaEnLista ? "" : currentZone}
+                  placeholder="Escribí el barrio o la zona"
+                />
+              )}
             </Field>
             <Field label="Ciudad" htmlFor="ciudad" error={e.ciudad}>
-              <Input id="ciudad" name="ciudad" defaultValue={property?.ciudad ?? ""} />
+              {/* Input con sugerencias (datalist nativo): escribiendo "san m"
+                  aparece "San Miguel de Tucumán", pero sigue aceptando
+                  cualquier texto para las localidades que no están en la lista.
+                  Evita que la misma ciudad entre escrita de cinco formas. */}
+              <Input
+                id="ciudad"
+                name="ciudad"
+                list="ciudades-sugeridas"
+                autoComplete="off"
+                defaultValue={property?.ciudad ?? ""}
+                placeholder="Empezá a escribir…"
+              />
+              <datalist id="ciudades-sugeridas">
+                {CIUDADES.map((ciudad) => (
+                  <option key={ciudad} value={ciudad} />
+                ))}
+              </datalist>
             </Field>
           </div>
+
+          <Field
+            label="Punto de referencia (opcional)"
+            htmlFor="punto_referencia"
+            error={e.punto_referencia}
+          >
+            <Input
+              id="punto_referencia"
+              name="punto_referencia"
+              defaultValue={property?.punto_referencia ?? ""}
+              placeholder="A una cuadra de Mate de Luna, frente al Mercato…"
+            />
+          </Field>
 
           <div className="space-y-2">
             <Label className="flex items-center gap-1.5">

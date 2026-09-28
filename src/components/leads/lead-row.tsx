@@ -2,10 +2,12 @@ import Link from "next/link";
 import { Mail, Phone, Home } from "lucide-react";
 import {
   CanalBadge,
+  LeadAtencionBadge,
   LeadEstadoBadge,
+  LeadFantasmaBadge,
   LeadSinTomarBadge,
 } from "@/components/leads/estado-badge";
-import { formatDateTime } from "@/lib/utils";
+import { cn, formatDateTime } from "@/lib/utils";
 import type { Lead } from "@/lib/types";
 
 /**
@@ -13,12 +15,21 @@ import type { Lead } from "@/lib/types";
  * es lo único cómodo de tocar (design-system.md, targets de 44px).
  */
 export function LeadRow({ lead }: { lead: Lead }) {
+  // Necesita atención = Sofía derivó y el handoff sigue pendiente. Cuando está,
+  // reemplaza a "Sin tomar": dice lo mismo pero con el motivo.
+  const necesitaAtencion = lead.derivacion?.pendiente === true;
+  const esFantasma = lead.clasificacion === "fantasma";
   return (
     <li className="border bg-background">
       <Link
         href={`/consultas/${lead.id}`}
         prefetch={false}
-        className="block p-4 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className={cn(
+          "block p-4 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          // Barra roja al costado: se distingue de un scroll rápido sin leer.
+          necesitaAtencion && "border-l-2 border-l-red-500",
+          esFantasma && !necesitaAtencion && "opacity-70"
+        )}
       >
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
@@ -37,9 +48,12 @@ export function LeadRow({ lead }: { lead: Lead }) {
               )}
             </p>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+            {/* Orden deliberado: primero lo que pide acción, después el contexto. */}
+            {necesitaAtencion && <LeadAtencionBadge motivo={lead.derivacion!.motivo} />}
             <CanalBadge canal={lead.canal} />
-            {!lead.tomado_at && <LeadSinTomarBadge />}
+            {!lead.tomado_at && !necesitaAtencion && <LeadSinTomarBadge />}
+            {esFantasma && <LeadFantasmaBadge />}
             <LeadEstadoBadge estado={lead.estado} />
           </div>
         </div>

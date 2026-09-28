@@ -40,7 +40,7 @@ export function PropertyFilters({
   }, [q]);
 
   const hasFilters =
-    ["q", "operacion", "tipo", "estado", "vendedor", "dormitorios"].some((k) =>
+    ["q", "operacion", "tipo", "estado", "vendedor", "dormitorios", "zona_revisar"].some((k) =>
       searchParams.get(k)
     );
 
@@ -122,6 +122,15 @@ export function PropertyFilters({
           ))}
         </Select>
       </div>
+      <label className="flex w-fit items-center gap-2 text-sm text-muted-foreground">
+        <input
+          type="checkbox"
+          className="size-4 accent-[var(--primary)]"
+          checked={searchParams.get("zona_revisar") === "true"}
+          onChange={(ev) => setParam("zona_revisar", ev.target.checked ? "true" : "")}
+        />
+        Solo zonas a revisar
+      </label>
       {hasFilters && (
         <Button
           variant="ghost"

@@ -2,7 +2,9 @@ import Link from "next/link";
 import { Mail, Phone } from "lucide-react";
 import {
   CanalBadge,
+  LeadAtencionBadge,
   LeadEstadoBadge,
+  LeadFantasmaBadge,
   LeadSinTomarBadge,
 } from "@/components/leads/estado-badge";
 import {
@@ -85,8 +87,13 @@ export function LeadTable({ leads }: { leads: Lead[] }) {
               </TableCell>
               <TableCell>
                 <div className="flex flex-wrap gap-1.5">
+                  {lead.derivacion?.pendiente ? (
+                    <LeadAtencionBadge motivo={lead.derivacion.motivo} />
+                  ) : (
+                    !lead.tomado_at && <LeadSinTomarBadge />
+                  )}
+                  {lead.clasificacion === "fantasma" && <LeadFantasmaBadge />}
                   <LeadEstadoBadge estado={lead.estado} />
-                  {!lead.tomado_at && <LeadSinTomarBadge />}
                 </div>
               </TableCell>
               <TableCell className="whitespace-nowrap text-right text-xs tabular-nums text-muted-foreground">

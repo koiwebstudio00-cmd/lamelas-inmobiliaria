@@ -31,6 +31,7 @@ export default async function ConsultasPage({
       estado: params.estado,
       canal: params.canal,
       clasificacion: params.clasificacion,
+      atencion: params.atencion,
       asignado: params.asignado,
       pagina: params.pagina ? Number(params.pagina) : 1,
     }),
