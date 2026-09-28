@@ -78,6 +78,9 @@ export default async function PropiedadPage({
   const ubicacion = [property.direccion, property.zona, property.ciudad]
     .filter(Boolean)
     .join(" · ");
+  // El punto de referencia va aparte y no dentro de `ubicacion`: es una ayuda
+  // para encontrar la propiedad, no parte de la dirección.
+  const referencia = property.punto_referencia?.trim() || null;
 
   const mapsHref =
     property.link_maps ??
@@ -181,6 +184,10 @@ export default async function PropiedadPage({
               </a>
             )}
           </p>
+        )}
+
+        {referencia && (
+          <p className="text-sm text-muted-foreground">Referencia: {referencia}</p>
         )}
 
         {facts.length > 0 && (

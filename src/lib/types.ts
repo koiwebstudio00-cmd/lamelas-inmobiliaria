@@ -131,6 +131,7 @@ export type Property = {
   descripcion: string | null;
   direccion: string | null;
   zona: string | null;
+  punto_referencia: string | null;
   ciudad: string | null;
   ambientes: number | null;
   dormitorios: number | null;
@@ -204,6 +205,73 @@ export const ESTADOS: { value: EstadoPropiedad; label: string }[] = [
   { value: "privado", label: "Privado (no se publica)" },
 ];
 
+/**
+ * Valor centinela del `<select>` de zona para habilitar el input libre. No se
+ * guarda nunca: cuando está elegido, el campo `zona` que viaja al servidor es el
+ * del input de texto.
+ */
+export const OTRA_ZONA = "__otra__";
+
+/**
+ * Sugerencias para el campo Ciudad. NO es una lista cerrada: el input acepta
+ * cualquier texto (hay propiedades en localidades sueltas). Sirve para que
+ * nadie escriba la misma ciudad de dos formas distintas.
+ *
+ * Curada a partir de las ciudades que ya aparecen en los datos, ya
+ * normalizadas — a propósito NO se alimenta de los valores crudos de la base,
+ * que es donde viven "Capital", "Tucuman" y "San Miguel".
+ */
+export const CIUDADES = [
+  "San Miguel de Tucumán",
+  "Yerba Buena",
+  "Tafí Viejo",
+  "Las Talitas",
+  "Alderetes",
+  "La Banda del Río Salí",
+  "Lules",
+  "El Manantial",
+  "San Pablo",
+  "Los Nogales",
+  "Villa Carmela",
+  "Raco",
+  "San Pedro de Colalao",
+  "El Cadillal",
+  "Tafí del Valle",
+  "Monteros",
+  "Concepción",
+  "Aguilares",
+  "Bella Vista",
+  "Famaillá",
+  "La Cocha",
+  "Termas de Río Hondo",
+  "Salta",
+] as const;
+
+export const ZONAS = [
+  "Barrio Norte",
+  "Barrio Sur",
+  "Microcentro",
+  "Parque 9 de Julio",
+  "Parque Avellaneda",
+  "Ciudadela",
+  "Villa 9 de Julio",
+  "Villa Luján",
+  "Zona Abasto",
+  "Zona Quinta Agronómica",
+  "Parque Guillermina",
+  "Zona Portal",
+  "Las Talitas",
+  "Lomas de Tafí",
+  "Tafí Viejo",
+  "Yerba Buena",
+  "La Banda del Río Salí",
+  "Alderetes",
+  "San Pablo",
+  "Lules",
+  "Monteros",
+  "Concepción",
+] as const;
+
 // ── Opciones de alquiler (etiqueta ↔ valor canónico de la API) ───────────────
 export const DESTINOS: { value: DestinoAlquiler; label: string }[] = [
   { value: "vivienda", label: "Vivienda" },
@@ -269,6 +337,7 @@ export type Lead = {
   canal_ref: string | null;
   estado: EstadoLead;
   clasificacion: ClasificacionLead | null;
+  derivacion: DerivacionLead | null;
   assigned_to: string | null;
   /** Nombre del vendedor asignado, ya resuelto por la API (null si sin asignar). */
   asignado: string | null;
@@ -433,6 +502,29 @@ export const ESTADOS_LEAD: { value: EstadoLead; label: string }[] = [
   { value: "ganada", label: "Ganada" },
   { value: "perdida", label: "Perdida" },
 ];
+
+/** Motivos con los que Sofía deriva a un humano (contrato del agente). */
+export type MotivoDerivacion =
+  | "visita"
+  | "reserva"
+  | "tasacion"
+  | "pedido_humano"
+  | "fuera_de_alcance";
+
+export const MOTIVOS_DERIVACION: Record<MotivoDerivacion, string> = {
+  visita: "Quiere visitar",
+  reserva: "Quiere reservar",
+  tasacion: "Tasación / quiere vender",
+  pedido_humano: "Pidió hablar con alguien",
+  fuera_de_alcance: "Fuera de alcance",
+};
+
+/** Última derivación del lead; `pendiente` = nadie la tomó todavía. */
+export interface DerivacionLead {
+  motivo: MotivoDerivacion;
+  pendiente: boolean;
+  asignado_at: string;
+}
 
 export const CLASIFICACIONES: { value: ClasificacionLead; label: string }[] = [
   { value: "potencial", label: "Cliente potencial" },

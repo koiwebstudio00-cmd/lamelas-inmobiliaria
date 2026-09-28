@@ -78,6 +78,8 @@ export const propertySchema = z.object({
   descripcion: optionalText,
   direccion: optionalText,
   zona: optionalText,
+  // Referencia libre; no es la zona ni la dirección.
+  punto_referencia: optionalText,
   ciudad: optionalText,
   ambientes: optionalInt,
   dormitorios: optionalInt,

@@ -42,6 +42,8 @@ import type {
   TipoPropiedad,
   Usuario,
 } from "@/lib/types";
+import { MOTIVOS_DERIVACION } from "@/lib/types";
+import type { DerivacionLead, MotivoDerivacion } from "@/lib/types";
 
 export const PAGE_SIZE = 24;
 
@@ -52,6 +54,8 @@ export interface PropertyFilters {
   estado?: string;
   vendedor?: string;
   dormitorios?: string;
+  /** "true" → solo las que tienen zona vacía o fuera de ZONAS. */
+  zona_revisar?: string;
   pagina?: number;
 }
 
@@ -80,6 +84,7 @@ interface ApiProperty {
   descripcion: string | null;
   direccion: string | null;
   zona: string | null;
+  puntoReferencia: string | null;
   ciudad: string | null;
   ambientes: number | null;
   dormitorios: number | null;
@@ -153,6 +158,7 @@ function toProperty(p: ApiProperty): Property {
     descripcion: p.descripcion,
     direccion: p.direccion,
     zona: p.zona,
+    punto_referencia: p.puntoReferencia,
     ciudad: p.ciudad,
     ambientes: p.ambientes,
     dormitorios: p.dormitorios,
@@ -241,6 +247,7 @@ async function list(path: string, filters: PropertyFilters) {
       estado: oneOf(ESTADOS, filters.estado),
       vendedor: UUID.test(filters.vendedor ?? "") ? filters.vendedor : undefined,
       dormitorios,
+      zona_revisar: filters.zona_revisar === "true" ? "true" : undefined,
       page,
       limit: PAGE_SIZE,
     },
@@ -335,6 +342,8 @@ interface ApiLead {
   canalRef?: string | null;
   estado: EstadoLead;
   clasificacion?: ClasificacionLead | null;
+  // La API aplana la última derivación del lead (ver crm/service.ts).
+  derivacion?: { motivo: string; pendiente: boolean; asignado_at: string } | null;
   assignedTo: string | null;
   tomadoAt: string | null;
   tomadoPor: string | null;
@@ -354,6 +363,14 @@ interface ApiLeadNote {
   user?: { id: string; nombre: string } | null;
 }
 
+/** Descarta un motivo desconocido en vez de romper la lista. */
+function derivacionDe(d: ApiLead["derivacion"]): DerivacionLead | null {
+  if (!d) return null;
+  const motivo = d.motivo as MotivoDerivacion;
+  if (!(motivo in MOTIVOS_DERIVACION)) return null;
+  return { motivo, pendiente: d.pendiente, asignado_at: d.asignado_at };
+}
+
 function toLead(l: ApiLead): Lead {
   return {
     id: l.id,
@@ -365,6 +382,7 @@ function toLead(l: ApiLead): Lead {
     canal_ref: l.canalRef ?? null,
     estado: l.estado,
     clasificacion: l.clasificacion ?? null,
+    derivacion: derivacionDe(l.derivacion),
     assigned_to: l.assignedTo,
     asignado: l.assignee?.nombre ?? null,
     tomado_at: l.tomadoAt,
@@ -388,6 +406,8 @@ export interface LeadFilters {
   estado?: string;
   canal?: string;
   clasificacion?: string;
+  /** "true" → solo los que tienen una derivación sin tomar. */
+  atencion?: string;
   asignado?: string;
   pagina?: number;
 }
@@ -408,6 +428,7 @@ export async function getLeads(filters: LeadFilters) {
       estado: oneOf(ESTADOS_LEAD_VALUES, filters.estado),
       canal: oneOf(CANALES_VALUES, filters.canal),
       clasificacion: oneOf(CLASIF_VALUES, filters.clasificacion),
+      atencion: filters.atencion === "true" ? "true" : undefined,
       assigned_to: UUID.test(filters.asignado ?? "") ? filters.asignado : undefined,
       // Separacion agente/consultas: el backend excluye las conversaciones del
       // agente web (canal "web" con canal_ref). Asi count y paginacion salen bien.
