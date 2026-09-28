@@ -1,7 +1,7 @@
 # El panel muestra las horas en UTC en vez de hora de Tucumán
 
 - **Detectado:** 2026-09-08 (reportado por el cliente)
-- **Estado:** **fix en `dev`, NO en `origin/main`** → pendiente de merge y deploy (verificado 2026-09-27)
+- **Estado:** **fix en `origin/main`** (verificado 2026-09-28). Si producción todavía muestra UTC, falta el deploy en Vercel, no el merge.
 - **Repo afectado:** `lamelas` (panel)
 
 ## Síntoma
@@ -19,17 +19,17 @@ zona por defecto es UTC, así que el render del servidor formateaba en UTC.
 
 Agregar `timeZone: "America/Argentina/Tucuman"` a las dos funciones.
 
-## Estado real (verificado 2026-09-27)
+## Estado real (verificado 2026-09-28)
 
 ```
-origin/main : 0 ocurrencias de "America/Argentina/Tucuman"
-origin/dev  : 2 ocurrencias
+origin/main : 2 ocurrencias de "America/Argentina/Tucuman"
 ```
 
 El fix entró en `dev` con el commit `a7c8664` ("leads por prop en analiticas y
-destacadas para vendedores chau"), pero **ese commit nunca se mergeó a `main`**,
-así que en producción el bug sigue vivo. `dev` está 2 commits por delante de
-`main` (`a7c8664` y `9187e3d`).
+destacadas para vendedores chau") y ya está mergeado en `main`. El 2026-09-27
+este archivo decía lo contrario: la lectura se hizo con los refs remotos
+desactualizados, sin `git fetch` previo. Lección: verificar el estado de una rama
+remota siempre después de un fetch.
 
 ## Verificación
 

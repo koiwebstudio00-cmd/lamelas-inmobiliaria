@@ -11,7 +11,7 @@ inline en la sección "Mejoras pendientes" de este README.
 
 ## Índice
 
-- [2026-09-08 — El panel muestra las horas en UTC](./2026-09-08-hora-panel-en-utc.md) — **fix en `dev`, pendiente de merge y deploy**
+- [2026-09-08 — El panel muestra las horas en UTC](./2026-09-08-hora-panel-en-utc.md) — **fix en `main`** (verificar deploy)
 - [2026-08-13 — Carga manual de consultas: error al guardar + propiedad faltante en el selector](./2026-08-13-carga-manual-consultas.md) — **desplegado**
 
 ## Mejoras pendientes
@@ -30,9 +30,9 @@ backend compara exacto (`lower(p.zona) = lower(?)`). Con la carga ya cerrada a
 lista, el filtro debería ser el mismo `Select` de `ZONAS`. Detalle en
 [`../features.md`](../features.md) → `ZONA-SELECT-02`.
 
-### `dev` adelantado a `main` (2026-09-27)
+### Verificar los refs remotos antes de afirmar qué hay en producción (2026-09-28)
 
-`origin/dev` tiene 2 commits que `origin/main` no (`a7c8664` y `9187e3d`): el fix
-de hora local, el panel de ajustes del agente, el formulario de seguimientos y el
-ranking de propiedades de analíticas. Todo eso está **fuera de producción**.
-Conviene decidir si se mergea o si se deja explícito por qué no.
+El 2026-09-27 se anotó acá que `dev` tenía 2 commits sin mergear (el fix de hora
+entre ellos). Era falso: la lectura se hizo sin `git fetch`, con refs viejos. Con
+los refs al día, `origin/main` ya los tiene. Antes de concluir qué falta en
+producción: `git fetch` primero.
