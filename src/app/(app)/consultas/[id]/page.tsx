@@ -4,7 +4,13 @@ import { ArrowLeft, Home, Mail, MessageSquare, Phone, UserCheck } from "lucide-r
 import { WhatsappIcon } from "@/components/icons/whatsapp-icon";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CanalBadge, LeadSinTomarBadge } from "@/components/leads/estado-badge";
+import {
+  CanalBadge,
+  LeadAtencionBadge,
+  LeadFantasmaBadge,
+  LeadSinTomarBadge,
+} from "@/components/leads/estado-badge";
+import { MOTIVOS_DERIVACION } from "@/lib/types";
 import { LeadAssignSelect } from "@/components/leads/lead-assign-select";
 import { LeadConversation } from "@/components/leads/lead-conversation";
 import { LeadEditarDatos } from "@/components/leads/lead-editar-datos";
@@ -62,6 +68,14 @@ export default async function ConsultaPage({
             <p className="text-sm text-muted-foreground">
               {lead.telefono ? `${lead.telefono} · ` : ""}Entró el {formatDateTime(lead.created_at)}
             </p>
+            {(lead.derivacion?.pendiente || lead.clasificacion === "fantasma") && (
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                {lead.derivacion?.pendiente && (
+                  <LeadAtencionBadge motivo={lead.derivacion.motivo} />
+                )}
+                {lead.clasificacion === "fantasma" && <LeadFantasmaBadge />}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -77,6 +91,12 @@ export default async function ConsultaPage({
                   <p className="text-sm font-medium text-amber-950">
                     Consulta pendiente de atención
                   </p>
+                  {lead.derivacion?.pendiente && (
+                    <p className="text-sm font-medium text-amber-900">
+                      Sofía la derivó: {MOTIVOS_DERIVACION[lead.derivacion.motivo].toLowerCase()} ·
+                      esperando desde {formatDateTime(lead.derivacion.asignado_at)}
+                    </p>
+                  )}
                   <p className="text-sm text-amber-800">
                     Al tomarla, se te asignará y quedará registrada a tu nombre.
                   </p>
@@ -124,6 +144,17 @@ export default async function ConsultaPage({
                 <p className="text-muted-foreground">Clasificación</p>
                 <LeadClasificacionSelect leadId={lead.id} clasificacion={lead.clasificacion} />
               </div>
+
+              {lead.derivacion && (
+                <div className="space-y-1.5">
+                  <p className="text-muted-foreground">Derivación de Sofía</p>
+                  <p className="font-medium">{MOTIVOS_DERIVACION[lead.derivacion.motivo]}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {lead.derivacion.pendiente ? "Sin tomar · " : "Ya tomada · "}
+                    {formatDateTime(lead.derivacion.asignado_at)}
+                  </p>
+                </div>
+              )}
 
               <div className="space-y-1.5">
                 <p className="text-muted-foreground">Asignado</p>

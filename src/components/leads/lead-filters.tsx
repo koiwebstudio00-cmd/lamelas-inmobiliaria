@@ -41,7 +41,7 @@ export function LeadFilters({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
 
-  const hasFilters = ["q", "estado", "canal", "clasificacion", "asignado"].some((k) =>
+  const hasFilters = ["q", "estado", "canal", "clasificacion", "atencion", "asignado"].some((k) =>
     searchParams.get(k)
   );
 
@@ -60,10 +60,19 @@ export function LeadFilters({
       <div
         className={
           puedeFiltrarPorVendedor
-            ? "grid grid-cols-2 gap-2 sm:grid-cols-4"
-            : "grid grid-cols-2 gap-2 sm:grid-cols-3"
+            ? "grid grid-cols-2 gap-2 sm:grid-cols-5"
+            : "grid grid-cols-2 gap-2 sm:grid-cols-4"
         }
       >
+        <Select
+          aria-label="Atención"
+          value={searchParams.get("atencion") ?? ""}
+          onChange={(e) => setParam("atencion", e.target.value)}
+          className="h-9 text-sm"
+        >
+          <option value="">Atención</option>
+          <option value="true">Necesita atención</option>
+        </Select>
         <Select
           aria-label="Estado"
           value={searchParams.get("estado") ?? ""}
