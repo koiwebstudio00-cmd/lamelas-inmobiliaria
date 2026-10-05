@@ -40,6 +40,9 @@ export type AnalyticsPeriod = {
   from: string;
   to: string;
   timezone: string;
+  /** Período de comparación: mes calendario anterior si el rango es un mes
+   * completo; si no, los mismos días inmediatamente antes. */
+  previous: { from: string; to: string } | null;
   cohort_definition: string;
 };
 
@@ -53,6 +56,9 @@ export type AnalyticsOverview = {
     nuevas: number;
     en_contacto: number;
     ganadas: number;
+    /** Desglose del cierre; ganadas − (venta + alquiler) = sin operación cargada. */
+    ganadas_venta: number;
+    ganadas_alquiler: number;
     perdidas: number;
     cohort_conversion_rate: number;
     sofia_conversations: number;
@@ -61,6 +67,21 @@ export type AnalyticsOverview = {
     active_properties: number;
     active_properties_without_leads: number;
   };
+  previous_kpis: {
+    leads_created: number;
+    leads_taken: number;
+    take_rate: number;
+    median_take_minutes: number | null;
+    ganadas: number;
+    /** Desglose del cierre; ganadas − (venta + alquiler) = sin operación cargada. */
+    ganadas_venta: number;
+    ganadas_alquiler: number;
+    perdidas: number;
+    cohort_conversion_rate: number;
+    sofia_conversations: number;
+    handed_off_conversations: number;
+    handoff_rate: number;
+  } | null;
 };
 
 export type AnalyticsLeads = {
@@ -75,6 +96,14 @@ export type AnalyticsLeads = {
     median_take_minutes: number | null;
     p90_take_minutes: number | null;
   };
+  previous_summary: {
+    total: number;
+    taken: number;
+    untaken: number;
+    take_rate: number;
+    median_take_minutes: number | null;
+    p90_take_minutes: number | null;
+  } | null;
   by_channel: Record<string, number>;
   by_state: Record<string, number>;
   by_classification: Record<string, number>;
@@ -89,6 +118,65 @@ export type AnalyticsLeads = {
     titulo: string;
     destacada: boolean;
     consultas: number;
+  }[];
+};
+
+export type AnalyticsSofiaSummary = {
+  conversations: number;
+  handed_off: number;
+  handoff_rate: number;
+  median_handoff_take_minutes: number | null;
+  lead_messages: number;
+  ai_messages: number;
+  seller_messages: number;
+  median_lead_messages: number | null;
+  followed_up: number;
+  recovered_by_followup: number;
+  recovery_rate: number;
+  still_with_bot: number;
+};
+
+export type AnalyticsSofia = {
+  period: AnalyticsPeriod;
+  summary: AnalyticsSofiaSummary;
+  previous_summary: AnalyticsSofiaSummary | null;
+  by_handoff_result: Record<string, number>;
+  by_temperature: Record<string, number>;
+  by_intent: Record<string, number>;
+  by_classification: Record<string, number>;
+  /** 24 filas (hora 0–23, zona horaria de Tucumán). */
+  by_hour: { bucket: number; count: number }[];
+  /** 7 filas (1 = lunes … 7 = domingo). */
+  by_weekday: { bucket: number; count: number }[];
+};
+
+export type AnalyticsPropertiesSummary = {
+  created: number;
+  leads_with_property: number;
+  properties_with_leads: number;
+  available_without_leads: number;
+};
+
+export type AnalyticsProperties = {
+  period: AnalyticsPeriod;
+  summary: AnalyticsPropertiesSummary & { available: number };
+  previous_summary: AnalyticsPropertiesSummary | null;
+  inventory_by_state: Record<string, number>;
+  available_by_type: Record<string, number>;
+  leads_by_type: Record<string, number>;
+  leads_by_operation: Record<string, number>;
+  demand_by_zone: { zona: string; consultas: number; disponibles: number }[];
+  searched_zones: Record<string, number>;
+  searched_types: Record<string, number>;
+  top_properties: AnalyticsLeads["top_properties"];
+  idle_properties: {
+    property_id: string;
+    titulo: string;
+    zona: string | null;
+    operacion: string;
+    tipo: string;
+    created_at: string;
+    days_published: number;
   }[];
 };
 
@@ -157,6 +245,10 @@ export type Property = {
   lat: number | null;
   lng: number | null;
   link_maps: string | null;
+  /** Edificio al que pertenece la unidad (null = propiedad suelta). */
+  edificio: { id: string; nombre: string } | null;
+  /** Cómo se distingue la unidad dentro del edificio ("3° B"). */
+  unidad: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -327,6 +419,26 @@ export type LeadPropiedad = {
   precio?: number;
 };
 
+/** Qué se concretó en una consulta ganada. */
+export type OperacionCierre = "venta" | "alquiler";
+
+/** Cómo le fue al vendedor al contactar la consulta. */
+export type AvanceResultado =
+  | "sin_respuesta"
+  | "en_conversacion"
+  | "visita_agendada"
+  | "visita_realizada"
+  | "en_negociacion"
+  | "no_interesado";
+
+export type LeadAvance = {
+  id: string;
+  resultado: AvanceResultado;
+  comentario: string | null;
+  autor: string | null;
+  created_at: string;
+};
+
 export type Lead = {
   id: string;
   nombre: string;
@@ -336,6 +448,15 @@ export type Lead = {
   canal: CanalLead;
   canal_ref: string | null;
   estado: EstadoLead;
+  /** Solo en ganadas: venta o alquiler (null = todavía sin indicar). */
+  operacion_cierre: OperacionCierre | null;
+  /** Solo en ganadas: la propiedad con la que se cerró. */
+  propiedad_cierre: { id: string; titulo: string } | null;
+  cerrado_at: string | null;
+  /** Último avance que cargó el vendedor (null = nunca cargó). */
+  ultimo_avance: Pick<LeadAvance, "resultado" | "comentario" | "created_at"> | null;
+  /** true = abierta y sin novedades hace rato: toca contar cómo le fue. */
+  avance_pendiente: boolean;
   clasificacion: ClasificacionLead | null;
   derivacion: DerivacionLead | null;
   assigned_to: string | null;
@@ -350,13 +471,16 @@ export type Lead = {
   created_at: string;
 };
 
-export type OrigenNota = "humano" | "agente";
+export type OrigenNota = "humano" | "agente" | "sistema";
 
 export type LeadNota = {
   id: string;
   nota: string;
   autor: string | null;
-  /** Quién la escribió: el equipo (`humano`) o el agente de IA (`agente`). */
+  /**
+   * Quién la escribió: el equipo (`humano`), el agente de IA (`agente`) o la
+   * plataforma (`sistema`: registro automático, hoy las reasignaciones).
+   */
   origen: OrigenNota;
   created_at: string;
 };
@@ -365,6 +489,37 @@ export type LeadDetalle = Lead & {
   /** Nombre del vendedor asignado, ya resuelto por la API. */
   asignado: string | null;
   notas: LeadNota[];
+  /** Historial de avances, del más nuevo al más viejo. */
+  avances: LeadAvance[];
+};
+
+// ── Notificaciones internas (campanita) ──────────────────────────────────────
+
+export type TipoNotificacion =
+  | "lead_nuevo"
+  | "lead_asignado"
+  | "lead_quitado"
+  | "avance_pendiente"
+  | "feedback_error";
+
+export type Notificacion = {
+  id: string;
+  tipo: TipoNotificacion;
+  titulo: string;
+  cuerpo: string;
+  /** Ruta del panel a la que lleva; null si ya no se puede abrir. */
+  link: string | null;
+  leida_at: string | null;
+  created_at: string;
+};
+
+// ── Edificios ────────────────────────────────────────────────────────────────
+
+export type Edificio = {
+  id: string;
+  nombre: string;
+  /** Cantidad de propiedades (unidades) vinculadas. */
+  unidades: number;
 };
 
 // ── Agente de IA: conversaciones ─────────────────────────────────────────────
@@ -502,6 +657,28 @@ export const ESTADOS_LEAD: { value: EstadoLead; label: string }[] = [
   { value: "ganada", label: "Ganada" },
   { value: "perdida", label: "Perdida" },
 ];
+
+export const OPERACIONES_CIERRE: { value: OperacionCierre; label: string }[] = [
+  { value: "venta", label: "Venta" },
+  { value: "alquiler", label: "Alquiler" },
+];
+
+/**
+ * Resultados de un avance, en el orden en que se ofrecen. `no_interesado`
+ * cierra la consulta como perdida (lo hace la API).
+ */
+export const AVANCE_RESULTADOS: { value: AvanceResultado; label: string }[] = [
+  { value: "sin_respuesta", label: "No contestó" },
+  { value: "en_conversacion", label: "Hablamos, sigue interesado" },
+  { value: "visita_agendada", label: "Visita agendada" },
+  { value: "visita_realizada", label: "Visita realizada" },
+  { value: "en_negociacion", label: "En negociación" },
+  { value: "no_interesado", label: "No le interesa" },
+];
+
+export const AVANCE_LABELS = Object.fromEntries(
+  AVANCE_RESULTADOS.map((r) => [r.value, r.label])
+) as Record<AvanceResultado, string>;
 
 /** Motivos con los que Sofía deriva a un humano (contrato del agente). */
 export type MotivoDerivacion =

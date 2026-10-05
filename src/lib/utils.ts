@@ -58,3 +58,19 @@ export function formatDateTime(iso: string) {
     minute: "2-digit",
   }).format(new Date(iso));
 }
+
+/**
+ * Tiempo relativo corto para listas de actividad: "recién", "hace 5 min",
+ * "hace 3 h", "ayer"; pasados dos días, la fecha. `now` es inyectable para que
+ * el server y el cliente puedan renderizar lo mismo.
+ */
+export function formatRelative(iso: string, now: Date = new Date()) {
+  const diff = now.getTime() - new Date(iso).getTime();
+  const min = Math.floor(diff / 60_000);
+  if (min < 1) return "recién";
+  if (min < 60) return `hace ${min} min`;
+  const horas = Math.floor(min / 60);
+  if (horas < 24) return `hace ${horas} h`;
+  if (horas < 48) return "ayer";
+  return formatDate(iso);
+}

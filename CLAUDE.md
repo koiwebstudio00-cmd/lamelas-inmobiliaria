@@ -54,8 +54,10 @@ Secciones del panel, todas dentro de `(app)`:
 | Ruta | Qué es |
 | --- | --- |
 | `/` | Inicio: saludo, cuatro contadores que linkean a listados filtrados, últimas consultas y últimas propiedades. Se arma con `getResumen()`. |
-| `/propiedades`, `/mis-propiedades`, `/propiedades/[id]`, `/propiedades/nueva` | Catálogo interno y alta/edición. Filtros incl. **dormitorios**. Form con sección de alquiler condicional + mapa Leaflet. El admin edita/elimina cualquier propiedad del tenant. |
-| `/consultas`, `/consultas/[id]`, `/consultas/nueva` | Bandeja de leads: filtros por texto, estado, canal, **clasificación** y vendedor; contadores potencial/fantasma (admin); detalle con cambio de estado, **clasificación** (potencial/fantasma), reasignación y notas internas. |
+| `/propiedades`, `/mis-propiedades`, `/propiedades/[id]`, `/propiedades/nueva` | Catálogo interno y alta/edición. Filtros incl. **dormitorios** y **edificio**. Form con sección de alquiler condicional + mapa Leaflet + sección **Edificio** (edificio y unidad). `nueva?desde=<id>` precarga los datos de otra propiedad. El admin edita/elimina cualquier propiedad del tenant. |
+| `/propiedades/edificios` | Edificios que agrupan unidades; renombrar y borrar solo admin. |
+| `/consultas`, `/consultas/[id]`, `/consultas/nueva` | Bandeja de leads: filtros por texto, estado, canal, **clasificación** y vendedor; contadores potencial/fantasma (admin); detalle con cambio de estado (**"Ganada" abre el diálogo de cierre: venta o alquiler + propiedad**), **clasificación** (potencial/fantasma), reasignación, **avances del vendedor** y notas internas. |
+| `/notificaciones` | Avisos internos del usuario (la campanita de la barra superior muestra los últimos 6). Reemplazan a los correos de operación. |
 | `/equipo` | Usuarios e invitaciones (solo admin). |
 | `/analiticas` | Resumen y analíticas de consultas (solo admin). |
 | `/feedback/*` | Sugerencias, reportes, altas y detalle de feedback. |
@@ -73,7 +75,8 @@ Notas de estructura que conviene tener a mano:
 - **No editar `components/ui/sidebar.tsx` para cambiar estilos.** Los radios están en cero globalmente desde `globals.css` (`--radius-*: 0`) y las animaciones del cajón son `@keyframes` propios porque `tw-animate-css` no está instalado.
 - **`src/app/not-found.tsx`** cubre el 404 y también los 403: cuando alguien pide una propiedad o una consulta que no le corresponde, `queries.ts` devuelve `null` y la página llama a `notFound()`, para no delatar qué hay cargado del otro lado.
 - **`src/components/pagination.tsx`** es compartido (propiedades y consultas); recibe `basePath`. Los componentes por sección viven en `src/components/{properties,leads,team,settings}/`.
-- **Acciones por dominio:** `src/actions/{auth,properties,images,profile,leads,team,api-keys}.ts`.
+- **Acciones por dominio:** `src/actions/{auth,properties,images,profile,leads,team,api-keys,notifications,edificios}.ts`.
+- **La campanita vive en el layout de `(app)`**: las actions que cambian avisos revalidan con `revalidatePath("/", "layout")`. `getResumenNotificaciones()` nunca lanza (devuelve vacío): un error ahí dejaría todo el panel sin poder usarse.
 
 ## Al terminar una tarea
 

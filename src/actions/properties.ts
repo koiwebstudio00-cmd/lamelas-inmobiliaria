@@ -35,16 +35,49 @@ function apiState(error: unknown, fallback: string): PropertyFormState {
 
 type PropertyInput = ReturnType<typeof propertySchema.parse>;
 
+/**
+ * Si el formulario trae "Nuevo edificio", lo crea y devuelve los datos con su
+ * id. Un 409 significa que ya existía con ese nombre (lo creó otro vendedor, o
+ * difiere solo en mayúsculas): se usa ese en vez de fallar. Una propiedad sin
+ * edificio no lleva unidad.
+ */
+async function resolverEdificio(
+  data: PropertyInput
+): Promise<Omit<PropertyInput, "edificio_nuevo">> {
+  const { edificio_nuevo, ...resto } = data;
+  const nombre = edificio_nuevo?.trim();
+  if (nombre) {
+    try {
+      const { edificio } = await apiFetch<{ edificio: { id: string } }>("/v1/edificios", {
+        method: "POST",
+        body: { nombre },
+      });
+      resto.edificio_id = edificio.id;
+    } catch (error) {
+      if (!(error instanceof ApiError) || error.status !== 409) throw error;
+      const { data: lista } = await apiFetch<{ data: { id: string; nombre: string }[] }>(
+        "/v1/edificios"
+      );
+      const existente = lista.find((e) => e.nombre.toLowerCase() === nombre.toLowerCase());
+      if (!existente) throw error;
+      resto.edificio_id = existente.id;
+    }
+    revalidatePath("/propiedades/edificios");
+  }
+  if (!resto.edificio_id) resto.unidad = null;
+  return resto;
+}
+
 /** Los campos que la API acepta en el alta rápida; el resto va por PATCH. */
 const CAMPOS_ALTA = ["titulo", "operacion", "tipo", "precio", "moneda", "estado"] as const;
 
-function altaRapida(data: PropertyInput) {
+function altaRapida(data: Omit<PropertyInput, "edificio_nuevo">) {
   const { titulo, operacion, tipo, precio, moneda, estado } = data;
   return { titulo, operacion, tipo, precio, moneda, estado };
 }
 
 /** El resto de los campos, sin los vacíos (una propiedad nueva ya viene en null). */
-function detalle(data: PropertyInput) {
+function detalle(data: Omit<PropertyInput, "edificio_nuevo">) {
   const alta: readonly string[] = CAMPOS_ALTA;
   return Object.fromEntries(
     Object.entries(data).filter(
@@ -69,17 +102,19 @@ export async function createProperty(
   }
 
   let id: string;
+  let data: Omit<PropertyInput, "edificio_nuevo">;
   try {
+    data = await resolverEdificio(parsed.data);
     const { property } = await apiFetch<{ property: { id: string } }>("/v1/properties", {
       method: "POST",
-      body: altaRapida(parsed.data),
+      body: altaRapida(data),
     });
     id = property.id;
   } catch (error) {
     return apiState(error, "No pudimos guardar la propiedad. Intentá de nuevo.");
   }
 
-  const resto = detalle(parsed.data);
+  const resto = detalle(data);
   let warning: string | undefined;
   if (Object.keys(resto).length > 0) {
     try {
@@ -109,7 +144,8 @@ export async function updateProperty(
   try {
     // Mandamos todo, nulls incluidos: así se vacía un campo que se borró.
     // `destacada` no viaja nunca por acá — ni está en propertySchema.
-    await apiFetch(`/v1/properties/${id}`, { method: "PATCH", body: parsed.data });
+    const data = await resolverEdificio(parsed.data);
+    await apiFetch(`/v1/properties/${id}`, { method: "PATCH", body: data });
   } catch (error) {
     return apiState(error, "No pudimos actualizar la propiedad.");
   }

@@ -12,7 +12,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { imageUrl } from "@/lib/utils";
-import { preciosDeCard, type PropertyCardData } from "@/components/properties/property-card";
+import {
+  edificioLabel,
+  preciosDeCard,
+  type PropertyCardData,
+} from "@/components/properties/property-card";
 import type { Operacion } from "@/lib/types";
 
 const OPERACION_LABEL: Record<Operacion, string> = {
@@ -95,6 +99,9 @@ export function PropertyTable({
                   )}
                   <span className="truncate">{p.titulo}</span>
                 </Link>
+                {edificioLabel(p) && (
+                  <p className="truncate text-xs text-muted-foreground">{edificioLabel(p)}</p>
+                )}
               </TableCell>
               <TableCell className="whitespace-nowrap">
                 {OPERACION_LABEL[p.operacion]}

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import {
   Bath,
   BedDouble,
+  Building,
   Building2,
   Camera,
   ClipboardList,
@@ -40,6 +41,7 @@ import {
   MASCOTAS,
   AMOBLADO_OPCIONES,
   type Operacion,
+  type Edificio,
   type TipoPropiedad,
   type Property,
 } from "@/lib/types";
@@ -93,22 +95,38 @@ function Field({
   );
 }
 
+// Valor del <select> de edificio que abre el campo para cargar uno nuevo.
+const NUEVO_EDIFICIO = "__nuevo__";
+
 export function PropertyForm({
   action,
-  property,
+  property: editing,
+  plantilla,
+  edificios,
   submitLabel,
 }: {
   action: (prev: PropertyFormState, formData: FormData) => Promise<PropertyFormState>;
+  /** Propiedad que se está editando. Sin esto, el form es un alta. */
   property?: Property;
+  /**
+   * Alta a partir de otra propiedad ("cargar otra unidad de este edificio"):
+   * precarga sus datos, pero el form sigue siendo un alta.
+   */
+  plantilla?: Property;
+  /** Edificios del tenant para el selector. */
+  edificios: Edificio[];
   submitLabel: string;
 }) {
+  // De acá salen todos los valores iniciales, sea edición o alta con plantilla.
+  const property = editing ?? plantilla;
   const router = useRouter();
   const [state, setState] = useState<PropertyFormState>({});
   const [pending, startTransition] = useTransition();
   const [photos, setPhotos] = useState<File[]>([]);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const isNew = !property;
+  const isNew = !editing;
+  const [edificio, setEdificio] = useState(property?.edificio?.id ?? "");
   const e = state.errors ?? {};
   const currentZone = property?.zona?.trim() ?? "";
   // La zona se carga desde una lista cerrada (ZONAS) con un escape "Otra":
@@ -402,6 +420,62 @@ export function PropertyForm({
               placeholder="https://maps.app.goo.gl/..."
             />
           </Field>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <SectionHeader icon={Building} title="Edificio" optional />
+        <CardContent className="space-y-4 pt-4">
+          <p className="text-sm text-muted-foreground">
+            Si es una unidad dentro de un edificio donde hay otras propiedades cargadas, vinculala:
+            quedan agrupadas en el panel y se ofrecen juntas en el sitio y por WhatsApp.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Edificio" htmlFor="edificio_id" error={e.edificio_id}>
+              <Select
+                id="edificio_id"
+                // Con "Nuevo edificio" el id viaja vacío y manda `edificio_nuevo`.
+                name={edificio === NUEVO_EDIFICIO ? undefined : "edificio_id"}
+                value={edificio}
+                onChange={(ev) => setEdificio(ev.target.value)}
+              >
+                <option value="">No pertenece a un edificio</option>
+                {edificios.map((ed) => (
+                  <option key={ed.id} value={ed.id}>
+                    {ed.nombre}
+                  </option>
+                ))}
+                <option value={NUEVO_EDIFICIO}>+ Nuevo edificio…</option>
+              </Select>
+              {edificio === NUEVO_EDIFICIO && <input type="hidden" name="edificio_id" value="" />}
+            </Field>
+            {edificio !== "" && (
+              <Field label="Unidad" htmlFor="unidad" error={e.unidad}>
+                <Input
+                  id="unidad"
+                  name="unidad"
+                  defaultValue={property?.unidad ?? ""}
+                  placeholder="Ej: 3° B, Piso 5, Cochera 12"
+                  maxLength={60}
+                />
+              </Field>
+            )}
+          </div>
+          {edificio === NUEVO_EDIFICIO && (
+            <Field
+              label="Nombre del edificio nuevo"
+              htmlFor="edificio_nuevo"
+              error={e.edificio_nuevo ?? e.nombre}
+            >
+              <Input
+                id="edificio_nuevo"
+                name="edificio_nuevo"
+                placeholder="Ej: Torre Alem, Edificio San Martín 450"
+                maxLength={120}
+                required
+              />
+            </Field>
+          )}
         </CardContent>
       </Card>
 

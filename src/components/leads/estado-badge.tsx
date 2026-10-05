@@ -1,9 +1,18 @@
-import { Clock3, Ghost, Globe, Instagram, MessageSquare, PhoneCall, TriangleAlert } from "lucide-react";
+import {
+  ClipboardList,
+  Clock3,
+  Ghost,
+  Globe,
+  Instagram,
+  MessageSquare,
+  PhoneCall,
+  TriangleAlert,
+} from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
 import { WhatsappIcon } from "@/components/icons/whatsapp-icon";
 import { cn } from "@/lib/utils";
 import { MOTIVOS_DERIVACION } from "@/lib/types";
-import type { CanalLead, EstadoLead, MotivoDerivacion } from "@/lib/types";
+import type { CanalLead, EstadoLead, MotivoDerivacion, OperacionCierre } from "@/lib/types";
 
 // Mismo criterio que el badge de propiedades: los colores viven en globals.css
 // como variables, así una sola línea cambia el tono en toda la app.
@@ -21,11 +30,16 @@ const ESTADO_LABELS: Record<EstadoLead, string> = {
   perdida: "Perdida",
 };
 
+const CIERRE_LABELS: Record<OperacionCierre, string> = { venta: "Venta", alquiler: "Alquiler" };
+
 export function LeadEstadoBadge({
   estado,
+  operacionCierre,
   className,
 }: {
   estado: EstadoLead;
+  /** En ganadas, qué se concretó: "Ganada · Venta". */
+  operacionCierre?: OperacionCierre | null;
   className?: string;
 }) {
   return (
@@ -37,7 +51,21 @@ export function LeadEstadoBadge({
       )}
     >
       {ESTADO_LABELS[estado]}
+      {estado === "ganada" && operacionCierre ? ` · ${CIERRE_LABELS[operacionCierre]}` : ""}
     </div>
+  );
+}
+
+/**
+ * La consulta lleva días abierta sin novedades: el vendedor tiene que contar
+ * cómo le fue. Ámbar, como "Sin tomar": pide una acción, pero no es urgente.
+ */
+export function LeadAvancePendienteBadge() {
+  return (
+    <span className="inline-flex items-center gap-1 border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
+      <ClipboardList className="size-3.5 shrink-0" />
+      Esperando avance
+    </span>
   );
 }
 

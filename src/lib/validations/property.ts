@@ -105,6 +105,22 @@ export const propertySchema = z.object({
   expensas: optionalText,
   mascotas: optionalEnum(["se_permiten", "no_se_permiten", "sin_especificar"] as const),
   amoblado: optionalEnum(["amoblado", "sin_amoblar", "sin_especificar"] as const),
+  // Edificio al que pertenece la unidad. "" = propiedad suelta. Cuando el
+  // vendedor elige "Nuevo edificio" llega el nombre en `edificio_nuevo` y la
+  // action lo crea antes de guardar (ver resolverEdificio en actions).
+  edificio_id: z
+    .union([z.literal(""), z.string().uuid("Elegí un edificio de la lista.")])
+    .transform((v) => (v === "" ? null : v))
+    .nullable()
+    .optional(),
+  edificio_nuevo: z.string().trim().max(120, "El nombre es demasiado largo.").optional(),
+  unidad: z
+    .string()
+    .trim()
+    .max(60, "Máximo 60 caracteres.")
+    .transform((v) => (v === "" ? null : v))
+    .nullable()
+    .optional(),
   // Ubicación en el mapa
   lat: optionalCoord(-90, 90),
   lng: optionalCoord(-180, 180),

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Pencil, MapPin, BedDouble, Bath, Ruler, LayoutGrid, ClipboardList, KeyRound, StickyNote, ArrowLeft } from "lucide-react";
+import { Pencil, MapPin, BedDouble, Bath, Ruler, LayoutGrid, ClipboardList, KeyRound, StickyNote, ArrowLeft, Building, CopyPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EstadoBadge } from "@/components/ui/badge";
 import { EstadoSelect } from "@/components/properties/estado-select";
@@ -11,7 +11,7 @@ import { PropertyGallery } from "@/components/properties/property-gallery";
 import { PropertyMap } from "@/components/properties/property-map";
 import { SharePropertyButton } from "@/components/properties/share-property-button";
 import { getCurrentUser } from "@/lib/api";
-import { getProperty } from "@/lib/queries";
+import { getOtrasUnidades, getProperty } from "@/lib/queries";
 import { formatPrice } from "@/lib/utils";
 import {
   TIPOS,
@@ -49,6 +49,9 @@ export default async function PropiedadPage({
   if (!detail) notFound();
 
   const { property, vendedor, images: gallery } = detail;
+  const otrasUnidades = property.edificio
+    ? await getOtrasUnidades(property.edificio.id, property.id)
+    : [];
   const isOwner = me?.id === property.user_id;
   const esAdmin = me?.rol === "admin" || me?.rol === "super_admin";
   // El admin gestiona todas las propiedades del tenant (la RLS ya lo permite),
@@ -125,6 +128,19 @@ export default async function PropiedadPage({
             {OPERACION_LABEL[property.operacion]} · {labelOf(TIPOS, property.tipo)}
           </p>
           <h1 className="text-2xl font-semibold">{property.titulo}</h1>
+          {property.edificio && (
+            <p className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
+              <Building className="size-4 shrink-0" />
+              <Link
+                href={`/propiedades?edificio=${property.edificio.id}`}
+                prefetch={false}
+                className="font-medium text-foreground hover:text-primary"
+              >
+                {property.edificio.nombre}
+              </Link>
+              {property.unidad && <span>· Unidad {property.unidad}</span>}
+            </p>
+          )}
           <p className="text-xl font-semibold tabular-nums text-primary">
             {property.operacion === "ambos" ? "Venta: " : ""}
             {formatPrice(property.precio, property.moneda)}
@@ -252,6 +268,47 @@ export default async function PropiedadPage({
           {new Date(property.created_at).toLocaleDateString("es-AR")}
         </p>
       </div>
+
+      {property.edificio && (
+        <section className="border bg-background">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/40 px-4 py-3">
+            <h2 className="flex items-center gap-2 text-base font-semibold">
+              <Building className="size-5 text-primary" />
+              Otras unidades en {property.edificio.nombre}
+            </h2>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/propiedades/nueva?desde=${property.id}`} prefetch={false}>
+                <CopyPlus /> Cargar otra unidad
+              </Link>
+            </Button>
+          </div>
+          {otrasUnidades.length === 0 ? (
+            <p className="p-4 text-sm text-muted-foreground">
+              Es la única unidad cargada en este edificio. «Cargar otra unidad» copia los datos de
+              esta para que solo cambies lo que difiere.
+            </p>
+          ) : (
+            <ul>
+              {otrasUnidades.map((u) => (
+                <li key={u.id} className="border-b last:border-b-0">
+                  <Link
+                    href={`/propiedades/${u.id}`}
+                    prefetch={false}
+                    className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <span className="w-20 shrink-0 text-sm font-semibold">{u.unidad ?? "—"}</span>
+                    <span className="min-w-0 flex-1 truncate text-sm">{u.titulo}</span>
+                    <span className="text-sm font-medium tabular-nums text-primary">
+                      {formatPrice(u.precio, u.moneda)}
+                    </span>
+                    <EstadoBadge estado={u.estado} />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
     </div>
   );
 }

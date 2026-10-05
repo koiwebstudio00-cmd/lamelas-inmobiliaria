@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { Inbox, Plus } from "lucide-react";
+import { ClipboardList, Inbox, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LeadFilters } from "@/components/leads/lead-filters";
 import { LeadRow } from "@/components/leads/lead-row";
@@ -9,7 +9,12 @@ import { Pagination } from "@/components/pagination";
 import { RefreshButton } from "@/components/refresh-button";
 import { VistaToggle } from "@/components/vista-toggle";
 import { getCurrentUser } from "@/lib/api";
-import { getLeads, getLeadStats, getVendedores } from "@/lib/queries";
+import {
+  getAvancesPendientesCount,
+  getLeads,
+  getLeadStats,
+  getVendedores,
+} from "@/lib/queries";
 import { getVista } from "@/lib/vista";
 
 export const metadata = { title: "Consultas — Lamelas & Chaumont" };
@@ -25,19 +30,23 @@ export default async function ConsultasPage({
   const me = await getCurrentUser();
   const esAdmin = me?.rol === "admin" || me?.rol === "super_admin";
 
-  const [{ leads, count, page }, vendedores, vista, stats] = await Promise.all([
+  const [{ leads, count, page }, vendedores, vista, stats, avancesPendientes] = await Promise.all([
     getLeads({
       q: params.q,
       estado: params.estado,
       canal: params.canal,
       clasificacion: params.clasificacion,
       atencion: params.atencion,
+      avance: params.avance,
+      cierre: params.cierre,
       asignado: params.asignado,
       pagina: params.pagina ? Number(params.pagina) : 1,
     }),
     esAdmin ? getVendedores() : Promise.resolve([]),
     getVista(),
     esAdmin ? getLeadStats() : Promise.resolve(null),
+    // El vendedor cuenta las suyas; el admin, las de todo el equipo.
+    getAvancesPendientesCount(esAdmin ? undefined : me?.id),
   ]);
 
   const clasif = stats?.por_clasificacion;
@@ -78,6 +87,27 @@ export default async function ConsultasPage({
             </div>
           ))}
         </div>
+      )}
+
+      {avancesPendientes > 0 && params.avance !== "pendiente" && (
+        <Link
+          href="/consultas?avance=pendiente"
+          prefetch={false}
+          className="flex items-center gap-3 border border-amber-200 bg-amber-50 p-3 text-amber-950 hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <ClipboardList className="size-5 shrink-0 text-amber-700" />
+          <p className="text-sm">
+            <span className="font-medium">
+              {avancesPendientes === 1
+                ? "1 consulta espera avance"
+                : `${avancesPendientes} consultas esperan avance`}
+            </span>
+            {esAdmin
+              ? ": llevan días abiertas sin que el vendedor cuente cómo le fue."
+              : ": contanos cómo te fue con cada una."}{" "}
+            <span className="font-medium underline underline-offset-2">Verlas</span>
+          </p>
+        </Link>
       )}
 
       <Suspense>
