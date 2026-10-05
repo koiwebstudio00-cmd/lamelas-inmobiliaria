@@ -5,7 +5,7 @@ import { PropertyTable } from "@/components/properties/property-table";
 import { PropertyFilters } from "@/components/properties/filters";
 import { Pagination } from "@/components/pagination";
 import { VistaToggle } from "@/components/vista-toggle";
-import { getProperties, getVendedores } from "@/lib/queries";
+import { getEdificios, getProperties, getVendedores } from "@/lib/queries";
 import { getVista } from "@/lib/vista";
 
 export const metadata = { title: "Propiedades — Lamelas & Chaumont" };
@@ -18,20 +18,23 @@ export default async function PropiedadesPage({
   searchParams: SearchParams;
 }) {
   const params = await searchParams;
-  const [{ properties, count, page }, vendedores, vista] = await Promise.all([
+  const [{ properties, count, page }, vendedores, vista, edificios] = await Promise.all([
     getProperties({
       q: params.q,
       operacion: params.operacion,
       tipo: params.tipo,
       estado: params.estado,
       vendedor: params.vendedor,
+      edificio: params.edificio,
       dormitorios: params.dormitorios,
       zona_revisar: params.zona_revisar,
       pagina: params.pagina ? Number(params.pagina) : 1,
     }),
     getVendedores(),
     getVista(),
+    getEdificios(),
   ]);
+  const edificioActivo = edificios.find((e) => e.id === params.edificio);
 
   // Filtro de operación activo: define qué precio se muestra en las "ambos".
   const filtroOperacion =
@@ -43,16 +46,20 @@ export default async function PropiedadesPage({
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-semibold">Propiedades</h1>
+          <h1 className="text-2xl font-semibold">
+            {edificioActivo ? edificioActivo.nombre : "Propiedades"}
+          </h1>
           <p className="text-sm text-muted-foreground">
-            Todo lo que tiene cargado la inmobiliaria. {count} en total.
+            {edificioActivo
+              ? `Unidades cargadas en este edificio. ${count} en total.`
+              : `Todo lo que tiene cargado la inmobiliaria. ${count} en total.`}
           </p>
         </div>
         <VistaToggle vista={vista} />
       </div>
 
       <Suspense>
-        <PropertyFilters vendedores={vendedores} />
+        <PropertyFilters vendedores={vendedores} edificios={edificios} />
       </Suspense>
 
       {properties.length === 0 ? (

@@ -167,3 +167,28 @@ body {
     animation-duration: 1ms !important;
   }
 }
+
+/* Impresión (reporte mensual de Analíticas → "Guardar como PDF"): sin la
+   barra lateral ni fondos grises, y con los colores de las barras. */
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+  html,
+  body {
+    background: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  [data-slot="sidebar"],
+  [data-slot="sidebar-gap"],
+  [data-slot="sidebar-container"],
+  [data-slot="sidebar-rail"] {
+    display: none !important;
+  }
+  [data-slot="sidebar-inset"] {
+    background: #ffffff !important;
+    margin: 0 !important;
+  }
+}

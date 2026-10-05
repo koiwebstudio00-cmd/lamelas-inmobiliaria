@@ -10,8 +10,11 @@ import { OPERACIONES, TIPOS, ESTADOS } from "@/lib/types";
 
 export function PropertyFilters({
   vendedores,
+  edificios = [],
 }: {
   vendedores: { id: string; nombre: string }[];
+  /** Con al menos un edificio cargado se suma el filtro por edificio. */
+  edificios?: { id: string; nombre: string }[];
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -40,7 +43,7 @@ export function PropertyFilters({
   }, [q]);
 
   const hasFilters =
-    ["q", "operacion", "tipo", "estado", "vendedor", "dormitorios", "zona_revisar"].some((k) =>
+    ["q", "operacion", "tipo", "estado", "vendedor", "edificio", "dormitorios", "zona_revisar"].some((k) =>
       searchParams.get(k)
     );
 
@@ -56,7 +59,14 @@ export function PropertyFilters({
           aria-label="Buscar"
         />
       </div>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+      <div
+        className={
+          // Con el filtro de edificio son seis selects: una columna más en escritorio.
+          edificios.length > 0
+            ? "grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6"
+            : "grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5"
+        }
+      >
         <Select
           aria-label="Operación"
           value={searchParams.get("operacion") ?? ""}
@@ -121,6 +131,21 @@ export function PropertyFilters({
             </option>
           ))}
         </Select>
+        {edificios.length > 0 && (
+          <Select
+            aria-label="Edificio"
+            value={searchParams.get("edificio") ?? ""}
+            onChange={(e) => setParam("edificio", e.target.value)}
+            className="h-9 text-sm"
+          >
+            <option value="">Edificio</option>
+            {edificios.map((ed) => (
+              <option key={ed.id} value={ed.id}>
+                {ed.nombre}
+              </option>
+            ))}
+          </Select>
+        )}
       </div>
       <label className="flex w-fit items-center gap-2 text-sm text-muted-foreground">
         <input

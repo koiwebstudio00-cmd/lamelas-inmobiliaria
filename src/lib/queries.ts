@@ -12,6 +12,8 @@ import type { PropertyCardData } from "@/components/properties/property-card";
 import type {
   AnalyticsLeads,
   AnalyticsOverview,
+  AnalyticsProperties,
+  AnalyticsSofia,
   ApiKey,
   ApiKeyScope,
   CanalConversacion,
@@ -20,6 +22,7 @@ import type {
   ClasificacionLead,
   Conversacion,
   ConversacionMensaje,
+  Edificio,
   EstadoConversacion,
   EstadoLead,
   EstadoPropiedad,
@@ -30,8 +33,10 @@ import type {
   FeedbackTipo,
   Invitacion,
   Lead,
+  LeadAvance,
   LeadDetalle,
   Moneda,
+  Notificacion,
   Operacion,
   Property,
   PropertyImage,
@@ -43,7 +48,12 @@ import type {
   Usuario,
 } from "@/lib/types";
 import { MOTIVOS_DERIVACION } from "@/lib/types";
-import type { DerivacionLead, MotivoDerivacion } from "@/lib/types";
+import type {
+  AvanceResultado,
+  DerivacionLead,
+  MotivoDerivacion,
+  OperacionCierre,
+} from "@/lib/types";
 
 export const PAGE_SIZE = 24;
 
@@ -53,6 +63,8 @@ export interface PropertyFilters {
   tipo?: string;
   estado?: string;
   vendedor?: string;
+  /** id del edificio → solo sus unidades. */
+  edificio?: string;
   dormitorios?: string;
   /** "true" → solo las que tienen zona vacía o fuera de ZONAS. */
   zona_revisar?: string;
@@ -108,10 +120,13 @@ interface ApiProperty {
   lat: string | null;
   lng: string | null;
   linkMaps: string | null;
+  edificioId: string | null;
+  unidad: string | null;
   createdAt: string;
   updatedAt: string;
   images?: ApiImage[];
   user?: { id: string; nombre: string } | null;
+  edificio?: { id: string; nombre: string } | null;
 }
 
 interface ListResponse {
@@ -136,6 +151,8 @@ function toCard(p: ApiProperty): PropertyCardData {
     estado: p.estado,
     destacada: p.destacada,
     zona: p.zona,
+    edificio: p.edificio?.nombre ?? null,
+    unidad: p.unidad ?? null,
     vendedor: p.user?.nombre ?? null,
     // En el listado la API manda solo la portada (o nada, si no hay fotos).
     portada: p.images?.[0]?.url ?? null,
@@ -182,6 +199,8 @@ function toProperty(p: ApiProperty): Property {
     lat: num(p.lat),
     lng: num(p.lng),
     link_maps: p.linkMaps,
+    edificio: p.edificio ? { id: p.edificio.id, nombre: p.edificio.nombre } : null,
+    unidad: p.unidad ?? null,
     created_at: p.createdAt,
     updated_at: p.updatedAt,
   };
@@ -246,6 +265,7 @@ async function list(path: string, filters: PropertyFilters) {
       tipo: oneOf(TIPOS, filters.tipo),
       estado: oneOf(ESTADOS, filters.estado),
       vendedor: UUID.test(filters.vendedor ?? "") ? filters.vendedor : undefined,
+      edificio_id: UUID.test(filters.edificio ?? "") ? filters.edificio : undefined,
       dormitorios,
       zona_revisar: filters.zona_revisar === "true" ? "true" : undefined,
       page,
@@ -272,6 +292,30 @@ export interface PropertyDetail {
   property: Property;
   vendedor: string | null;
   images: PropertyImage[];
+}
+
+/** Edificios del tenant, alfabéticos, con su cantidad de unidades. */
+export async function getEdificios(): Promise<Edificio[]> {
+  const { data } = await apiFetch<{ data: Edificio[] }>("/v1/edificios");
+  return data.map((e) => ({ id: e.id, nombre: e.nombre, unidades: e.unidades }));
+}
+
+/**
+ * Las otras unidades del mismo edificio, para la ficha de una propiedad. Todas
+ * (no solo las disponibles): en el panel interesa ver también cuáles ya se
+ * vendieron o alquilaron.
+ */
+export async function getOtrasUnidades(
+  edificioId: string,
+  exceptoId: string
+): Promise<PropertyCardData[]> {
+  const { data } = await apiFetch<ListResponse>("/v1/properties", {
+    query: { edificio_id: edificioId, page: 1, limit: 100 },
+  });
+  return data
+    .filter((p) => p.id !== exceptoId)
+    .map(toCard)
+    .sort((a, b) => (a.unidad ?? "").localeCompare(b.unidad ?? "", "es", { numeric: true }));
 }
 
 /** Devuelve null si no existe (o si el id ni siquiera es un uuid). */
@@ -341,6 +385,13 @@ interface ApiLead {
   canal: CanalLead;
   canalRef?: string | null;
   estado: EstadoLead;
+  operacionCierre?: OperacionCierre | null;
+  propiedadCierre?: { id: string; titulo: string } | null;
+  cerradoAt?: string | null;
+  // En el listado la API manda `ultimo_avance`; en el detalle, `avances` completo.
+  ultimo_avance?: { resultado: AvanceResultado; comentario: string | null; createdAt: string } | null;
+  avance_pendiente?: boolean;
+  avances?: ApiLeadAvance[];
   clasificacion?: ClasificacionLead | null;
   // La API aplana la última derivación del lead (ver crm/service.ts).
   derivacion?: { motivo: string; pendiente: boolean; asignado_at: string } | null;
@@ -355,10 +406,18 @@ interface ApiLead {
   notes?: ApiLeadNote[];
 }
 
+interface ApiLeadAvance {
+  id: string;
+  resultado: AvanceResultado;
+  comentario: string | null;
+  createdAt: string;
+  user?: { id: string; nombre: string } | null;
+}
+
 interface ApiLeadNote {
   id: string;
   nota: string;
-  origen?: "humano" | "agente";
+  origen?: "humano" | "agente" | "sistema";
   createdAt: string;
   user?: { id: string; nombre: string } | null;
 }
@@ -381,6 +440,26 @@ function toLead(l: ApiLead): Lead {
     canal: l.canal,
     canal_ref: l.canalRef ?? null,
     estado: l.estado,
+    operacion_cierre: l.operacionCierre ?? null,
+    propiedad_cierre: l.propiedadCierre
+      ? { id: l.propiedadCierre.id, titulo: l.propiedadCierre.titulo }
+      : null,
+    cerrado_at: l.cerradoAt ?? null,
+    // El detalle no trae `ultimo_avance`: sale del primero del historial.
+    ultimo_avance: l.ultimo_avance
+      ? {
+          resultado: l.ultimo_avance.resultado,
+          comentario: l.ultimo_avance.comentario,
+          created_at: l.ultimo_avance.createdAt,
+        }
+      : l.avances?.[0]
+        ? {
+            resultado: l.avances[0].resultado,
+            comentario: l.avances[0].comentario,
+            created_at: l.avances[0].createdAt,
+          }
+        : null,
+    avance_pendiente: l.avance_pendiente ?? false,
     clasificacion: l.clasificacion ?? null,
     derivacion: derivacionDe(l.derivacion),
     assigned_to: l.assignedTo,
@@ -408,6 +487,10 @@ export interface LeadFilters {
   clasificacion?: string;
   /** "true" → solo los que tienen una derivación sin tomar. */
   atencion?: string;
+  /** "pendiente" → solo las que esperan que el vendedor cargue un avance. */
+  avance?: string;
+  /** "venta" | "alquiler" → ganadas cerradas con esa operación. */
+  cierre?: string;
   asignado?: string;
   pagina?: number;
 }
@@ -429,6 +512,8 @@ export async function getLeads(filters: LeadFilters) {
       canal: oneOf(CANALES_VALUES, filters.canal),
       clasificacion: oneOf(CLASIF_VALUES, filters.clasificacion),
       atencion: filters.atencion === "true" ? "true" : undefined,
+      avance: filters.avance === "pendiente" ? "pendiente" : undefined,
+      operacion_cierre: oneOf(["venta", "alquiler"] as const, filters.cierre),
       assigned_to: UUID.test(filters.asignado ?? "") ? filters.asignado : undefined,
       // Separacion agente/consultas: el backend excluye las conversaciones del
       // agente web (canal "web" con canal_ref). Asi count y paginacion salen bien.
@@ -448,6 +533,28 @@ export async function getConsultasSinTomarCount(): Promise<number> {
     const { meta } = await apiFetch<{ meta: { total: number } }>("/v1/leads", {
       query: {
         sin_tomar: true,
+        excluir_agente_web: true,
+        page: 1,
+        limit: 1,
+      },
+    });
+    return meta.total;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * Cuántas consultas esperan avance. Para un vendedor, las suyas; para un admin
+ * (sin `userId`), las de todo el equipo. 0 si la API falla: es un contador de
+ * apoyo y no debe romper la pantalla.
+ */
+export async function getAvancesPendientesCount(userId?: string): Promise<number> {
+  try {
+    const { meta } = await apiFetch<{ meta: { total: number } }>("/v1/leads", {
+      query: {
+        avance: "pendiente",
+        assigned_to: userId,
         excluir_agente_web: true,
         page: 1,
         limit: 1,
@@ -528,6 +635,18 @@ export function getAnalyticsLeads(filters: AnalyticsFilters) {
   });
 }
 
+export function getAnalyticsSofia(filters: AnalyticsFilters) {
+  return apiFetch<AnalyticsSofia>("/v1/analytics/sofia", {
+    query: analyticsQuery(filters),
+  });
+}
+
+export function getAnalyticsProperties(filters: AnalyticsFilters) {
+  return apiFetch<AnalyticsProperties>("/v1/analytics/properties", {
+    query: analyticsQuery(filters),
+  });
+}
+
 /** Devuelve null si no existe o si el usuario no tiene permiso de verla. */
 export async function getLead(id: string): Promise<LeadDetalle | null> {
   try {
@@ -542,6 +661,15 @@ export async function getLead(id: string): Promise<LeadDetalle | null> {
         origen: n.origen ?? "humano",
         created_at: n.createdAt,
       })),
+      avances: (lead.avances ?? []).map(
+        (a): LeadAvance => ({
+          id: a.id,
+          resultado: a.resultado,
+          comentario: a.comentario,
+          autor: a.user?.nombre ?? null,
+          created_at: a.createdAt,
+        })
+      ),
     };
   } catch (error) {
     if (error instanceof ApiError && [400, 403, 404].includes(error.status)) return null;
@@ -934,4 +1062,84 @@ export async function getConversacionesPrueba(): Promise<ConversacionPrueba[]> {
 export async function getChannels(): Promise<ChannelAccount[]> {
   const { data } = await apiFetch<{ data: ChannelAccount[] }>("/v1/integrations/channels");
   return data;
+}
+
+// ── Notificaciones internas (campanita) ──────────────────────────────────────
+
+interface ApiNotificacion {
+  id: string;
+  tipo: Notificacion["tipo"];
+  titulo: string;
+  cuerpo: string;
+  link: string | null;
+  leidaAt: string | null;
+  createdAt: string;
+}
+
+function toNotificacion(n: ApiNotificacion): Notificacion {
+  return {
+    id: n.id,
+    tipo: n.tipo,
+    titulo: n.titulo,
+    cuerpo: n.cuerpo,
+    link: n.link,
+    leida_at: n.leidaAt,
+    created_at: n.createdAt,
+  };
+}
+
+export interface NotificacionesPagina {
+  notificaciones: Notificacion[];
+  /** Total del listado pedido (respeta el filtro de no leídas). */
+  count: number;
+  page: number;
+  /** Sin leer en total: el número de la campanita, no depende del filtro. */
+  noLeidas: number;
+}
+
+export async function getNotificaciones(opts: {
+  pagina?: number;
+  soloNoLeidas?: boolean;
+  limit?: number;
+}): Promise<NotificacionesPagina> {
+  const { data, meta } = await apiFetch<{
+    data: ApiNotificacion[];
+    meta: { page: number; limit: number; total: number; no_leidas: number };
+  }>("/v1/notifications", {
+    query: {
+      solo_no_leidas: opts.soloNoLeidas ? "true" : undefined,
+      page: Math.max(1, opts.pagina || 1),
+      limit: opts.limit ?? PAGE_SIZE,
+    },
+  });
+  return {
+    notificaciones: data.map(toNotificacion),
+    count: meta.total,
+    page: meta.page,
+    noLeidas: meta.no_leidas,
+  };
+}
+
+/** Cuántas muestra el desplegable de la campanita. */
+export const NOTIFICACIONES_CAMPANITA = 6;
+
+export interface ResumenNotificaciones {
+  ultimas: Notificacion[];
+  noLeidas: number;
+}
+
+/**
+ * Lo que necesita la campanita: las últimas 6 y el contador. Si la API falla
+ * devuelve vacío — la campanita vive en el layout y un error ahí dejaría todo
+ * el panel sin poder usarse.
+ */
+export async function getResumenNotificaciones(): Promise<ResumenNotificaciones> {
+  try {
+    const { notificaciones, noLeidas } = await getNotificaciones({
+      limit: NOTIFICACIONES_CAMPANITA,
+    });
+    return { ultimas: notificaciones, noLeidas };
+  } catch {
+    return { ultimas: [], noLeidas: 0 };
+  }
 }

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { ApiError, apiFetch } from "@/lib/api";
+import { getPropiedadesParaSelect } from "@/lib/queries";
 
 /**
  * Consultas (leads).
@@ -52,6 +53,106 @@ export async function updateLeadEstado(id: string, estado: string): Promise<stri
     return message(error, "No pudimos actualizar la consulta.");
   }
   revalidar(id);
+  return null;
+}
+
+const cierreSchema = z.object({
+  operacion: z.enum(["venta", "alquiler"], { message: "Indicá si fue una venta o un alquiler." }),
+  // "" = se cerró sin una propiedad cargada en el sistema.
+  propiedadId: z.union([z.string().uuid(), z.literal("")]),
+  marcarPropiedad: z.boolean(),
+});
+
+export type CierreResult = {
+  error?: string;
+  /** false = el cierre se guardó pero no se pudo cambiar el estado de la propiedad. */
+  propiedadMarcada?: boolean;
+};
+
+/**
+ * Cierra la consulta como ganada indicando qué se concretó (venta o alquiler)
+ * y con qué propiedad. También sirve para corregir el cierre de una que ya
+ * estaba ganada.
+ */
+export async function closeLeadGanada(
+  id: string,
+  input: { operacion: string; propiedadId: string; marcarPropiedad: boolean }
+): Promise<CierreResult> {
+  const parsed = cierreSchema.safeParse(input);
+  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const { operacion, propiedadId, marcarPropiedad } = parsed.data;
+
+  let propiedadMarcada: boolean | undefined;
+  try {
+    const res = await apiFetch<{ propiedad_marcada?: boolean }>(`/v1/leads/${id}`, {
+      method: "PATCH",
+      body: {
+        estado: "ganada",
+        operacion_cierre: operacion,
+        propiedad_cierre_id: propiedadId || null,
+        ...(marcarPropiedad && propiedadId ? { marcar_propiedad: true } : {}),
+      },
+    });
+    propiedadMarcada = res.propiedad_marcada;
+  } catch (error) {
+    return { error: message(error, "No pudimos cerrar la consulta.") };
+  }
+  revalidar(id);
+  // La propiedad pudo cambiar de estado: sus listados también.
+  revalidatePath("/propiedades");
+  revalidatePath("/mis-propiedades");
+  return { propiedadMarcada };
+}
+
+/**
+ * Opciones para elegir otra propiedad al cerrar. Se pide recién cuando el
+ * usuario quiere cambiarla: traerlas en cada carga del detalle sería caro.
+ */
+export async function fetchPropiedadesParaCierre(): Promise<{ id: string; titulo: string }[]> {
+  try {
+    return await getPropiedadesParaSelect();
+  } catch {
+    return [];
+  }
+}
+
+const avanceSchema = z.object({
+  resultado: z.enum([
+    "sin_respuesta",
+    "en_conversacion",
+    "visita_agendada",
+    "visita_realizada",
+    "en_negociacion",
+    "no_interesado",
+  ]),
+  comentario: z.string().trim().max(2000, "El comentario es demasiado largo.").optional(),
+});
+
+/** El vendedor cuenta cómo le fue con la consulta. Devuelve el error, o null. */
+export async function addLeadAvance(
+  id: string,
+  input: { resultado: string; comentario?: string }
+): Promise<string | null> {
+  const parsed = avanceSchema.safeParse(input);
+  if (!parsed.success) {
+    return parsed.error.issues[0].path[0] === "resultado"
+      ? "Elegí cómo te fue con la consulta."
+      : parsed.error.issues[0].message;
+  }
+  try {
+    await apiFetch(`/v1/leads/${id}/avances`, {
+      method: "POST",
+      body: {
+        resultado: parsed.data.resultado,
+        ...(parsed.data.comentario ? { comentario: parsed.data.comentario } : {}),
+      },
+    });
+  } catch (error) {
+    return message(error, "No pudimos guardar el avance.");
+  }
+  revalidar(id);
+  // Si era la última pendiente, el aviso de la campanita ya no aplica.
+  revalidatePath("/", "layout");
   return null;
 }
 

@@ -74,6 +74,7 @@ const ITEMS: Item[] = [
       // activo al listado. `nueva` es la excepción: tiene su propia fila.
       { href: "/propiedades", label: "Todas las propiedades", incluye: ["/propiedades/"] },
       { href: "/mis-propiedades", label: "Mis propiedades" },
+      { href: "/propiedades/edificios", label: "Edificios" },
       { href: "/propiedades/nueva", label: "Nueva propiedad" },
     ],
   },

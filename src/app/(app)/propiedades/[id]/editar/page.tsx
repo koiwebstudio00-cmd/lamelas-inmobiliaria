@@ -3,7 +3,7 @@ import { updateProperty } from "@/actions/properties";
 import { PropertyForm } from "@/components/properties/property-form";
 import { PhotoManager } from "@/components/properties/photo-manager";
 import { getCurrentUser } from "@/lib/api";
-import { getProperty } from "@/lib/queries";
+import { getEdificios, getProperty } from "@/lib/queries";
 
 export const metadata = { title: "Editar propiedad — Lamelas & Chaumont" };
 
@@ -13,7 +13,11 @@ export default async function EditarPropiedadPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [detail, me] = await Promise.all([getProperty(id), getCurrentUser()]);
+  const [detail, me, edificios] = await Promise.all([
+    getProperty(id),
+    getCurrentUser(),
+    getEdificios(),
+  ]);
 
   if (!detail) notFound();
 
@@ -32,7 +36,12 @@ export default async function EditarPropiedadPage({
         <PhotoManager propertyId={property.id} images={images} />
       </div>
       <div className="border bg-background p-4 sm:p-6">
-        <PropertyForm action={action} property={property} submitLabel="Guardar cambios" />
+        <PropertyForm
+          action={action}
+          property={property}
+          edificios={edificios}
+          submitLabel="Guardar cambios"
+        />
       </div>
     </div>
   );

@@ -45,7 +45,7 @@ export function DailyVolume({ rows }: { rows: { date: string; canal: string; cou
       {entries.length === 0 ? (
         <p className="p-8 text-center text-sm text-muted-foreground">No entraron consultas en este período.</p>
       ) : (
-        <div className="max-h-[28rem] space-y-2 overflow-y-auto p-4">
+        <div className="max-h-[28rem] space-y-2 overflow-y-auto p-4 print:max-h-none print:overflow-visible">
           {entries.map(([date, value]) => (
             <div key={date} className="grid grid-cols-[5.5rem_1fr_2rem] items-center gap-3 text-xs">
               <time className="text-muted-foreground">

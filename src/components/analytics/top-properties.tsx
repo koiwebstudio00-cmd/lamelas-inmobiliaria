@@ -9,15 +9,18 @@ import { DestacarButton } from "@/components/properties/destacar-button";
  */
 export function TopProperties({
   rows,
+  readOnly = false,
 }: {
   rows: { property_id: string; titulo: string; destacada: boolean; consultas: number }[];
+  /** Sin el botón de destacar (reporte imprimible). */
+  readOnly?: boolean;
 }) {
   return (
     <section className="border bg-background">
       <div className="border-b px-4 py-3">
         <h3 className="text-sm font-semibold">Propiedades más consultadas</h3>
         <p className="mt-0.5 text-xs text-muted-foreground">
-          Cuántas consultas recibió cada propiedad en el período. Usalo para decidir qué destacar.
+          Cuántas consultas recibió cada propiedad en el período. La ★ marca las que ya están destacadas.
         </p>
       </div>
       {rows.length === 0 ? (
@@ -47,7 +50,9 @@ export function TopProperties({
                 <span className="text-sm tabular-nums text-muted-foreground">
                   {row.consultas} {row.consultas === 1 ? "consulta" : "consultas"}
                 </span>
-                <DestacarButton propertyId={row.property_id} destacada={row.destacada} />
+                {readOnly ? null : (
+                  <DestacarButton propertyId={row.property_id} destacada={row.destacada} />
+                )}
               </div>
             </li>
           ))}

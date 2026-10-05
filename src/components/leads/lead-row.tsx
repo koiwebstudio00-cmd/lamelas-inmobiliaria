@@ -1,14 +1,15 @@
 import Link from "next/link";
-import { Mail, Phone, Home } from "lucide-react";
+import { ClipboardCheck, Mail, Phone, Home } from "lucide-react";
 import {
   CanalBadge,
   LeadAtencionBadge,
+  LeadAvancePendienteBadge,
   LeadEstadoBadge,
   LeadFantasmaBadge,
   LeadSinTomarBadge,
 } from "@/components/leads/estado-badge";
-import { cn, formatDateTime } from "@/lib/utils";
-import type { Lead } from "@/lib/types";
+import { cn, formatDate, formatDateTime } from "@/lib/utils";
+import { AVANCE_LABELS, type Lead } from "@/lib/types";
 
 /**
  * Una fila de la bandeja. Toda la fila es un link al detalle: en el celular
@@ -53,8 +54,9 @@ export function LeadRow({ lead }: { lead: Lead }) {
             {necesitaAtencion && <LeadAtencionBadge motivo={lead.derivacion!.motivo} />}
             <CanalBadge canal={lead.canal} />
             {!lead.tomado_at && !necesitaAtencion && <LeadSinTomarBadge />}
+            {lead.avance_pendiente && <LeadAvancePendienteBadge />}
             {esFantasma && <LeadFantasmaBadge />}
-            <LeadEstadoBadge estado={lead.estado} />
+            <LeadEstadoBadge estado={lead.estado} operacionCierre={lead.operacion_cierre} />
           </div>
         </div>
 
@@ -65,6 +67,15 @@ export function LeadRow({ lead }: { lead: Lead }) {
             <span className="flex min-w-0 items-center gap-1">
               <Home className="size-3.5 shrink-0" />
               <span className="truncate">{lead.propiedad.titulo}</span>
+            </span>
+          )}
+          {lead.ultimo_avance && (
+            <span className="flex min-w-0 items-center gap-1">
+              <ClipboardCheck className="size-3.5 shrink-0" />
+              <span className="truncate">
+                {AVANCE_LABELS[lead.ultimo_avance.resultado]} ·{" "}
+                {formatDate(lead.ultimo_avance.created_at)}
+              </span>
             </span>
           )}
           <span className="ml-auto tabular-nums">{formatDateTime(lead.created_at)}</span>

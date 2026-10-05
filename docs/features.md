@@ -1,6 +1,6 @@
 # Features por implementar — lamelas (panel interno)
 
-**Última revisión:** 2026-09-27
+**Última revisión:** 2026-10-05
 
 Backlog exclusivo de **este repo**. Cuando una feature se implementa y queda
 verificada, se saca de acá; el historial vive en commits y en `docs/bugfix/`.
@@ -43,6 +43,12 @@ después se pasa a `main` y se sube al remoto.
 | F3-PANEL | Vista de incidentes de n8n y Zernio | M | pendiente |
 | F4-PANEL | Pantalla de configuración de Sofía por tenant | M | pendiente |
 | F7-PANEL | Logs de correo y envío desde el lead | M | pendiente |
+| NOTIF-INTERNAS-01 | Campanita y página de notificaciones | M | en dev, listo para desplegar (ver guía de la tanda) |
+| LEAD-CIERRE-01 | Venta o alquiler al ganar una consulta | S/M | en dev, listo para desplegar |
+| EDIFICIOS-01 | Edificios: unidades agrupadas y alta desde otra unidad | M | en dev, listo para desplegar |
+| LEAD-AVANCES-01 | Avances del vendedor en la consulta | M | en dev, listo para desplegar |
+| NOTIF-TIEMPO-REAL-01 | Campanita en tiempo real por SSE | M | propuesto — se decide después del deploy |
+| AUTH-REFRESH-RACE-01 | Cierre de sesión por dos renovaciones a la vez | S | propuesto — depende del backend |
 
 ---
 
@@ -296,3 +302,115 @@ con el cliente registrada en el CRM en vez de en el Gmail de cada vendedor.
 **Viabilidad.** M, detrás de `F7-API`.
 
 **Estado.** Pendiente.
+
+
+## F9-PANEL — Analíticas en cuatro pestañas + reporte mensual en PDF
+
+**Qué es.** Analíticas pasa a tener Panorama, Consultas, Sofía y Propiedades, y
+cada KPI muestra su variación contra el período anterior. El botón "Reporte
+mensual" abre `/analiticas/reporte?mes=AAAA-MM`: una página armada para
+imprimir (resumen del mes con variaciones, consultas, Sofía y propiedades) que
+se guarda como PDF desde el navegador. Sin dependencias nuevas.
+
+**Ventaja.** Un reporte para mandarle a los dueños sin armarlo a mano, y
+secciones que responden preguntas concretas (cuándo escriben los clientes, qué
+zonas piden y no tenemos, qué propiedades no generan consultas).
+
+**Estado.** Implementado en `dev` (2026-09-30), detrás de `F9-API`. Sale junto
+con la tanda del 2026-10-05 porque comparte archivos con ella. Pendiente: la
+recorrida manual.
+
+## NOTIF-INTERNAS-01 — campanita y página de notificaciones
+
+**Qué es.** Campanita en la barra superior (`components/notifications/`): contador
+de sin leer, las últimas 6 y "Ver todas", que lleva a `/notificaciones` (detalle
+completo de cada aviso, marcar como leída, marcar todas, pestaña "Sin leer").
+Tocar un aviso lo marca como leído y lleva a su consulta. Se refresca sola una
+vez por minuto con la pestaña visible, por una Server Action (el navegador no
+habla con la API). Reemplaza a los correos de consultas, derivaciones,
+reasignaciones y reportes de error: ver `back-lamelas/docs/features.md` →
+`NOTIF-INTERNAS-01`.
+
+Las reasignaciones quedan además en la card "Notas internas" de la consulta,
+como registro automático (ícono de flechas, fondo gris), separadas de lo que
+escribe el equipo.
+
+**Tiempo real.** No es instantáneo: la campanita consulta cada 60 segundos con
+la pestaña visible y en cada navegación. El listado de Consultas no se refresca
+solo.
+
+**Estado.** Implementado en `dev`. Probado de punta a punta contra el backend en
+un entorno local (vendedor, admin y celular).
+
+## LEAD-CIERRE-01 — venta o alquiler al ganar una consulta
+
+**Qué es.** Elegir "Ganada" en el estado abre un diálogo: venta o alquiler
+(obligatorio, preseleccionado si la propiedad consultada es de una sola
+operación), propiedad (por defecto la consultada; las demás se cargan recién al
+abrir el selector) y si se marca la propiedad como vendida/alquilada. La ficha
+muestra el cierre con "Editar"; la bandeja muestra "Ganada · Venta" y filtra por
+eso; Analíticas y el reporte mensual desglosan las ganadas.
+
+**Estado.** Implementado en `dev`.
+
+## EDIFICIOS-01 — unidades agrupadas
+
+**Qué es.** Sección "Edificio" en el form de propiedad (elegir uno, crear uno
+nuevo o ninguno, más la unidad: "3° B"). La ficha muestra el edificio y lista las
+otras unidades con su estado; "Cargar otra unidad" abre el alta con los datos de
+esa propiedad ya copiados (`/propiedades/nueva?desde=<id>`, sin fotos ni unidad).
+`/propiedades/edificios` lista los edificios (renombrar y borrar: admin) y el
+listado filtra por edificio.
+
+**Estado.** Implementado en `dev`.
+
+## LEAD-AVANCES-01 — avances del vendedor
+
+**Qué es.** Card "Avances" en la ficha de la consulta: seis opciones rápidas
+(no contestó, hablamos, visita agendada, visita realizada, en negociación, no le
+interesa) con comentario opcional, y el historial. La bandeja marca "Esperando
+avance", muestra el último avance de cada consulta, filtra por pendientes y
+avisa arriba cuántas hay (las propias para el vendedor, todas para el admin).
+
+**Estado.** Implementado en `dev`.
+
+> **Deploy de esta tanda.** `NOTIF-INTERNAS-01`, `LEAD-CIERRE-01`, `EDIFICIOS-01`,
+> `LEAD-AVANCES-01` y `F9-PANEL` salen juntos, **después** del backend: el panel
+> nuevo contra el backend viejo rompe (la campanita falla en cada página y editar
+> una propiedad da 400). Paso a paso en
+> `back-lamelas/docs/deploy-tanda-2026-10-05.md` §4.2.
+
+## NOTIF-TIEMPO-REAL-01 — campanita en tiempo real
+
+**Qué es.** La campanita consulta cada 60 segundos (`REFRESCO_MS` en
+`components/notifications/notifications-bell.tsx`) con una Server Action. La
+propuesta es que el navegador abra un stream SSE directo contra la API y que el
+panel solo emita el ticket para conectarse; el sondeo queda como respaldo a
+intervalo largo. Sería el primer caso en que el navegador habla con la API sin
+pasar por el servidor de Next — la regla "el navegador nunca habla con la API"
+pasa a tener esta excepción, de solo lectura.
+
+**Ventaja.** Avisos al instante y menos consumo del plan Hobby de Vercel: cada
+sondeo es una invocación de función. Con ~30 usuarios, 60 s son ~317.000
+invocaciones por mes (el tope es 1.000.000); a 15 s serían ~1.270.000.
+
+**Viabilidad.** M, detrás de `back-lamelas` → mismo ID. En el panel: una Server
+Action que pide el ticket, un `EventSource` con reconexión, y refrescar también
+el listado de Consultas cuando llega un aviso de consulta nueva.
+
+**Estado.** Propuesto el 2026-10-05, sin implementar. Mientras tanto, mirar
+Vercel → Usage a los 2–3 días del deploy.
+
+## AUTH-REFRESH-RACE-01 — la sesión se cierra si dos requests renuevan a la vez
+
+**Qué es.** `src/middleware.ts` renueva el access token vencido con el refresh,
+que rota. Si dos requests llegan a la vez al vencer, el segundo usa un refresh ya
+rotado, la API responde 401 y el usuario cae en `/login`. Pasa entre dos
+requests cualesquiera (dos pestañas, una navegación y el sondeo de la campanita).
+Reproducido en local forzando el caso: 1 de 5 intentos.
+
+**Viabilidad.** El arreglo de fondo es del backend (ventana de gracia para el
+refresh recién rotado): `back-lamelas/docs/features.md` → mismo ID. Del lado del
+panel no hay nada que cambiar si se hace allá.
+
+**Estado.** Propuesto el 2026-10-05.

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ImageOff, Star } from "lucide-react";
+import { Building, ImageOff, Star } from "lucide-react";
 import { EstadoBadge } from "@/components/ui/badge";
 import { formatPrice, imageUrl } from "@/lib/utils";
 import type { EstadoPropiedad, Moneda, Operacion, TipoPropiedad } from "@/lib/types";
@@ -18,9 +18,17 @@ export interface PropertyCardData {
   estado: EstadoPropiedad;
   destacada: boolean;
   zona: string | null;
+  /** Nombre del edificio y unidad ("Torre Alem · 3° B"), si pertenece a uno. */
+  edificio: string | null;
+  unidad: string | null;
   vendedor: string | null;
   portada: string | null;
   created_at?: string;
+}
+
+/** "Torre Alem · 3° B", "Torre Alem" o solo la unidad; null si no hay nada. */
+export function edificioLabel(p: Pick<PropertyCardData, "edificio" | "unidad">): string | null {
+  return [p.edificio, p.unidad].filter(Boolean).join(" · ") || null;
 }
 
 const OPERACION_LABEL: Record<Operacion, string> = {
@@ -104,6 +112,12 @@ export function PropertyCard({
         >
           {property.titulo}
         </Link>
+        {edificioLabel(property) && (
+          <p className="flex items-center gap-1 text-sm text-muted-foreground">
+            <Building className="size-3.5 shrink-0" />
+            <span className="truncate">{edificioLabel(property)}</span>
+          </p>
+        )}
         <div>
           <p className="font-semibold tabular-nums text-primary">
             {precios.principal.label && (

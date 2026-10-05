@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
-import { MessageSquarePlus } from "lucide-react";
+import { ArrowRightLeft, MessageSquarePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { addLeadNote, type LeadFormState } from "@/actions/leads";
@@ -36,18 +36,33 @@ export function LeadNotes({ leadId, notas }: { leadId: string; notas: LeadNota[]
 
       {notas.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          Todavía no hay notas. Son internas: solo las ve el equipo.
+          Todavía no hay notas. Son internas: solo las ve el equipo. Las reasignaciones quedan
+          registradas acá solas.
         </p>
       ) : (
         <ul className="space-y-3">
-          {notas.map((n) => (
-            <li key={n.id} className="border-l-2 border-primary/40 pl-3">
-              <p className="whitespace-pre-wrap text-sm">{n.nota}</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {n.autor ?? "—"} · {formatDateTime(n.created_at)}
-              </p>
-            </li>
-          ))}
+          {notas.map((n) =>
+            n.origen === "sistema" ? (
+              // Registro automático (reasignaciones): se distingue de lo que
+              // escribe el equipo para que no parezca una nota de alguien.
+              <li key={n.id} className="border-l-2 border-muted-foreground/30 bg-muted/40 py-1.5 pl-3 pr-2">
+                <p className="flex items-start gap-1.5 text-sm text-muted-foreground">
+                  <ArrowRightLeft className="mt-0.5 size-3.5 shrink-0" />
+                  <span>{n.nota}</span>
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Registro automático · {formatDateTime(n.created_at)}
+                </p>
+              </li>
+            ) : (
+              <li key={n.id} className="border-l-2 border-primary/40 pl-3">
+                <p className="whitespace-pre-wrap text-sm">{n.nota}</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {n.autor ?? "—"} · {formatDateTime(n.created_at)}
+                </p>
+              </li>
+            )
+          )}
         </ul>
       )}
     </div>

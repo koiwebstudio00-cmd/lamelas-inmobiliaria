@@ -3,6 +3,7 @@ import { Mail, Phone } from "lucide-react";
 import {
   CanalBadge,
   LeadAtencionBadge,
+  LeadAvancePendienteBadge,
   LeadEstadoBadge,
   LeadFantasmaBadge,
   LeadSinTomarBadge,
@@ -15,8 +16,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatDateTime } from "@/lib/utils";
-import type { Lead } from "@/lib/types";
+import { formatDate, formatDateTime } from "@/lib/utils";
+import { AVANCE_LABELS, type Lead } from "@/lib/types";
 
 /** Vista de tabla de la bandeja. El mensaje no entra: para eso está el detalle. */
 export function LeadTable({ leads }: { leads: Lead[] }) {
@@ -92,9 +93,18 @@ export function LeadTable({ leads }: { leads: Lead[] }) {
                   ) : (
                     !lead.tomado_at && <LeadSinTomarBadge />
                   )}
+                  {lead.avance_pendiente && <LeadAvancePendienteBadge />}
                   {lead.clasificacion === "fantasma" && <LeadFantasmaBadge />}
-                  <LeadEstadoBadge estado={lead.estado} />
+                  <LeadEstadoBadge estado={lead.estado} operacionCierre={lead.operacion_cierre} />
                 </div>
+                {/* El último avance va acá y no en una columna propia: una
+                    octava columna ya no entra en una notebook. */}
+                {lead.ultimo_avance && (
+                  <p className="mt-1 max-w-[13rem] truncate text-xs text-muted-foreground">
+                    {AVANCE_LABELS[lead.ultimo_avance.resultado]} ·{" "}
+                    {formatDate(lead.ultimo_avance.created_at)}
+                  </p>
+                )}
               </TableCell>
               <TableCell className="whitespace-nowrap text-right text-xs tabular-nums text-muted-foreground">
                 {formatDateTime(lead.created_at)}

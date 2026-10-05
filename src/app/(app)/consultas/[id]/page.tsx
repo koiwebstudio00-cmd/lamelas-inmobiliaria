@@ -7,11 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   CanalBadge,
   LeadAtencionBadge,
+  LeadAvancePendienteBadge,
   LeadFantasmaBadge,
   LeadSinTomarBadge,
 } from "@/components/leads/estado-badge";
 import { MOTIVOS_DERIVACION } from "@/lib/types";
 import { LeadAssignSelect } from "@/components/leads/lead-assign-select";
+import { LeadAvances } from "@/components/leads/lead-avances";
 import { LeadConversation } from "@/components/leads/lead-conversation";
 import { LeadEditarDatos } from "@/components/leads/lead-editar-datos";
 import { LeadEliminar } from "@/components/leads/lead-eliminar";
@@ -45,6 +47,10 @@ export default async function ConsultaPage({
   const puedeTomarseDesdeChat =
     chat?.conversacion.estado === "bot" || chat?.conversacion.estado === "esperando_humano";
   const vendedores = esAdmin ? await getVendedores() : [];
+  // Avances: los carga el responsable (o un admin) mientras la consulta siga
+  // abierta. La API valida lo mismo; esto solo decide si se muestra el form.
+  const abierta = lead.estado === "nueva" || lead.estado === "en_contacto";
+  const puedeCargarAvance = abierta && (esAdmin || lead.assigned_to === me?.id);
 
   // El brief del agente se guarda como nota con origen "agente"; se muestra en
   // su propia card, aparte de las notas que escribe el equipo.
@@ -68,11 +74,14 @@ export default async function ConsultaPage({
             <p className="text-sm text-muted-foreground">
               {lead.telefono ? `${lead.telefono} · ` : ""}Entró el {formatDateTime(lead.created_at)}
             </p>
-            {(lead.derivacion?.pendiente || lead.clasificacion === "fantasma") && (
+            {(lead.derivacion?.pendiente ||
+              lead.clasificacion === "fantasma" ||
+              lead.avance_pendiente) && (
               <div className="flex flex-wrap items-center gap-2 pt-1">
                 {lead.derivacion?.pendiente && (
                   <LeadAtencionBadge motivo={lead.derivacion.motivo} />
                 )}
+                {lead.avance_pendiente && <LeadAvancePendienteBadge />}
                 {lead.clasificacion === "fantasma" && <LeadFantasmaBadge />}
               </div>
             )}
@@ -137,7 +146,16 @@ export default async function ConsultaPage({
             <CardContent className="space-y-4 pt-4 text-sm">
               <div className="space-y-1.5">
                 <p className="text-muted-foreground">Estado</p>
-                <LeadEstadoSelect leadId={lead.id} estado={lead.estado} />
+                <LeadEstadoSelect
+                  leadId={lead.id}
+                  estado={lead.estado}
+                  cierre={{
+                    operacion: lead.operacion_cierre,
+                    propiedad: lead.propiedad_cierre,
+                    cerrado_at: lead.cerrado_at,
+                  }}
+                  propiedadConsultada={lead.propiedad}
+                />
               </div>
 
               <div className="space-y-1.5">
@@ -235,6 +253,23 @@ export default async function ConsultaPage({
               )}
             </CardContent>
           </Card>
+
+          {/* Solo cuando tiene sentido: hay responsable (o ya hay historial). */}
+          {(lead.assigned_to || lead.avances.length > 0) && (
+            <Card id="avances">
+              <CardHeader className="border-b bg-muted/40 py-3">
+                <CardTitle className="text-base">Avances</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <LeadAvances
+                  leadId={lead.id}
+                  avances={lead.avances}
+                  pendiente={lead.avance_pendiente}
+                  puedeCargar={puedeCargarAvance}
+                />
+              </CardContent>
+            </Card>
+          )}
 
           {(chat || notasAgente.length > 0) && (
             <Card>

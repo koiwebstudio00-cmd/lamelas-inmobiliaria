@@ -41,9 +41,52 @@ export function LeadFilters({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
 
-  const hasFilters = ["q", "estado", "canal", "clasificacion", "atencion", "asignado"].some((k) =>
-    searchParams.get(k)
-  );
+  const hasFilters = [
+    "q",
+    "estado",
+    "canal",
+    "clasificacion",
+    "atencion",
+    "avance",
+    "cierre",
+    "asignado",
+  ].some((k) => searchParams.get(k));
+
+  // "Atención" y "Esperando avance" son dos pendientes distintos de la misma
+  // bandeja: comparten un solo select para no sumar otra columna de filtros.
+  const pendiente = searchParams.get("atencion") === "true"
+    ? "atencion"
+    : searchParams.get("avance") === "pendiente"
+      ? "avance"
+      : "";
+
+  function setPendiente(value: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("atencion");
+    params.delete("avance");
+    if (value === "atencion") params.set("atencion", "true");
+    if (value === "avance") params.set("avance", "pendiente");
+    params.delete("pagina");
+    router.replace(`${pathname}?${params.toString()}`);
+  }
+
+  // El estado y el cierre también van juntos: "Ganada · Venta" es un estado
+  // más fino, no otro eje.
+  const estadoValor = searchParams.get("cierre")
+    ? `ganada:${searchParams.get("cierre")}`
+    : (searchParams.get("estado") ?? "");
+
+  function setEstado(value: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("estado");
+    params.delete("cierre");
+    if (value.startsWith("ganada:")) {
+      params.set("estado", "ganada");
+      params.set("cierre", value.slice("ganada:".length));
+    } else if (value) params.set("estado", value);
+    params.delete("pagina");
+    router.replace(`${pathname}?${params.toString()}`);
+  }
 
   return (
     <div className="space-y-2">
@@ -65,18 +108,19 @@ export function LeadFilters({
         }
       >
         <Select
-          aria-label="Atención"
-          value={searchParams.get("atencion") ?? ""}
-          onChange={(e) => setParam("atencion", e.target.value)}
+          aria-label="Pendientes"
+          value={pendiente}
+          onChange={(e) => setPendiente(e.target.value)}
           className="h-9 text-sm"
         >
-          <option value="">Atención</option>
-          <option value="true">Necesita atención</option>
+          <option value="">Pendientes</option>
+          <option value="atencion">Necesita atención</option>
+          <option value="avance">Esperando avance</option>
         </Select>
         <Select
           aria-label="Estado"
-          value={searchParams.get("estado") ?? ""}
-          onChange={(e) => setParam("estado", e.target.value)}
+          value={estadoValor}
+          onChange={(e) => setEstado(e.target.value)}
           className="h-9 text-sm"
         >
           <option value="">Estado</option>
@@ -85,6 +129,8 @@ export function LeadFilters({
               {e.label}
             </option>
           ))}
+          <option value="ganada:venta">Ganada · Venta</option>
+          <option value="ganada:alquiler">Ganada · Alquiler</option>
         </Select>
         <Select
           aria-label="Canal"
