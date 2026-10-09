@@ -500,7 +500,14 @@ export type TipoNotificacion =
   | "lead_asignado"
   | "lead_quitado"
   | "avance_pendiente"
-  | "feedback_error";
+  | "feedback_error"
+  | "feedback_nuevo"
+  | "feedback_respuesta"
+  | "incidente"
+  | "incidente_resuelto";
+
+/** `alta`: incidente crítico del agente. Se destaca y se fija arriba. */
+export type PrioridadNotificacion = "normal" | "alta";
 
 export type Notificacion = {
   id: string;
@@ -509,8 +516,39 @@ export type Notificacion = {
   cuerpo: string;
   /** Ruta del panel a la que lleva; null si ya no se puede abrir. */
   link: string | null;
+  prioridad: PrioridadNotificacion;
   leida_at: string | null;
   created_at: string;
+};
+
+// ── Incidentes del agente (solo admin) ───────────────────────────────────────
+
+export type IncidenteTipo =
+  | "n8n_ejecucion"
+  | "n8n_sin_respuesta"
+  | "n8n_sin_senal"
+  | "whatsapp_desconectado";
+export type IncidenteGravedad = "normal" | "critica";
+export type IncidenteEstado = "abierto" | "resuelto";
+
+export type Incidente = {
+  id: string;
+  tipo: IncidenteTipo;
+  gravedad: IncidenteGravedad;
+  titulo: string;
+  detalle: string | null;
+  workflow: string | null;
+  nodo: string | null;
+  execution_id: string | null;
+  /** Link a la ejecución en n8n (pide iniciar sesión en n8n). */
+  execution_url: string | null;
+  ocurrencias: number;
+  primera_at: string;
+  ultima_at: string;
+  estado: IncidenteEstado;
+  resuelto_at: string | null;
+  /** Null con `resuelto_at` cargado: se resolvió solo. */
+  resuelto_por: { id: string; nombre: string } | null;
 };
 
 // ── Edificios ────────────────────────────────────────────────────────────────
@@ -721,9 +759,9 @@ export const ROLES: { value: "admin" | "agente"; label: string }[] = [
   { value: "agente", label: "Vendedor" },
 ];
 
-// ── Feedback: sugerencias y reportes de error del panel ──────────────────────
+// ── Feedback: canal del equipo (errores, problemas y sugerencias en hilo) ────
 
-export type FeedbackTipo = "sugerencia" | "error";
+export type FeedbackTipo = "error" | "problema" | "sugerencia";
 export type FeedbackEstado = "nuevo" | "en_revision" | "planificada" | "resuelta" | "descartada";
 
 export type FeedbackAutor = { id: string; nombre: string };
@@ -738,16 +776,28 @@ export type FeedbackItem = {
   autor: FeedbackAutor | null;
   adjuntos_count: number;
   comentarios_count: number;
+  /** Cuándo llegó la última respuesta del hilo (null si no tiene). */
+  ultima_respuesta_at: string | null;
   created_at: string;
   updated_at: string;
 };
+
+export const TIPOS_FEEDBACK: { value: FeedbackTipo; label: string; ayuda: string }[] = [
+  { value: "error", label: "Error", ayuda: "Algo del sistema no funciona como debería." },
+  { value: "problema", label: "Problema", ayuda: "Algo te traba o no sabés cómo hacerlo." },
+  { value: "sugerencia", label: "Sugerencia", ayuda: "Una idea para mejorar el sistema." },
+];
+
+/** Los errores y problemas aceptan capturas; las sugerencias no. */
+export const TIPOS_CON_ADJUNTOS: FeedbackTipo[] = ["error", "problema"];
 
 export type FeedbackAdjunto = { id: string; url: string; orden: number };
 
 export type FeedbackComentario = {
   id: string;
   cuerpo: string;
-  autor: string | null;
+  /** "Soporte" cuando responde alguien de Koi, que el equipo no puede ver. */
+  autor: FeedbackAutor;
   created_at: string;
 };
 

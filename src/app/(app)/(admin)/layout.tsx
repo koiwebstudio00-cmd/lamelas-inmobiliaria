@@ -11,7 +11,7 @@ import { esAdmin } from "@/lib/permisos";
  * llamó en este mismo render, así que esto no agrega un request a la API.
  *
  * Los paréntesis del nombre no aparecen en la URL: las rutas siguen siendo
- * /equipo y /configuracion.
+ * /configuracion/*.
  */
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const me = await getCurrentUser();

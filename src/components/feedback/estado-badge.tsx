@@ -1,4 +1,4 @@
-import { Bug, Lightbulb } from "lucide-react";
+import { Bug, CircleHelp, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { FeedbackEstado, FeedbackTipo } from "@/lib/types";
 
@@ -39,20 +39,28 @@ export function FeedbackEstadoBadge({
 }
 
 const TIPO_LABELS: Record<FeedbackTipo, string> = {
+  error: "Error",
+  problema: "Problema",
   sugerencia: "Sugerencia",
-  error: "Reporte de error",
 };
 
 const TIPO_ICONS: Record<FeedbackTipo, typeof Bug> = {
-  sugerencia: Lightbulb,
   error: Bug,
+  problema: CircleHelp,
+  sugerencia: Lightbulb,
+};
+
+const TIPO_COLOR: Record<FeedbackTipo, string> = {
+  error: "text-red-600",
+  problema: "text-amber-600",
+  sugerencia: "text-violet-600",
 };
 
 export function FeedbackTipoBadge({ tipo }: { tipo: FeedbackTipo }) {
   const Icon = TIPO_ICONS[tipo];
   return (
     <span className="inline-flex items-center gap-1 border px-2 py-0.5 text-xs text-muted-foreground">
-      <Icon className="size-3.5 shrink-0" />
+      <Icon className={cn("size-3.5 shrink-0", TIPO_COLOR[tipo])} />
       {TIPO_LABELS[tipo]}
     </span>
   );

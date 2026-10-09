@@ -5,7 +5,7 @@ import { ApiError, apiFetch } from "@/lib/api";
 import type { FeedbackEstado, FeedbackTipo } from "@/lib/types";
 
 /**
- * Acciones del módulo de feedback (sugerencias y reportes de error). El
+ * Acciones del canal de feedback (errores, problemas y sugerencias). El
  * navegador nunca habla con la API: pasa por estas Server Actions, que reenvían
  * la sesión. Los adjuntos usan el mismo flujo de 3 pasos que las fotos de
  * propiedad (presign → PUT directo a R2 → confirm).
@@ -38,7 +38,7 @@ export async function crearFeedback(input: {
         ...(input.user_agent ? { user_agent: input.user_agent } : {}),
       },
     });
-    revalidatePath(input.tipo === "error" ? "/feedback/reportes" : "/feedback/sugerencias");
+    revalidatePath("/feedback");
     return { id: item.id };
   } catch (error) {
     return { error: message(error, "No pudimos guardar tu feedback. Probá de nuevo.") };
@@ -55,8 +55,7 @@ export async function cambiarEstadoFeedback(
     return message(error, "No se pudo cambiar el estado.");
   }
   revalidatePath(`/feedback/${id}`);
-  revalidatePath("/feedback/sugerencias");
-  revalidatePath("/feedback/reportes");
+  revalidatePath("/feedback");
   return null;
 }
 
@@ -66,8 +65,7 @@ export async function borrarFeedback(id: string): Promise<string | null> {
   } catch (error) {
     return message(error, "No se pudo eliminar.");
   }
-  revalidatePath("/feedback/sugerencias");
-  revalidatePath("/feedback/reportes");
+  revalidatePath("/feedback");
   return null;
 }
 
@@ -75,9 +73,24 @@ export async function agregarComentario(id: string, cuerpo: string): Promise<str
   try {
     await apiFetch(`/v1/feedback/${id}/comentarios`, { method: "POST", body: { cuerpo } });
   } catch (error) {
-    return message(error, "No se pudo guardar el comentario.");
+    return message(error, "No se pudo enviar la respuesta.");
   }
   revalidatePath(`/feedback/${id}`);
+  revalidatePath("/feedback");
+  return null;
+}
+
+export async function borrarComentario(
+  comentarioId: string,
+  feedbackId: string
+): Promise<string | null> {
+  try {
+    await apiFetch(`/v1/feedback/comentarios/${comentarioId}`, { method: "DELETE" });
+  } catch (error) {
+    return message(error, "No se pudo borrar la respuesta.");
+  }
+  revalidatePath(`/feedback/${feedbackId}`);
+  revalidatePath("/feedback");
   return null;
 }
 

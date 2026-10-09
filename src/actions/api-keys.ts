@@ -68,7 +68,7 @@ export async function createApiKey(
       method: "POST",
       body: { nombre: nombre.data, scopes: scopes.data as ApiKeyScope[] },
     });
-    revalidatePath("/configuracion");
+    revalidatePath("/configuracion/integraciones");
     return { key, nombre: nombre.data, scopes: scopes.data as ApiKeyScope[] };
   } catch (error) {
     if (error instanceof ApiError) return { error: error.message };
@@ -89,6 +89,6 @@ export async function revokeApiKey(id: string): Promise<string | null> {
   } catch (error) {
     return error instanceof ApiError ? error.message : "No pudimos revocar la key.";
   }
-  revalidatePath("/configuracion");
+  revalidatePath("/configuracion/integraciones");
   return null;
 }

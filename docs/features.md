@@ -40,7 +40,9 @@ después se pasa a `main` y se sube al remoto.
 | MOTIVO-VISIBLE-01 | Mostrar y filtrar el motivo de derivación | S | pendiente |
 | SIN-LEER-01 | Estado "sin leer" por lead | M | pendiente (plan escrito) |
 | F1-PANEL | Vistas faltantes de analíticas | M | parcial |
-| F3-PANEL | Vista de incidentes de n8n y Zernio | M | pendiente |
+| F3-PANEL | Vista de incidentes de n8n y Zernio | M | en dev, sin verificar (2026-10-09) |
+| FEEDBACK-CANAL-01 | Feedback como canal compartido con hilos + menú con grupo Configuración | M | en dev, sin verificar (2026-10-09) |
+| CSS-BORDES-01 | Los colores de borde de Tailwind no se aplican | S | pendiente |
 | F4-PANEL | Pantalla de configuración de Sofía por tenant | M | pendiente |
 | F7-PANEL | Logs de correo y envío desde el lead | M | pendiente |
 | NOTIF-INTERNAS-01 | Campanita y página de notificaciones | M | en dev, listo para desplegar (ver guía de la tanda) |
@@ -276,6 +278,24 @@ justamente por esto.
 **Viabilidad.** M en el panel, detrás de F3-API. La API de n8n y las credenciales
 de Zernio nunca se exponen al navegador.
 
+**Estado.** Implementado en `dev` el 2026-10-09, sin verificar. Página
+`/incidentes` y detalle (solo admin, dentro de `(admin)`), ítem del menú con el
+contador de críticos abiertos, campanita con los críticos en rojo, fijos arriba
+mientras estén sin leer y con aviso emergente; la campanita también se
+actualiza al volver a la ventana. Plan: `back-lamelas/docs/plan-incidentes-agente.md`.
+
+## CSS-BORDES-01 — los colores de borde de Tailwind no se aplican
+
+**Qué es.** `globals.css` tiene `* { border-color: var(--border) }` fuera de
+cualquier `@layer`. En Tailwind v4 los estilos sin capa le ganan a todas las
+utilidades, así que clases como `border-red-200`, `border-l-primary` o
+`border-emerald-200` no pintan: todo borde sale gris. Se notó al hacer
+`F3-PANEL` (la barra roja de los críticos se dibuja con una sombra por eso).
+
+**Viabilidad.** S: mover esa regla a `@layer base`. Cambia el aspecto de los
+badges y avisos que ya usan bordes de color (pasan a verse como se diseñaron),
+así que conviene revisar las pantallas antes de aplicarlo.
+
 **Estado.** Pendiente.
 
 ## F4-PANEL — pantalla de configuración de Sofía por tenant
@@ -414,3 +434,21 @@ refresh recién rotado): `back-lamelas/docs/features.md` → mismo ID. Del lado 
 panel no hay nada que cambiar si se hace allá.
 
 **Estado.** Propuesto el 2026-10-05.
+
+## FEEDBACK-CANAL-01 — feedback como canal compartido y menú reordenado
+
+**Qué es.** `/feedback` pasa a ser un canal único (antes: Sugerencias y Reportes
+de error por separado) con publicaciones de tipo Error, Problema o Sugerencia que
+todo el equipo ve y responde en hilo (`/feedback/[id]`). En el mismo cambio, el
+menú agrupa Equipo, Incidentes e Integraciones (las API keys) bajo
+**Configuración**, en `/configuracion/*`.
+
+**Viabilidad.** M. Diseño y decisiones en `back-lamelas/docs/plan-feedback-canal.md`.
+
+**Estado.** Implementado en `dev` el 2026-10-09, sin verificar. Componentes en
+`src/components/feedback/` (`nueva-publicacion`, `feedback-feed`,
+`hilo-respuestas`, `marcar-resuelta`, `autor-avatar`) y
+`src/components/auto-refresh.tsx`. Redirecciones de las rutas viejas en
+`next.config.ts`. Deploy junto con la tanda de incidentes
+(`back-lamelas/docs/deploy-tanda-2026-10-09.md`).
+

@@ -51,7 +51,7 @@ export async function inviteUser(_prev: TeamState, formData: FormData): Promise<
     return { error: message(error, "No pudimos enviar la invitación.") };
   }
 
-  revalidatePath("/equipo");
+  revalidatePath("/configuracion/equipo");
   return { success: `Le enviamos la invitación a ${parsed.data.email}.` };
 }
 
@@ -65,7 +65,7 @@ export async function revokeInvitation(id: string): Promise<string | null> {
   } catch (error) {
     return message(error, "No pudimos cancelar la invitación.");
   }
-  revalidatePath("/equipo");
+  revalidatePath("/configuracion/equipo");
   return null;
 }
 
@@ -93,7 +93,7 @@ export async function updateUsuario(
   } catch (error) {
     return message(error, "No pudimos actualizar al usuario.");
   }
-  revalidatePath("/equipo");
+  revalidatePath("/configuracion/equipo");
   revalidatePath("/propiedades");
   return null;
 }
@@ -129,6 +129,6 @@ export async function changeUserPassword(
     return message(error, "No pudimos cambiar la contraseña.");
   }
 
-  revalidatePath("/equipo");
+  revalidatePath("/configuracion/equipo");
   return null;
 }
