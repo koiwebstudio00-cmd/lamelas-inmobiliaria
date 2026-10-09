@@ -41,7 +41,7 @@ export default async function IncidentePage({ params }: { params: Promise<{ id: 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <Button asChild variant="ghost" size="sm" className="-ml-2">
-        <Link href="/incidentes" prefetch={false}>
+        <Link href="/configuracion/incidentes" prefetch={false}>
           <ArrowLeft /> Incidentes
         </Link>
       </Button>

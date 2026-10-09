@@ -9,10 +9,8 @@ import {
   HeartHandshake,
   Home,
   Inbox,
-  KeyRound,
-  Megaphone,
-  ShieldAlert,
-  Users,
+  MessagesSquare,
+  Settings,
 } from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
 import { WhatsappIcon } from "@/components/icons/whatsapp-icon";
@@ -88,6 +86,7 @@ const ITEMS: Item[] = [
       { href: "/consultas/nueva", label: "Nueva consulta" },
     ],
   },
+  { href: "/clientes", label: "Clientes", icon: HeartHandshake, soloAdmin: true, subs: [] },
   {
     href: "/analiticas",
     label: "Analíticas",
@@ -95,15 +94,7 @@ const ITEMS: Item[] = [
     soloAdmin: true,
     subs: [],
   },
-  {
-    label: "Feedback",
-    icon: Megaphone,
-    soloAdmin: false,
-    subs: [
-      { href: "/feedback/sugerencias", label: "Sugerencias", incluye: ["/feedback/sugerencias/"] },
-      { href: "/feedback/reportes", label: "Reportes de error", incluye: ["/feedback/reportes/"] },
-    ],
-  },
+  { href: "/feedback", label: "Feedback", icon: MessagesSquare, soloAdmin: false, subs: [] },
   {
     label: "WhatsApp",
     icon: WhatsappIcon,
@@ -114,17 +105,23 @@ const ITEMS: Item[] = [
       { href: "/whatsapp/conectar", label: "Conectar número" },
     ],
   },
-  { href: "/incidentes", label: "Incidentes", icon: ShieldAlert, soloAdmin: true, subs: [] },
-  { href: "/clientes", label: "Clientes", icon: HeartHandshake, soloAdmin: true, subs: [] },
-  { href: "/equipo", label: "Equipo", icon: Users, soloAdmin: true, subs: [] },
   {
-    href: "/configuracion",
     label: "Configuración",
-    icon: KeyRound,
+    icon: Settings,
     soloAdmin: true,
-    subs: [],
+    subs: [
+      { href: "/configuracion/equipo", label: "Equipo" },
+      {
+        href: "/configuracion/incidentes",
+        label: "Incidentes",
+        incluye: ["/configuracion/incidentes/"],
+      },
+      { href: "/configuracion/integraciones", label: "Integraciones" },
+    ],
   },
 ];
+
+const SUB_INCIDENTES = "/configuracion/incidentes";
 
 /** "/" solo marca activo en su propia ruta; el resto también en sus hijos. */
 function esActivo(pathname: string, href: string) {
@@ -153,7 +150,7 @@ export function AppNav({
   email: string;
   rol: Rol;
   consultasSinTomar: number;
-  /** Incidentes críticos abiertos (solo admin): badge rojo en "Incidentes". */
+  /** Incidentes críticos abiertos (solo admin): badge rojo en Configuración → Incidentes. */
   incidentesCriticos?: number;
 }) {
   const pathname = usePathname();
@@ -196,32 +193,19 @@ export function AppNav({
                 // Sección sin hijos: la fila es un link común.
                 if (item.subs.length === 0) {
                   const activo = esActivo(pathname, item.href!);
-                  const criticos = item.href === "/incidentes" ? incidentesCriticos : 0;
                   return (
                     <SidebarMenuItem key={item.label}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={activo}
-                        tooltip={criticos > 0 ? `${item.label} (${criticos} críticos)` : item.label}
-                      >
+                      <SidebarMenuButton asChild isActive={activo} tooltip={item.label}>
                         <Link
                           href={item.href!}
                           prefetch={false}
                           onClick={alNavegar}
                           aria-current={activo ? "page" : undefined}
                         >
-                          <item.icon className={criticos > 0 ? "text-destructive" : undefined} />
+                          <item.icon />
                           <span>{item.label}</span>
                         </Link>
                       </SidebarMenuButton>
-                      {criticos > 0 ? (
-                        <SidebarMenuBadge
-                          className="bg-red-600 text-white"
-                          aria-label={`${criticos} incidentes críticos abiertos`}
-                        >
-                          {criticos > 99 ? "99+" : criticos}
-                        </SidebarMenuBadge>
-                      ) : null}
                     </SidebarMenuItem>
                   );
                 }
@@ -229,9 +213,24 @@ export function AppNav({
                 // Grupo desplegable: arranca abierto si estás parado en alguno
                 // de sus hijos, para que nunca tengas que buscar dónde estás.
                 const hayHijoActivo = item.subs.some((s) => subActivo(pathname, s, item.subs));
-                const pendientes = item.label === "Consultas" ? consultasSinTomar : 0;
-                const tooltip =
-                  pendientes > 0 ? `${item.label} (${pendientes} sin tomar)` : item.label;
+                // Contador del grupo: consultas sin tomar (ámbar) o incidentes
+                // críticos abiertos (rojo). Se ve aunque el grupo esté cerrado.
+                const insignia =
+                  item.label === "Consultas" && consultasSinTomar > 0
+                    ? {
+                        n: consultasSinTomar,
+                        clase: "bg-amber-100 text-amber-900",
+                        texto: `${consultasSinTomar} consultas sin tomar`,
+                        tooltip: `${item.label} (${consultasSinTomar} sin tomar)`,
+                      }
+                    : item.label === "Configuración" && incidentesCriticos > 0
+                      ? {
+                          n: incidentesCriticos,
+                          clase: "bg-red-600 text-white",
+                          texto: `${incidentesCriticos} incidentes críticos abiertos`,
+                          tooltip: `${item.label} (${incidentesCriticos} incidentes críticos)`,
+                        }
+                      : null;
 
                 return (
                   <Collapsible
@@ -244,26 +243,27 @@ export function AppNav({
                       <CollapsibleTrigger asChild>
                         <SidebarMenuButton
                           isActive={hayHijoActivo}
-                          tooltip={tooltip}
-                          className={pendientes > 0 ? "pr-14" : undefined}
+                          tooltip={insignia?.tooltip ?? item.label}
+                          className={insignia ? "pr-14" : undefined}
                         >
                           <item.icon />
                           <span>{item.label}</span>
                           <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                         </SidebarMenuButton>
                       </CollapsibleTrigger>
-                      {pendientes > 0 ? (
+                      {insignia ? (
                         <SidebarMenuBadge
-                          className="right-7 bg-amber-100 text-amber-900"
-                          aria-label={`${pendientes} consultas sin tomar`}
+                          className={`right-7 ${insignia.clase}`}
+                          aria-label={insignia.texto}
                         >
-                          {pendientes > 99 ? "99+" : pendientes}
+                          {insignia.n > 99 ? "99+" : insignia.n}
                         </SidebarMenuBadge>
                       ) : null}
                       <CollapsibleContent>
                         <SidebarMenuSub>
                           {item.subs.map((sub) => {
                             const activo = subActivo(pathname, sub, item.subs);
+                            const criticos = sub.href === SUB_INCIDENTES ? incidentesCriticos : 0;
                             return (
                               <SidebarMenuSubItem key={sub.href}>
                                 <SidebarMenuSubButton asChild isActive={activo}>
@@ -274,6 +274,14 @@ export function AppNav({
                                     aria-current={activo ? "page" : undefined}
                                   >
                                     <span>{sub.label}</span>
+                                    {criticos > 0 ? (
+                                      <span
+                                        className="ml-auto bg-red-600 px-1.5 text-xs font-medium tabular-nums text-white"
+                                        aria-label={`${criticos} críticos abiertos`}
+                                      >
+                                        {criticos > 99 ? "99+" : criticos}
+                                      </span>
+                                    ) : null}
                                   </Link>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>

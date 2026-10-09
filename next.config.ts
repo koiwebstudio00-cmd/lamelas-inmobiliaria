@@ -17,6 +17,20 @@ const r2Hosts = (
   .filter(Boolean);
 
 const nextConfig: NextConfig = {
+  /**
+   * Rutas que se mudaron. Siguen andando porque hay links viejos guardados:
+   * avisos de la campanita (`/incidentes/<id>`), favoritos y pestañas abiertas.
+   * Temporales (307) por si el menú se vuelve a reordenar.
+   */
+  async redirects() {
+    return [
+      { source: "/equipo", destination: "/configuracion/equipo", permanent: false },
+      { source: "/incidentes", destination: "/configuracion/incidentes", permanent: false },
+      { source: "/incidentes/:id", destination: "/configuracion/incidentes/:id", permanent: false },
+      { source: "/feedback/sugerencias/:rest*", destination: "/feedback?tipo=sugerencia", permanent: false },
+      { source: "/feedback/reportes/:rest*", destination: "/feedback?tipo=error", permanent: false },
+    ];
+  },
   images: {
     // Las fotos ya llegan optimizadas: el navegador las redimensiona a 1600px y
     // las pasa a WebP (~150 KB) antes de subirlas a R2. Volver a pasarlas por la

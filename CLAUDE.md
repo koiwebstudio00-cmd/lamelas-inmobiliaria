@@ -58,21 +58,22 @@ Secciones del panel, todas dentro de `(app)`:
 | `/propiedades/edificios` | Edificios que agrupan unidades; renombrar y borrar solo admin. |
 | `/consultas`, `/consultas/[id]`, `/consultas/nueva` | Bandeja de leads: filtros por texto, estado, canal, **clasificación** y vendedor; contadores potencial/fantasma (admin); detalle con cambio de estado (**"Ganada" abre el diálogo de cierre: venta o alquiler + propiedad**), **clasificación** (potencial/fantasma), reasignación, **avances del vendedor** y notas internas. |
 | `/notificaciones` | Avisos internos del usuario (la campanita de la barra superior muestra los últimos 6, con los críticos sin leer fijados arriba). Reemplazan a los correos de operación. |
-| `/incidentes`, `/incidentes/[id]` | Incidentes del agente de WhatsApp: errores de n8n, n8n caído, WhatsApp desconectado (solo admin). |
-| `/equipo` | Usuarios e invitaciones (solo admin). |
+| `/configuracion/equipo` | Usuarios e invitaciones (solo admin). |
+| `/configuracion/incidentes`, `/configuracion/incidentes/[id]` | Incidentes del agente de WhatsApp: errores de n8n, n8n caído, WhatsApp desconectado (solo admin). |
+| `/configuracion/integraciones` | API keys del sitio y del agente, con scopes (solo admin). `/configuracion` redirige acá. |
 | `/analiticas` | Resumen y analíticas de consultas (solo admin). |
-| `/feedback/*` | Sugerencias, reportes, altas y detalle de feedback. |
+| `/feedback`, `/feedback/[id]` | Canal del equipo: errores, problemas y sugerencias que todos ven y responden en hilo. El estado lo cambia el admin; el autor puede marcar lo suyo como resuelto. Se refresca solo (`components/auto-refresh.tsx`). |
 | `/probar-agente` | Probador web de Sofi con sesiones separadas (solo admin). |
 | `/whatsapp/conectar` | Conexión y estado de WhatsApp mediante Zernio (solo admin). |
 | `/clientes`, `/clientes/[id]` | Vista previa con datos de ejemplo; no persiste clientes todavía (solo admin). |
-| `/configuracion` | API keys del sitio y del agente, con scopes (solo admin). |
 | `/perfil` | Datos de la propia cuenta. |
 
 Notas de estructura que conviene tener a mano:
 
 - **El inicio es `/`.** No hay redirect a `/propiedades`: el login, el alta por invitación y el middleware mandan todos a la raíz.
-- **Las pantallas de admin (`/equipo`, `/configuracion`) hacen `redirect("/")` si el rol no alcanza.** Es cosmética: la API rechaza igual a un vendedor (regla 1). Sirve para no mostrarle una pantalla de error a quien se metió por la URL.
-- **Navegación en `src/components/nav/app-nav.tsx`:** armada sobre el bloque `sidebar-03` de shadcn (`src/components/ui/sidebar.tsx`, copiado del registro oficial junto con `sheet`, `tooltip` y `separator`). Barra fija en escritorio y cajón (`Sheet`) en móvil, con submenús colgando de Propiedades y Consultas. El layout `(app)/layout.tsx` resuelve `getCurrentUser()` una vez, le pasa nombre y rol a la navegación, lee la cookie `sidebar_state` en el server para que la barra no parpadee y envuelve todo en `SidebarProvider` + `SidebarInset`. Los archivos de `components/ui/` que vienen del registro no se editan a mano: para personalizar, componer arriba.
+- **Rutas mudadas:** `/equipo`, `/incidentes`, `/feedback/sugerencias` y `/feedback/reportes` redirigen a su lugar nuevo desde `next.config.ts` (hay links viejos guardados en avisos de la campanita).
+- **Las pantallas de admin (grupo `(admin)`: `/configuracion/*`, `/analiticas`, `/clientes`, WhatsApp) hacen `redirect("/")` si el rol no alcanza.** Es cosmética: la API rechaza igual a un vendedor (regla 1). Sirve para no mostrarle una pantalla de error a quien se metió por la URL.
+- **Navegación en `src/components/nav/app-nav.tsx`:** armada sobre el bloque `sidebar-03` de shadcn (`src/components/ui/sidebar.tsx`, copiado del registro oficial junto con `sheet`, `tooltip` y `separator`). Barra fija en escritorio y cajón (`Sheet`) en móvil, con submenús colgando de Propiedades, Consultas, WhatsApp y Configuración (Equipo, Incidentes, Integraciones; con el contador rojo de incidentes críticos). El layout `(app)/layout.tsx` resuelve `getCurrentUser()` una vez, le pasa nombre y rol a la navegación, lee la cookie `sidebar_state` en el server para que la barra no parpadee y envuelve todo en `SidebarProvider` + `SidebarInset`. Los archivos de `components/ui/` que vienen del registro no se editan a mano: para personalizar, componer arriba.
 - **No editar `components/ui/sidebar.tsx` para cambiar estilos.** Los radios están en cero globalmente desde `globals.css` (`--radius-*: 0`) y las animaciones del cajón son `@keyframes` propios porque `tw-animate-css` no está instalado.
 - **`src/app/not-found.tsx`** cubre el 404 y también los 403: cuando alguien pide una propiedad o una consulta que no le corresponde, `queries.ts` devuelve `null` y la página llama a `notFound()`, para no delatar qué hay cargado del otro lado.
 - **`src/components/pagination.tsx`** es compartido (propiedades y consultas); recibe `basePath`. Los componentes por sección viven en `src/components/{properties,leads,team,settings}/`.

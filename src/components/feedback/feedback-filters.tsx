@@ -6,9 +6,10 @@ import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { ESTADOS_FEEDBACK } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { ESTADOS_FEEDBACK, TIPOS_FEEDBACK } from "@/lib/types";
 
-/** Buscador + filtro por estado. El `tipo` lo fija la página, no es filtro acá. */
+/** Buscador + filtros por tipo (pestañas) y estado del canal de feedback. */
 export function FeedbackFilters() {
   const router = useRouter();
   const pathname = usePathname();
@@ -36,9 +37,33 @@ export function FeedbackFilters() {
   }, [q]);
 
   const hasFilters = ["q", "estado"].some((k) => searchParams.get(k));
+  const tipoActual = searchParams.get("tipo") ?? "";
+  const pestañas = [{ value: "", label: "Todo" }, ...TIPOS_FEEDBACK];
 
   return (
     <div className="space-y-2">
+      <div role="tablist" aria-label="Tipo" className="flex gap-1 overflow-x-auto border-b">
+        {pestañas.map((t) => {
+          const activa = tipoActual === t.value;
+          return (
+            <button
+              key={t.value || "todo"}
+              type="button"
+              role="tab"
+              aria-selected={activa}
+              onClick={() => setParam("tipo", t.value)}
+              className={cn(
+                "-mb-px whitespace-nowrap px-3 py-2 text-sm font-medium",
+                activa
+                  ? "text-primary shadow-[inset_0_-2px_0_var(--color-primary)]"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
       <div className="relative">
         <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -69,7 +94,7 @@ export function FeedbackFilters() {
             size="sm"
             onClick={() => {
               setQ("");
-              router.replace(pathname);
+              router.replace(tipoActual ? `${pathname}?tipo=${tipoActual}` : pathname);
             }}
           >
             <X /> Limpiar

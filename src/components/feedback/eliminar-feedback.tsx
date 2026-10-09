@@ -15,14 +15,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { borrarFeedback } from "@/actions/feedback";
-import type { FeedbackTipo } from "@/lib/types";
 
 /** Borrado con confirmación. Solo se renderiza para admin/super_admin. */
-export function EliminarFeedback({ id, tipo }: { id: string; tipo: FeedbackTipo }) {
+export function EliminarFeedback({ id }: { id: string }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const volver = tipo === "error" ? "/feedback/reportes" : "/feedback/sugerencias";
 
   function eliminar() {
     setError(null);
@@ -32,24 +30,22 @@ export function EliminarFeedback({ id, tipo }: { id: string; tipo: FeedbackTipo 
         setError(err);
         return;
       }
-      router.push(volver);
+      router.push("/feedback");
     });
   }
 
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="destructive" size="sm" className="w-full">
-          <Trash2 /> Eliminar
+        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+          <Trash2 /> Eliminar publicación
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>
-            ¿Eliminar {tipo === "error" ? "este reporte" : "esta sugerencia"}?
-          </AlertDialogTitle>
+          <AlertDialogTitle>¿Eliminar esta publicación?</AlertDialogTitle>
           <AlertDialogDescription>
-            Se borra junto con sus imágenes y comentarios. No se puede deshacer.
+            Se borra junto con sus imágenes y todas las respuestas. No se puede deshacer.
           </AlertDialogDescription>
         </AlertDialogHeader>
         {error && <p className="text-sm text-destructive">{error}</p>}

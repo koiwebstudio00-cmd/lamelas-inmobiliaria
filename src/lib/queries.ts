@@ -945,7 +945,7 @@ export async function getPropiedadesParaSelect(): Promise<{ id: string; titulo: 
   return acc.sort((a, b) => a.titulo.localeCompare(b.titulo, "es"));
 }
 
-// ── Feedback: sugerencias y reportes de error ────────────────────────────────
+// ── Feedback: canal del equipo ───────────────────────────────────────────────
 
 interface ApiFeedback {
   id: string;
@@ -959,6 +959,7 @@ interface ApiFeedback {
   updatedAt: string;
   autor?: { id: string; nombre: string } | null;
   _count?: { adjuntos: number; comentarios: number };
+  ultimaRespuestaAt?: string | null;
   adjuntos?: { id: string; url: string; orden: number }[];
   comentarios?: { id: string; cuerpo: string; createdAt: string; autor?: { id: string; nombre: string } | null }[];
 }
@@ -974,6 +975,7 @@ function toFeedback(f: ApiFeedback): FeedbackItem {
     autor: f.autor ? { id: f.autor.id, nombre: f.autor.nombre } : null,
     adjuntos_count: f._count?.adjuntos ?? 0,
     comentarios_count: f._count?.comentarios ?? 0,
+    ultima_respuesta_at: f.ultimaRespuestaAt ?? null,
     created_at: f.createdAt,
     updated_at: f.updatedAt,
   };
@@ -986,7 +988,7 @@ export interface FeedbackListFilters {
   pagina?: number;
 }
 
-const FEEDBACK_TIPOS = ["sugerencia", "error"] as const;
+const FEEDBACK_TIPOS = ["error", "problema", "sugerencia"] as const;
 const FEEDBACK_ESTADOS = ["nuevo", "en_revision", "planificada", "resuelta", "descartada"] as const;
 
 export async function getFeedbackList(filters: FeedbackListFilters) {
@@ -1016,7 +1018,7 @@ export async function getFeedbackItem(id: string): Promise<FeedbackDetalle | nul
       comentarios: (item.comentarios ?? []).map((c) => ({
         id: c.id,
         cuerpo: c.cuerpo,
-        autor: c.autor?.nombre ?? null,
+        autor: { id: c.autor?.id ?? "", nombre: c.autor?.nombre ?? "Soporte" },
         created_at: c.createdAt,
       })),
     };

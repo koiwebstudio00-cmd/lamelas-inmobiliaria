@@ -41,6 +41,7 @@ después se pasa a `main` y se sube al remoto.
 | SIN-LEER-01 | Estado "sin leer" por lead | M | pendiente (plan escrito) |
 | F1-PANEL | Vistas faltantes de analíticas | M | parcial |
 | F3-PANEL | Vista de incidentes de n8n y Zernio | M | en dev, sin verificar (2026-10-09) |
+| FEEDBACK-CANAL-01 | Feedback como canal compartido con hilos + menú con grupo Configuración | M | en dev, sin verificar (2026-10-09) |
 | CSS-BORDES-01 | Los colores de borde de Tailwind no se aplican | S | pendiente |
 | F4-PANEL | Pantalla de configuración de Sofía por tenant | M | pendiente |
 | F7-PANEL | Logs de correo y envío desde el lead | M | pendiente |
@@ -433,3 +434,21 @@ refresh recién rotado): `back-lamelas/docs/features.md` → mismo ID. Del lado 
 panel no hay nada que cambiar si se hace allá.
 
 **Estado.** Propuesto el 2026-10-05.
+
+## FEEDBACK-CANAL-01 — feedback como canal compartido y menú reordenado
+
+**Qué es.** `/feedback` pasa a ser un canal único (antes: Sugerencias y Reportes
+de error por separado) con publicaciones de tipo Error, Problema o Sugerencia que
+todo el equipo ve y responde en hilo (`/feedback/[id]`). En el mismo cambio, el
+menú agrupa Equipo, Incidentes e Integraciones (las API keys) bajo
+**Configuración**, en `/configuracion/*`.
+
+**Viabilidad.** M. Diseño y decisiones en `back-lamelas/docs/plan-feedback-canal.md`.
+
+**Estado.** Implementado en `dev` el 2026-10-09, sin verificar. Componentes en
+`src/components/feedback/` (`nueva-publicacion`, `feedback-feed`,
+`hilo-respuestas`, `marcar-resuelta`, `autor-avatar`) y
+`src/components/auto-refresh.tsx`. Redirecciones de las rutas viejas en
+`next.config.ts`. Deploy junto con la tanda de incidentes
+(`back-lamelas/docs/deploy-tanda-2026-10-09.md`).
+

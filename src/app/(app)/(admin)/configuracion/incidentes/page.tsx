@@ -31,7 +31,7 @@ export default async function IncidentesPage({ searchParams }: { searchParams: S
     const merged = { ver, gravedad: soloCriticos ? "critica" : undefined, ...cambios };
     for (const [k, v] of Object.entries(merged)) if (v) q.set(k, v);
     const qs = q.toString();
-    return qs ? `/incidentes?${qs}` : "/incidentes";
+    return qs ? `/configuracion/incidentes?${qs}` : "/configuracion/incidentes";
   };
 
   return (
@@ -101,7 +101,7 @@ export default async function IncidentesPage({ searchParams }: { searchParams: S
           {incidentes.map((i) => (
             <li key={i.id}>
               <Link
-                href={`/incidentes/${i.id}`}
+                href={`/configuracion/incidentes/${i.id}`}
                 prefetch={false}
                 className={cn(
                   "flex items-start gap-3 border bg-background p-4 hover:bg-accent/40",
@@ -131,7 +131,7 @@ export default async function IncidentesPage({ searchParams }: { searchParams: S
         </ul>
       )}
 
-      <Pagination page={page} count={count} basePath="/incidentes" searchParams={params} />
+      <Pagination page={page} count={count} basePath="/configuracion/incidentes" searchParams={params} />
     </div>
   );
 }
