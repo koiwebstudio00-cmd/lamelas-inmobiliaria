@@ -11,6 +11,7 @@ import {
   Inbox,
   KeyRound,
   Megaphone,
+  ShieldAlert,
   Users,
 } from "lucide-react";
 import type { ComponentType, SVGProps } from "react";
@@ -113,6 +114,7 @@ const ITEMS: Item[] = [
       { href: "/whatsapp/conectar", label: "Conectar número" },
     ],
   },
+  { href: "/incidentes", label: "Incidentes", icon: ShieldAlert, soloAdmin: true, subs: [] },
   { href: "/clientes", label: "Clientes", icon: HeartHandshake, soloAdmin: true, subs: [] },
   { href: "/equipo", label: "Equipo", icon: Users, soloAdmin: true, subs: [] },
   {
@@ -145,11 +147,14 @@ export function AppNav({
   email,
   rol,
   consultasSinTomar,
+  incidentesCriticos = 0,
 }: {
   nombre: string;
   email: string;
   rol: Rol;
   consultasSinTomar: number;
+  /** Incidentes críticos abiertos (solo admin): badge rojo en "Incidentes". */
+  incidentesCriticos?: number;
 }) {
   const pathname = usePathname();
   const { isMobile, setOpenMobile } = useSidebar();
@@ -191,19 +196,32 @@ export function AppNav({
                 // Sección sin hijos: la fila es un link común.
                 if (item.subs.length === 0) {
                   const activo = esActivo(pathname, item.href!);
+                  const criticos = item.href === "/incidentes" ? incidentesCriticos : 0;
                   return (
                     <SidebarMenuItem key={item.label}>
-                      <SidebarMenuButton asChild isActive={activo} tooltip={item.label}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={activo}
+                        tooltip={criticos > 0 ? `${item.label} (${criticos} críticos)` : item.label}
+                      >
                         <Link
                           href={item.href!}
                           prefetch={false}
                           onClick={alNavegar}
                           aria-current={activo ? "page" : undefined}
                         >
-                          <item.icon />
+                          <item.icon className={criticos > 0 ? "text-destructive" : undefined} />
                           <span>{item.label}</span>
                         </Link>
                       </SidebarMenuButton>
+                      {criticos > 0 ? (
+                        <SidebarMenuBadge
+                          className="bg-red-600 text-white"
+                          aria-label={`${criticos} incidentes críticos abiertos`}
+                        >
+                          {criticos > 99 ? "99+" : criticos}
+                        </SidebarMenuBadge>
+                      ) : null}
                     </SidebarMenuItem>
                   );
                 }

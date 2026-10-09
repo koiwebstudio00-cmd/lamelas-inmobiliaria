@@ -57,7 +57,8 @@ Secciones del panel, todas dentro de `(app)`:
 | `/propiedades`, `/mis-propiedades`, `/propiedades/[id]`, `/propiedades/nueva` | Catálogo interno y alta/edición. Filtros incl. **dormitorios** y **edificio**. Form con sección de alquiler condicional + mapa Leaflet + sección **Edificio** (edificio y unidad). `nueva?desde=<id>` precarga los datos de otra propiedad. El admin edita/elimina cualquier propiedad del tenant. |
 | `/propiedades/edificios` | Edificios que agrupan unidades; renombrar y borrar solo admin. |
 | `/consultas`, `/consultas/[id]`, `/consultas/nueva` | Bandeja de leads: filtros por texto, estado, canal, **clasificación** y vendedor; contadores potencial/fantasma (admin); detalle con cambio de estado (**"Ganada" abre el diálogo de cierre: venta o alquiler + propiedad**), **clasificación** (potencial/fantasma), reasignación, **avances del vendedor** y notas internas. |
-| `/notificaciones` | Avisos internos del usuario (la campanita de la barra superior muestra los últimos 6). Reemplazan a los correos de operación. |
+| `/notificaciones` | Avisos internos del usuario (la campanita de la barra superior muestra los últimos 6, con los críticos sin leer fijados arriba). Reemplazan a los correos de operación. |
+| `/incidentes`, `/incidentes/[id]` | Incidentes del agente de WhatsApp: errores de n8n, n8n caído, WhatsApp desconectado (solo admin). |
 | `/equipo` | Usuarios e invitaciones (solo admin). |
 | `/analiticas` | Resumen y analíticas de consultas (solo admin). |
 | `/feedback/*` | Sugerencias, reportes, altas y detalle de feedback. |

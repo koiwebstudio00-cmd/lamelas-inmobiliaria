@@ -31,6 +31,7 @@ import type {
   FeedbackEstado,
   FeedbackItem,
   FeedbackTipo,
+  Incidente,
   Invitacion,
   Lead,
   LeadAvance,
@@ -1072,6 +1073,7 @@ interface ApiNotificacion {
   titulo: string;
   cuerpo: string;
   link: string | null;
+  prioridad?: Notificacion["prioridad"];
   leidaAt: string | null;
   createdAt: string;
 }
@@ -1083,6 +1085,8 @@ function toNotificacion(n: ApiNotificacion): Notificacion {
     titulo: n.titulo,
     cuerpo: n.cuerpo,
     link: n.link,
+    // Un backend anterior a los incidentes no manda el campo.
+    prioridad: n.prioridad ?? "normal",
     leida_at: n.leidaAt,
     created_at: n.createdAt,
   };
@@ -1101,6 +1105,8 @@ export async function getNotificaciones(opts: {
   pagina?: number;
   soloNoLeidas?: boolean;
   limit?: number;
+  /** Campanita: las críticas sin leer primero. */
+  fijarCriticas?: boolean;
 }): Promise<NotificacionesPagina> {
   const { data, meta } = await apiFetch<{
     data: ApiNotificacion[];
@@ -1108,6 +1114,7 @@ export async function getNotificaciones(opts: {
   }>("/v1/notifications", {
     query: {
       solo_no_leidas: opts.soloNoLeidas ? "true" : undefined,
+      fijar_criticas: opts.fijarCriticas ? "true" : undefined,
       page: Math.max(1, opts.pagina || 1),
       limit: opts.limit ?? PAGE_SIZE,
     },
@@ -1137,9 +1144,105 @@ export async function getResumenNotificaciones(): Promise<ResumenNotificaciones>
   try {
     const { notificaciones, noLeidas } = await getNotificaciones({
       limit: NOTIFICACIONES_CAMPANITA,
+      fijarCriticas: true,
     });
     return { ultimas: notificaciones, noLeidas };
   } catch {
     return { ultimas: [], noLeidas: 0 };
+  }
+}
+
+// ── Incidentes del agente (solo admin) ───────────────────────────────────────
+
+interface ApiIncidente {
+  id: string;
+  tipo: Incidente["tipo"];
+  gravedad: Incidente["gravedad"];
+  titulo: string;
+  detalle: string | null;
+  workflow: string | null;
+  nodo: string | null;
+  executionId: string | null;
+  executionUrl: string | null;
+  ocurrencias: number;
+  primeraAt: string;
+  ultimaAt: string;
+  estado: Incidente["estado"];
+  resueltoAt: string | null;
+  resueltoPorUser: { id: string; nombre: string } | null;
+}
+
+function toIncidente(i: ApiIncidente): Incidente {
+  return {
+    id: i.id,
+    tipo: i.tipo,
+    gravedad: i.gravedad,
+    titulo: i.titulo,
+    detalle: i.detalle,
+    workflow: i.workflow,
+    nodo: i.nodo,
+    execution_id: i.executionId,
+    execution_url: i.executionUrl,
+    ocurrencias: i.ocurrencias,
+    primera_at: i.primeraAt,
+    ultima_at: i.ultimaAt,
+    estado: i.estado,
+    resuelto_at: i.resueltoAt,
+    resuelto_por: i.resueltoPorUser,
+  };
+}
+
+export interface IncidentesPagina {
+  incidentes: Incidente[];
+  count: number;
+  page: number;
+  abiertos: number;
+  criticosAbiertos: number;
+}
+
+export async function getIncidentes(opts: {
+  estado?: Incidente["estado"];
+  gravedad?: Incidente["gravedad"];
+  pagina?: number;
+}): Promise<IncidentesPagina> {
+  const { data, meta } = await apiFetch<{
+    data: ApiIncidente[];
+    meta: { page: number; total: number; abiertos: number; criticos_abiertos: number };
+  }>("/v1/incidents", {
+    query: {
+      estado: opts.estado,
+      gravedad: opts.gravedad,
+      page: Math.max(1, opts.pagina || 1),
+      limit: PAGE_SIZE,
+    },
+  });
+  return {
+    incidentes: data.map(toIncidente),
+    count: meta.total,
+    page: meta.page,
+    abiertos: meta.abiertos,
+    criticosAbiertos: meta.criticos_abiertos,
+  };
+}
+
+export async function getIncidente(id: string): Promise<Incidente | null> {
+  try {
+    const { incidente } = await apiFetch<{ incidente: ApiIncidente }>(`/v1/incidents/${id}`);
+    return toIncidente(incidente);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
+  }
+}
+
+/** Badge del menú. Nunca rompe el layout: ante cualquier error, 0. */
+export async function getIncidentesCriticosAbiertosCount(): Promise<number> {
+  try {
+    const { meta } = await apiFetch<{ meta: { criticos_abiertos: number } }>("/v1/incidents", {
+      query: { estado: "abierto", gravedad: "critica", limit: 1 },
+    });
+    return meta.criticos_abiertos;
+  } catch {
+    return 0;
   }
 }

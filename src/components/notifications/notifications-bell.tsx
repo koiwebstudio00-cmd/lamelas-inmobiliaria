@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
-import { Bell, CheckCheck } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { Bell, BellRing, CheckCheck } from "lucide-react";
 import { toast } from "sonner";
 import {
   fetchResumenNotificaciones,
@@ -24,11 +24,18 @@ import type { Notificacion } from "@/lib/types";
 
 // Cada cuánto se vuelve a preguntar por avisos nuevos con la pestaña visible.
 const REFRESCO_MS = 60_000;
+// Críticas cuyo aviso emergente ya se mostró en esta sesión del navegador.
+const CLAVE_AVISADAS = "lamelas:criticas-avisadas";
 
 /**
  * Campanita de la barra superior: contador de sin leer, las últimas 6 y el
  * acceso a la página con todas. El layout le pasa el estado inicial (ya viene
- * renderizado del server) y después se refresca sola una vez por minuto.
+ * renderizado del server) y después se refresca sola una vez por minuto, al
+ * volver a la pestaña y al volver a la ventana.
+ *
+ * Los avisos de prioridad alta (incidentes críticos del agente) vienen fijados
+ * arriba por la API mientras estén sin leer, se pintan en rojo y, la primera
+ * vez que aparecen, sacan un aviso emergente que queda hasta que lo cierran.
  */
 export function NotificationsBell({ inicial }: { inicial: ResumenNotificaciones }) {
   const router = useRouter();
@@ -57,16 +64,61 @@ export function NotificationsBell({ inicial }: { inicial: ResumenNotificaciones 
       }
     };
     const timer = setInterval(refrescar, REFRESCO_MS);
-    // Al volver a la pestaña no se espera al próximo minuto.
+    // Al volver a la pestaña o a la ventana no se espera al próximo minuto.
     document.addEventListener("visibilitychange", refrescar);
+    window.addEventListener("focus", refrescar);
     return () => {
       cancelado = true;
       clearInterval(timer);
       document.removeEventListener("visibilitychange", refrescar);
+      window.removeEventListener("focus", refrescar);
     };
   }, []);
 
   const { ultimas, noLeidas } = resumen;
+  const criticasSinLeer = useMemo(
+    () => ultimas.filter((n) => n.prioridad === "alta" && !n.leida_at),
+    [ultimas]
+  );
+
+  // Aviso emergente para cada crítica nueva, aunque la campanita esté cerrada.
+  // Las ya mostradas se recuerdan durante la sesión del navegador, para no
+  // repetirlo en cada refresco, recarga o pestaña nueva. Si el navegador no deja
+  // guardar, se recuerdan solo mientras dure esta pantalla.
+  const criticasAvisadas = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    if (!criticasAvisadas.current) {
+      let guardadas: string[] = [];
+      try {
+        guardadas = JSON.parse(sessionStorage.getItem(CLAVE_AVISADAS) ?? "[]");
+      } catch {
+        // sessionStorage bloqueado o con basura: se arranca vacío.
+      }
+      criticasAvisadas.current = new Set(Array.isArray(guardadas) ? guardadas : []);
+    }
+    const avisadas = criticasAvisadas.current;
+    let cambio = false;
+    for (const n of criticasSinLeer) {
+      if (avisadas.has(n.id)) continue;
+      avisadas.add(n.id);
+      cambio = true;
+      toast.error(n.titulo, {
+        id: `critica-${n.id}`,
+        description: n.cuerpo,
+        duration: Infinity,
+        closeButton: true,
+        action: n.link ? { label: "Ver", onClick: () => router.push(n.link!) } : undefined,
+      });
+    }
+    if (cambio) {
+      try {
+        // Las últimas 50 alcanzan: las viejas ya no vuelven a la campanita.
+        sessionStorage.setItem(CLAVE_AVISADAS, JSON.stringify([...avisadas].slice(-50)));
+      } catch {
+        // Sin almacenamiento: no pasa nada, se recuerdan en memoria.
+      }
+    }
+  }, [criticasSinLeer, router]);
 
   function abrir(n: Notificacion) {
     setOpen(false);
@@ -113,10 +165,14 @@ export function NotificationsBell({ inicial }: { inicial: ResumenNotificaciones 
           size="icon-sm"
           className="relative"
           aria-label={
-            noLeidas > 0 ? `Notificaciones: ${noLeidas} sin leer` : "Notificaciones"
+            criticasSinLeer.length > 0
+              ? `Notificaciones: ${noLeidas} sin leer, ${criticasSinLeer.length} críticas`
+              : noLeidas > 0
+                ? `Notificaciones: ${noLeidas} sin leer`
+                : "Notificaciones"
           }
         >
-          <Bell />
+          {criticasSinLeer.length > 0 ? <BellRing className="text-destructive" /> : <Bell />}
           {noLeidas > 0 && (
             <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center bg-destructive px-1 text-[10px] font-semibold leading-none text-white tabular-nums">
               {noLeidas > 99 ? "99+" : noLeidas}
@@ -154,12 +210,21 @@ export function NotificationsBell({ inicial }: { inicial: ResumenNotificaciones 
                   }}
                   className={cn(
                     "cursor-pointer items-start gap-3 rounded-none px-3 py-2.5",
-                    !n.leida_at && "bg-primary/5"
+                    !n.leida_at && "bg-primary/5",
+                    n.prioridad === "alta" &&
+                      !n.leida_at &&
+                      "shadow-[inset_4px_0_0_var(--color-red-600)] bg-red-50 focus:bg-red-100"
                   )}
                 >
-                  <NotificacionIcon tipo={n.tipo} />
+                  <NotificacionIcon tipo={n.tipo} prioridad={n.prioridad} />
                   <div className="min-w-0 flex-1">
-                    <p className={cn("text-sm leading-snug", !n.leida_at && "font-semibold")}>
+                    <p
+                      className={cn(
+                        "text-sm leading-snug",
+                        !n.leida_at && "font-semibold",
+                        n.prioridad === "alta" && "text-red-800"
+                      )}
+                    >
                       {n.titulo}
                     </p>
                     <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{n.cuerpo}</p>

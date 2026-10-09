@@ -88,15 +88,17 @@ export default async function NotificacionesPage({
               key={n.id}
               className={cn(
                 "border bg-background p-4",
-                !n.leida_at && "border-l-2 border-l-primary"
+                !n.leida_at && "border-l-2 border-l-primary",
+                n.prioridad === "alta" && !n.leida_at && "shadow-[inset_4px_0_0_var(--color-red-600)] bg-red-50"
               )}
             >
               <div className="flex items-start gap-3">
-                <NotificacionIcon tipo={n.tipo} />
+                <NotificacionIcon tipo={n.tipo} prioridad={n.prioridad} />
                 <div className="min-w-0 flex-1 space-y-2">
                   <div>
                     <p className="text-xs text-muted-foreground">
-                      {TIPO_LABELS[n.tipo] ?? "Aviso"} · {formatDateTime(n.created_at)}
+                      {n.prioridad === "alta" ? "Incidente crítico" : (TIPO_LABELS[n.tipo] ?? "Aviso")} ·{" "}
+                      {formatDateTime(n.created_at)}
                     </p>
                     <p className={cn("leading-snug", !n.leida_at && "font-semibold")}>
                       {n.titulo}

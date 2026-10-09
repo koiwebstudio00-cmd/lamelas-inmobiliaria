@@ -40,7 +40,8 @@ después se pasa a `main` y se sube al remoto.
 | MOTIVO-VISIBLE-01 | Mostrar y filtrar el motivo de derivación | S | pendiente |
 | SIN-LEER-01 | Estado "sin leer" por lead | M | pendiente (plan escrito) |
 | F1-PANEL | Vistas faltantes de analíticas | M | parcial |
-| F3-PANEL | Vista de incidentes de n8n y Zernio | M | pendiente |
+| F3-PANEL | Vista de incidentes de n8n y Zernio | M | en dev, sin verificar (2026-10-09) |
+| CSS-BORDES-01 | Los colores de borde de Tailwind no se aplican | S | pendiente |
 | F4-PANEL | Pantalla de configuración de Sofía por tenant | M | pendiente |
 | F7-PANEL | Logs de correo y envío desde el lead | M | pendiente |
 | NOTIF-INTERNAS-01 | Campanita y página de notificaciones | M | en dev, listo para desplegar (ver guía de la tanda) |
@@ -275,6 +276,24 @@ justamente por esto.
 
 **Viabilidad.** M en el panel, detrás de F3-API. La API de n8n y las credenciales
 de Zernio nunca se exponen al navegador.
+
+**Estado.** Implementado en `dev` el 2026-10-09, sin verificar. Página
+`/incidentes` y detalle (solo admin, dentro de `(admin)`), ítem del menú con el
+contador de críticos abiertos, campanita con los críticos en rojo, fijos arriba
+mientras estén sin leer y con aviso emergente; la campanita también se
+actualiza al volver a la ventana. Plan: `back-lamelas/docs/plan-incidentes-agente.md`.
+
+## CSS-BORDES-01 — los colores de borde de Tailwind no se aplican
+
+**Qué es.** `globals.css` tiene `* { border-color: var(--border) }` fuera de
+cualquier `@layer`. En Tailwind v4 los estilos sin capa le ganan a todas las
+utilidades, así que clases como `border-red-200`, `border-l-primary` o
+`border-emerald-200` no pintan: todo borde sale gris. Se notó al hacer
+`F3-PANEL` (la barra roja de los críticos se dibuja con una sombra por eso).
+
+**Viabilidad.** S: mover esa regla a `@layer base`. Cambia el aspecto de los
+badges y avisos que ya usan bordes de color (pasan a verse como se diseñaron),
+así que conviene revisar las pantallas antes de aplicarlo.
 
 **Estado.** Pendiente.
 

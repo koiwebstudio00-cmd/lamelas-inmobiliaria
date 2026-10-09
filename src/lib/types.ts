@@ -500,7 +500,12 @@ export type TipoNotificacion =
   | "lead_asignado"
   | "lead_quitado"
   | "avance_pendiente"
-  | "feedback_error";
+  | "feedback_error"
+  | "incidente"
+  | "incidente_resuelto";
+
+/** `alta`: incidente crítico del agente. Se destaca y se fija arriba. */
+export type PrioridadNotificacion = "normal" | "alta";
 
 export type Notificacion = {
   id: string;
@@ -509,8 +514,39 @@ export type Notificacion = {
   cuerpo: string;
   /** Ruta del panel a la que lleva; null si ya no se puede abrir. */
   link: string | null;
+  prioridad: PrioridadNotificacion;
   leida_at: string | null;
   created_at: string;
+};
+
+// ── Incidentes del agente (solo admin) ───────────────────────────────────────
+
+export type IncidenteTipo =
+  | "n8n_ejecucion"
+  | "n8n_sin_respuesta"
+  | "n8n_sin_senal"
+  | "whatsapp_desconectado";
+export type IncidenteGravedad = "normal" | "critica";
+export type IncidenteEstado = "abierto" | "resuelto";
+
+export type Incidente = {
+  id: string;
+  tipo: IncidenteTipo;
+  gravedad: IncidenteGravedad;
+  titulo: string;
+  detalle: string | null;
+  workflow: string | null;
+  nodo: string | null;
+  execution_id: string | null;
+  /** Link a la ejecución en n8n (pide iniciar sesión en n8n). */
+  execution_url: string | null;
+  ocurrencias: number;
+  primera_at: string;
+  ultima_at: string;
+  estado: IncidenteEstado;
+  resuelto_at: string | null;
+  /** Null con `resuelto_at` cargado: se resolvió solo. */
+  resuelto_por: { id: string; nombre: string } | null;
 };
 
 // ── Edificios ────────────────────────────────────────────────────────────────
