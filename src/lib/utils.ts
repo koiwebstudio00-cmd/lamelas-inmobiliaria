@@ -33,19 +33,43 @@ export function formatDate(iso: string) {
 }
 
 /**
- * Link `wa.me` para abrir un chat de WhatsApp con el teléfono del lead.
+ * Link `wa.me` para escribirle por WhatsApp al teléfono de un lead, o null si
+ * no se puede armar con certeza (entonces se muestra solo el teléfono).
  *
- * Kapso guarda los números argentinos sin el `9` de celular (ej.
- * `543815773949`), pero WhatsApp lo necesita para celulares. Si el número
- * empieza en `54` y no tiene el `9` justo después, se lo inserta. Números de
- * otros países quedan tal cual (solo se limpian los no-dígitos).
+ * Los teléfonos llegan como los escribió la persona ("0381 15-577-3949",
+ * "381 5773949", "+54 9 381 577-3949") o como los guarda el proveedor de
+ * WhatsApp ("543815773949", sin el 9 de celular). WhatsApp necesita 54 9 +
+ * característica + número, sin el 0 ni el 15. Un número de otro país (con +)
+ * queda tal cual. Misma lógica que el backend: back-lamelas/src/lib/telefono.ts.
  */
-export function waLink(telefono: string) {
-  let d = telefono.replace(/\D/g, "");
-  if (d.startsWith("54") && d[2] !== "9") {
-    d = "549" + d.slice(2);
+export function waLink(
+  telefono: string | null | undefined,
+  canal?: string | null
+): string | null {
+  if (!telefono) return null;
+  const crudo = telefono.trim();
+  let d = crudo.replace(/\D/g, "");
+  // Los de WhatsApp los guarda el proveedor ya en formato internacional, sin
+  // "+" (un número de España llega como 34612345678).
+  const internacional = crudo.startsWith("+") || d.startsWith("00") || canal === "whatsapp";
+  if (d.startsWith("00")) d = d.slice(2);
+  if (internacional && !d.startsWith("54")) {
+    return d.length >= 8 && d.length <= 15 ? `https://wa.me/${d}` : null;
   }
-  return `https://wa.me/${d}`;
+  if (d.startsWith("54")) {
+    d = d.slice(2);
+    if (d.startsWith("9")) d = d.slice(1);
+  }
+  if (d.startsWith("0")) d = d.slice(1);
+  if (d.length === 12) {
+    for (const largo of [3, 4, 2]) {
+      if (d.slice(largo, largo + 2) === "15") {
+        d = d.slice(0, largo) + d.slice(largo + 2);
+        break;
+      }
+    }
+  }
+  return d.length === 10 ? `https://wa.me/549${d}` : null;
 }
 
 export function formatDateTime(iso: string) {

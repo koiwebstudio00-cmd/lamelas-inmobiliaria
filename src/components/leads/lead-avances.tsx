@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn, formatDateTime } from "@/lib/utils";
 import {
+  AVANCE_CIERRAN,
   AVANCE_LABELS,
   AVANCE_RESULTADOS,
   type AvanceResultado,
@@ -45,7 +46,7 @@ export function LeadAvances({
         return;
       }
       toast.success(
-        resultado === "no_interesado"
+        AVANCE_CIERRAN.includes(resultado)
           ? "Avance guardado. La consulta quedó como perdida."
           : "Avance guardado"
       );
@@ -93,12 +94,16 @@ export function LeadAvances({
               <Textarea
                 value={comentario}
                 onChange={(e) => setComentario(e.target.value)}
-                placeholder="Detalle opcional: qué dijo, cuándo es la visita..."
+                placeholder={
+                  resultado === "no_califica"
+                    ? "Opcional: por qué no califica (presupuesto, garantía, requisitos...)"
+                    : "Detalle opcional: qué dijo, cuándo es la visita..."
+                }
                 aria-label="Comentario del avance"
                 className="min-h-[64px] text-sm"
                 maxLength={2000}
               />
-              {resultado === "no_interesado" && (
+              {AVANCE_CIERRAN.includes(resultado) && (
                 <p className="text-xs text-muted-foreground">
                   Al guardar, la consulta pasa a <strong>Perdida</strong>.
                 </p>

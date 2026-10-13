@@ -179,7 +179,7 @@ export function ProbarAgente({ conversaciones }: { conversaciones: ConversacionP
           ) : turnos.length === 0 && !enviando ? (
             <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-muted-foreground">
               <Bot className="size-8" />
-              <p className="text-sm">Escribile a Sofi como si fueras un visitante del sitio.</p>
+              <p className="text-sm">Escribile a Martina como si fueras un visitante del sitio.</p>
               <p className="text-xs">Ej.: “hola, busco un depto en barrio norte para alquilar”.</p>
             </div>
           ) : (
@@ -208,7 +208,7 @@ export function ProbarAgente({ conversaciones }: { conversaciones: ConversacionP
               })}
               {enviando && (
                 <li className="flex justify-start">
-                  <div className="bg-muted px-3 py-2 text-sm text-muted-foreground">Sofi está escribiendo…</div>
+                  <div className="bg-muted px-3 py-2 text-sm text-muted-foreground">Martina está escribiendo…</div>
                 </li>
               )}
             </ul>

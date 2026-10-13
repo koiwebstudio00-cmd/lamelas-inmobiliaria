@@ -112,11 +112,13 @@ export default async function ClienteDetallePage({
                 <Mail /> Email
               </a>
             </Button>
-            <Button asChild size="sm">
-              <a href={waLink(cliente.telefono)} target="_blank" rel="noopener noreferrer">
-                <WhatsappIcon /> WhatsApp
-              </a>
-            </Button>
+            {waLink(cliente.telefono) && (
+              <Button asChild size="sm">
+                <a href={waLink(cliente.telefono)!} target="_blank" rel="noopener noreferrer">
+                  <WhatsappIcon /> WhatsApp
+                </a>
+              </Button>
+            )}
           </div>
         </div>
       </section>

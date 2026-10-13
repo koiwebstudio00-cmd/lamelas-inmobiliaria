@@ -75,7 +75,7 @@ export default async function MonthlyReportPage({ searchParams }: { searchParams
           : ""),
       comparison: { current: k.ganadas, previous: pk?.ganadas, format: "count" },
     },
-    { label: "Conversaciones de Sofía", value: s.conversations, comparison: { current: s.conversations, previous: ps?.conversations, format: "count" } },
+    { label: "Conversaciones de Martina", value: s.conversations, comparison: { current: s.conversations, previous: ps?.conversations, format: "count" } },
     { label: "Derivadas a un vendedor", value: `${s.handed_off} (${s.handoff_rate}%)`, comparison: { current: s.handoff_rate, previous: ps?.handoff_rate, format: "pct" } },
     { label: "Recuperadas por seguimiento", value: s.recovered_by_followup, comparison: { current: s.recovered_by_followup, previous: ps?.recovered_by_followup, format: "count" } },
     { label: "Propiedades nuevas", value: properties.summary.created, comparison: { current: properties.summary.created, previous: properties.previous_summary?.created, format: "count" } },
@@ -132,7 +132,7 @@ export default async function MonthlyReportPage({ searchParams }: { searchParams
       </div>
 
       <div className="space-y-4 print:break-before-page">
-        <h2 className="text-xl font-semibold">Sofía</h2>
+        <h2 className="text-xl font-semibold">Martina</h2>
         <SofiaSections data={sofia} />
       </div>
 

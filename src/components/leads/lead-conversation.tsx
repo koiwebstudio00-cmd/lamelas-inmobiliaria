@@ -14,7 +14,7 @@ import type { Conversacion, ConversacionMensaje, RolMensaje } from "@/lib/types"
 // centro y en chico, porque son avisos, no parte de la charla.
 const ROL: Record<RolMensaje, { lado: "izq" | "der" | "centro"; etiqueta: string }> = {
   lead: { lado: "izq", etiqueta: "Lead" },
-  agente_ia: { lado: "der", etiqueta: "Sofi (IA)" },
+  agente_ia: { lado: "der", etiqueta: "Martina (IA)" },
   vendedor: { lado: "der", etiqueta: "Vendedor" },
   sistema: { lado: "centro", etiqueta: "Sistema" },
 };

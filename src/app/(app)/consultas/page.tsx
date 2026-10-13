@@ -38,6 +38,7 @@ export default async function ConsultasPage({
       clasificacion: params.clasificacion,
       atencion: params.atencion,
       avance: params.avance,
+      sinTomar: params.sin_tomar,
       cierre: params.cierre,
       asignado: params.asignado,
       pagina: params.pagina ? Number(params.pagina) : 1,

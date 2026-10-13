@@ -28,6 +28,7 @@ import {
   ORIGIN_LABELS,
   PROPERTY_RELATION_LABELS,
   PROPERTY_STATE_LABELS,
+  LOST_REASON_LABELS,
   STATE_LABELS,
   TEMPERATURE_LABELS,
   TYPE_LABELS,
@@ -69,7 +70,7 @@ export function AnalyticsSection({
   );
 }
 
-// Horario comercial de referencia para resaltar lo que Sofía atiende "fuera
+// Horario comercial de referencia para resaltar lo que Martina atiende "fuera
 // de hora": antes de las 9, después de las 20 y fines de semana.
 const offHours = (hour: number) => hour < 9 || hour >= 20;
 const weekend = (day: number) => day >= 6;
@@ -146,12 +147,12 @@ export function OverviewSections({ data }: { data: AnalyticsOverview }) {
 
       <div className="grid gap-5 lg:grid-cols-2 print:grid-cols-2">
         <AnalyticsSection
-          title="Sofía y derivaciones"
+          title="Martina y derivaciones"
           description="Conversaciones atendidas por el agente y transferidas al equipo."
         >
           <div className="grid gap-3 sm:grid-cols-2">
             <AnalyticsMetric
-              label="Conversaciones de Sofía"
+              label="Conversaciones de Martina"
               value={kpis.sofia_conversations}
               detail="Iniciadas dentro del período"
               icon={Bot}
@@ -259,6 +260,7 @@ export function LeadsSections({ data, readOnly = false }: { data: AnalyticsLeads
         <div className="grid gap-3 lg:grid-cols-2 print:grid-cols-2">
           <Breakdown title="Etapa actual" values={data.by_state} labels={STATE_LABELS} />
           <Breakdown title="Clasificación" values={data.by_classification} labels={CLASSIFICATION_LABELS} />
+          <Breakdown title="Perdidas por motivo" values={data.by_lost_reason ?? {}} labels={LOST_REASON_LABELS} />
         </div>
       </AnalyticsSection>
     </>
@@ -314,7 +316,7 @@ export function SofiaSections({ data }: { data: AnalyticsSofia }) {
 
       <AnalyticsSection
         title="Cuándo escriben"
-        description={`${share(offHoursCount)}% de las conversaciones empezó fuera de horario (antes de las 9 o después de las 20) y ${share(weekendCount)}% un fin de semana: ahí Sofía atiende sola.`}
+        description={`${share(offHoursCount)}% de las conversaciones empezó fuera de horario (antes de las 9 o después de las 20) y ${share(weekendCount)}% un fin de semana: ahí Martina atiende sola.`}
       >
         <div className="grid gap-3 lg:grid-cols-[2fr_1fr] print:grid-cols-[2fr_1fr]">
           <TimeDistribution
@@ -334,7 +336,7 @@ export function SofiaSections({ data }: { data: AnalyticsSofia }) {
 
       <AnalyticsSection
         title="Calidad de los contactos"
-        description="Lo que Sofía detecta en la charla: qué busca el lead, qué tan decidido está y si es un cliente real."
+        description="Lo que Martina detecta en la charla: qué busca el lead, qué tan decidido está y si es un cliente real."
       >
         <div className="grid gap-3 lg:grid-cols-3 print:grid-cols-3">
           <Breakdown title="Clasificación" values={data.by_classification} labels={CLASSIFICATION_LABELS} />
@@ -345,7 +347,7 @@ export function SofiaSections({ data }: { data: AnalyticsSofia }) {
 
       <AnalyticsSection
         title="Derivaciones y conversación"
-        description="Qué pasa cuando Sofía pasa la charla a un vendedor, y cuánto se conversa."
+        description="Qué pasa cuando Martina pasa la charla a un vendedor, y cuánto se conversa."
       >
         <div className="grid gap-3 lg:grid-cols-2 print:grid-cols-2">
           <Breakdown title="Resultado de las derivaciones" values={data.by_handoff_result} labels={HANDOFF_LABELS} />
@@ -355,15 +357,29 @@ export function SofiaSections({ data }: { data: AnalyticsSofia }) {
               <p className="mt-1 text-xl font-semibold tabular-nums">{s.lead_messages}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Respuestas de Sofía</p>
-              <p className="mt-1 text-xl font-semibold tabular-nums">{s.ai_messages}</p>
+              <p className="text-xs text-muted-foreground">Mensajes enviados por Martina</p>
+              <p className="mt-1 text-xl font-semibold tabular-nums">{s.messages_sent ?? s.ai_messages}</p>
+              {s.messages_sent !== undefined && (
+                <p className="text-xs text-muted-foreground">
+                  {s.replies_sent} respuestas · {s.followups_sent} seguimientos
+                </p>
+              )}
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Promedio por conversación</p>
+              <p className="mt-1 text-xl font-semibold tabular-nums">
+                {(s.avg_messages_per_conversation ?? 0).toLocaleString("es-AR")}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                mensajes de Martina en {s.conversations_with_messages ?? 0} conversaciones
+              </p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Mensajes típicos por lead</p>
               <p className="mt-1 text-xl font-semibold tabular-nums">{s.median_lead_messages ?? "—"}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Siguen con Sofía</p>
+              <p className="text-xs text-muted-foreground">Siguen con Martina</p>
               <p className="mt-1 text-xl font-semibold tabular-nums">{s.still_with_bot}</p>
             </div>
           </div>
@@ -421,13 +437,13 @@ export function PropertiesSections({ data, readOnly = false }: { data: Analytics
         <ZoneDemand rows={data.demand_by_zone} />
         <div className="grid gap-3 lg:grid-cols-2 print:grid-cols-2">
           <Breakdown
-            title="Zonas que le piden a Sofía"
+            title="Zonas que le piden a Martina"
             description="Lo que el lead dice que busca por WhatsApp, aunque no haya una propiedad publicada."
             values={data.searched_zones}
             labels={{}}
           />
           <Breakdown
-            title="Tipos que le piden a Sofía"
+            title="Tipos que le piden a Martina"
             values={data.searched_types}
             labels={TYPE_LABELS}
           />

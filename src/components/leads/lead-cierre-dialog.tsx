@@ -162,7 +162,7 @@ export function LeadCierreDialog({
                 Marcar la propiedad como{" "}
                 <strong>{operacion ? ESTADO_PROPIEDAD[operacion] : "vendida o alquilada"}</strong>
                 <span className="block text-xs text-muted-foreground">
-                  Deja de ofrecerse en el sitio y Sofía no la sugiere más.
+                  Deja de ofrecerse en el sitio y Martina no la sugiere más.
                 </span>
               </span>
             </label>

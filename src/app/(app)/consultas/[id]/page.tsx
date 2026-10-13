@@ -41,6 +41,7 @@ export default async function ConsultaPage({
   ]);
 
   if (!lead) notFound();
+  const waUrl = waLink(lead.telefono, lead.canal);
 
   const esAdmin = me?.rol === "admin" || me?.rol === "super_admin";
   const puedeTomar = esAdmin || !lead.assigned_to || lead.assigned_to === me?.id;
@@ -102,7 +103,7 @@ export default async function ConsultaPage({
                   </p>
                   {lead.derivacion?.pendiente && (
                     <p className="text-sm font-medium text-amber-900">
-                      Sofía la derivó: {MOTIVOS_DERIVACION[lead.derivacion.motivo].toLowerCase()} ·
+                      Martina la derivó: {MOTIVOS_DERIVACION[lead.derivacion.motivo].toLowerCase()} ·
                       esperando desde {formatDateTime(lead.derivacion.asignado_at)}
                     </p>
                   )}
@@ -165,7 +166,7 @@ export default async function ConsultaPage({
 
               {lead.derivacion && (
                 <div className="space-y-1.5">
-                  <p className="text-muted-foreground">Derivación de Sofía</p>
+                  <p className="text-muted-foreground">Derivación de Martina</p>
                   <p className="font-medium">{MOTIVOS_DERIVACION[lead.derivacion.motivo]}</p>
                   <p className="text-xs text-muted-foreground">
                     {lead.derivacion.pendiente ? "Sin tomar · " : "Ya tomada · "}
@@ -244,9 +245,11 @@ export default async function ConsultaPage({
                 </div>
               </dl>
 
-              {lead.canal === "whatsapp" && lead.telefono && (
+              {/* Cualquier canal: también las del formulario, con el teléfono como
+                  lo escribió el cliente (waLink lo normaliza o devuelve null). */}
+              {waUrl && (
                 <Button asChild variant="outline" size="sm" className="w-full">
-                  <a href={waLink(lead.telefono)} target="_blank" rel="noopener noreferrer">
+                  <a href={waUrl} target="_blank" rel="noopener noreferrer">
                     <WhatsappIcon /> Abrir WhatsApp
                   </a>
                 </Button>

@@ -48,22 +48,27 @@ export function LeadFilters({
     "clasificacion",
     "atencion",
     "avance",
+    "sin_tomar",
     "cierre",
     "asignado",
   ].some((k) => searchParams.get(k));
 
-  // "Atención" y "Esperando avance" son dos pendientes distintos de la misma
-  // bandeja: comparten un solo select para no sumar otra columna de filtros.
-  const pendiente = searchParams.get("atencion") === "true"
-    ? "atencion"
-    : searchParams.get("avance") === "pendiente"
-      ? "avance"
-      : "";
+  // "Sin tomar", "Atención" y "Esperando avance" son pendientes distintos de
+  // la misma bandeja: comparten un solo select para no sumar otra columna.
+  const pendiente = searchParams.get("sin_tomar") === "true"
+    ? "sin_tomar"
+    : searchParams.get("atencion") === "true"
+      ? "atencion"
+      : searchParams.get("avance") === "pendiente"
+        ? "avance"
+        : "";
 
   function setPendiente(value: string) {
     const params = new URLSearchParams(searchParams.toString());
     params.delete("atencion");
     params.delete("avance");
+    params.delete("sin_tomar");
+    if (value === "sin_tomar") params.set("sin_tomar", "true");
     if (value === "atencion") params.set("atencion", "true");
     if (value === "avance") params.set("avance", "pendiente");
     params.delete("pagina");
@@ -114,6 +119,7 @@ export function LeadFilters({
           className="h-9 text-sm"
         >
           <option value="">Pendientes</option>
+          <option value="sin_tomar">Sin tomar</option>
           <option value="atencion">Necesita atención</option>
           <option value="avance">Esperando avance</option>
         </Select>

@@ -80,7 +80,7 @@ const TOOLS = [
   {
     name: "Derivar a vendedor",
     icon: Handshake,
-    description: "Asigna la conversación a un vendedor y le entrega el contexto reunido por Sofi."
+    description: "Asigna la conversación a un vendedor y le entrega el contexto reunido por Martina."
   }
 ];
 
@@ -107,7 +107,7 @@ export function AgentSettingsPanel({
         toast.error(error);
         return;
       }
-      toast.success(enabled ? "Sofi quedó encendida." : "Sofi quedó apagada para todos los chats.");
+      toast.success(enabled ? "Martina quedó encendida." : "Martina quedó apagada para todos los chats.");
       router.refresh();
     });
   }
@@ -138,10 +138,10 @@ export function AgentSettingsPanel({
               </div>
               <p className="text-sm text-muted-foreground">
                 {!settings.agentEnabled
-                  ? "Sofi no responderá mensajes nuevos en ninguna conversación."
+                  ? "Martina no responderá mensajes nuevos en ninguna conversación."
                   : connectedNumbers > 0
-                    ? `Sofi está atendiendo en ${connectedNumbers} número${connectedNumbers === 1 ? "" : "s"} de WhatsApp.`
-                    : "Sofi está encendida, pero necesita un número de WhatsApp activo para recibir mensajes."}
+                    ? `Martina está atendiendo en ${connectedNumbers} número${connectedNumbers === 1 ? "" : "s"} de WhatsApp.`
+                    : "Martina está encendida, pero necesita un número de WhatsApp activo para recibir mensajes."}
               </p>
             </div>
           </div>
@@ -155,7 +155,7 @@ export function AgentSettingsPanel({
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>¿Apagar a Sofi en todas las conversaciones?</AlertDialogTitle>
+                  <AlertDialogTitle>¿Apagar a Martina en todas las conversaciones?</AlertDialogTitle>
                   <AlertDialogDescription>
                     Dejará de responder mensajes nuevos y se cancelarán los seguimientos pendientes.
                     Las conversaciones y sus mensajes no se borran.
@@ -229,7 +229,7 @@ export function AgentSettingsPanel({
               <div>
                 <h3 className="font-semibold">Comportamiento actual</h3>
                 <p className="text-sm text-muted-foreground">
-                  Reglas principales con las que Sofi conversa y decide cuándo derivar.
+                  Reglas principales con las que Martina conversa y decide cuándo derivar.
                 </p>
               </div>
               <ReadOnlyBadge />
@@ -257,7 +257,7 @@ export function AgentSettingsPanel({
               <div>
                 <h3 className="font-semibold">Herramientas habilitadas</h3>
                 <p className="text-sm text-muted-foreground">
-                  Acciones que Sofi puede ejecutar mientras atiende una conversación.
+                  Acciones que Martina puede ejecutar mientras atiende una conversación.
                 </p>
               </div>
               <ReadOnlyBadge />

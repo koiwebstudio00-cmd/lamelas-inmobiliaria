@@ -21,7 +21,7 @@ export default async function ConectarWhatsappPage({
       <div>
         <h1 className="text-2xl font-semibold">Conectar número</h1>
         <p className="text-sm text-muted-foreground">
-          El número de WhatsApp por el que Sofi atiende a los clientes. Se
+          El número de WhatsApp por el que Martina atiende a los clientes. Se
           conecta autorizando a Meta una sola vez.
         </p>
       </div>
@@ -35,7 +35,7 @@ export default async function ConectarWhatsappPage({
 
       {params.conectado && !params.error && (
         <div className="border border-primary/30 bg-primary/5 p-3 text-sm">
-          Listo, el número quedó conectado. Sofi ya recibe los mensajes que
+          Listo, el número quedó conectado. Martina ya recibe los mensajes que
           lleguen ahí.
         </div>
       )}
@@ -51,8 +51,8 @@ export default async function ConectarWhatsappPage({
         </p>
         <p>
           «Verificar» le pregunta a Zernio si el número sigue respondiendo — sirve
-          para saber si Sofi dejó de contestar porque se cayó la conexión o por
-          otro motivo. Para probar a Sofi sin usar WhatsApp, está{" "}
+          para saber si Martina dejó de contestar porque se cayó la conexión o por
+          otro motivo. Para probar a Martina sin usar WhatsApp, está{" "}
           <strong>Probar agente</strong>, acá al lado en el menú.
         </p>
       </div>

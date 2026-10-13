@@ -116,6 +116,7 @@ const ITEMS: Item[] = [
         label: "Incidentes",
         incluye: ["/configuracion/incidentes/"],
       },
+      { href: "/configuracion/correos", label: "Correos" },
       { href: "/configuracion/integraciones", label: "Integraciones" },
     ],
   },
@@ -220,8 +221,8 @@ export function AppNav({
                     ? {
                         n: consultasSinTomar,
                         clase: "bg-amber-100 text-amber-900",
-                        texto: `${consultasSinTomar} consultas sin tomar`,
-                        tooltip: `${item.label} (${consultasSinTomar} sin tomar)`,
+                        texto: `${consultasSinTomar} consultas por atender`,
+                        tooltip: `${item.label} (${consultasSinTomar} por atender)`,
                       }
                     : item.label === "Configuración" && incidentesCriticos > 0
                       ? {

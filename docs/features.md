@@ -8,7 +8,7 @@ verificada, se saca de acá; el historial vive en commits y en `docs/bugfix/`.
 Las features que también necesitan trabajo en otro repo se registran allá con el
 mismo ID: `back-lamelas/docs/features.md` (API y datos),
 `lamelas-web/docs/features.md` (sitio público),
-`lamelas-agent/docs/features.md` (Sofía y n8n).
+`lamelas-agent/docs/features.md` (Martina y n8n).
 
 Formato de cada item: **qué es**, **ventaja** de hacerlo, **viabilidad**
 (esfuerzo S/M/L y qué se toca) y **estado**.
@@ -43,7 +43,7 @@ después se pasa a `main` y se sube al remoto.
 | F3-PANEL | Vista de incidentes de n8n y Zernio | M | en dev, sin verificar (2026-10-09) |
 | FEEDBACK-CANAL-01 | Feedback como canal compartido con hilos + menú con grupo Configuración | M | en dev, sin verificar (2026-10-09) |
 | CSS-BORDES-01 | Los colores de borde de Tailwind no se aplican | S | pendiente |
-| F4-PANEL | Pantalla de configuración de Sofía por tenant | M | pendiente |
+| F4-PANEL | Pantalla de configuración de Martina por tenant | M | pendiente |
 | F7-PANEL | Logs de correo y envío desde el lead | M | pendiente |
 | NOTIF-INTERNAS-01 | Campanita y página de notificaciones | M | en dev, listo para desplegar (ver guía de la tanda) |
 | LEAD-CIERRE-01 | Venta o alquiler al ganar una consulta | S/M | en dev, listo para desplegar |
@@ -63,7 +63,7 @@ el form agrega una opción `"<valor> (valor actual)"`.
 
 **Ventaja.** Los vendedores dejan de escribir la misma zona de cinco formas
 distintas, y eso arregla en cascada el filtro del sitio público, los conteos de
-analíticas y el matcheo de zona del buscador de Sofía.
+analíticas y el matcheo de zona del buscador de Martina.
 
 **Viabilidad.** Ya hecho, S. No requiere cambios de backend: `zona` sigue siendo
 texto libre en la API y en Postgres, así que la lista es una convención de UI y
@@ -112,7 +112,7 @@ propiedades ya acepta filtros.
 ## MOTIVO-VISIBLE-01 — mostrar el motivo de derivación en el lead
 
 **Qué es.** Pedido de los empleados: poder distinguir al lead que viene a **dejar
-una propiedad**. Sofía ya lo detecta y deriva con `motivo: "tasacion"`, que queda
+una propiedad**. Martina ya lo detecta y deriva con `motivo: "tasacion"`, que queda
 guardado en `derivaciones.motivo`, pero el panel no lo muestra ni permite
 filtrar por él.
 
@@ -210,11 +210,11 @@ propiedades con zona mal cargada, sin revisar las 412 a mano.
 
 **Qué es.** Prioridad 2 del 2026-09-27. En la bandeja de Consultas se distinguen
 ahora dos grupos que antes se veían iguales:
-- **Necesita atención**: Sofía derivó a un humano (visita, reserva, tasación,
+- **Necesita atención**: Martina derivó a un humano (visita, reserva, tasación,
   pedido de humano) y el handoff sigue **pendiente**. Badge rojo con el motivo y
   barra roja al costado de la fila. Cuando está, reemplaza al badge "Sin tomar":
   dice lo mismo pero explica por qué.
-- **Fantasma**: `clasificacion = 'fantasma'` (Sofía le hizo seguimiento y no
+- **Fantasma**: `clasificacion = 'fantasma'` (Martina le hizo seguimiento y no
   contestó). Badge gris con ícono, y la fila al 70% de opacidad: es información,
   no una tarea.
 
@@ -244,7 +244,7 @@ sin definir cuáles.
 **Ventaja.** Depende de qué se agregue; el criterio es que el vendedor no tenga
 que abrir la conversación completa para saber con quién habla.
 
-**Viabilidad.** S/M según si los datos ya están en la base (el resumen de Sofía
+**Viabilidad.** S/M según si los datos ya están en la base (el resumen de Martina
 guarda perfil: zonas, presupuesto, tipo, ciudad) o hay que capturarlos.
 
 **Estado.** A definir.
@@ -252,7 +252,7 @@ guarda perfil: zonas, presupuesto, tipo, ciudad) o hay que capturarlos.
 ## F1-PANEL — vistas faltantes de analíticas
 
 **Qué es.** Resumen, Consultas y el ranking de propiedades por consultas están
-implementados. Faltan las vistas de vendedores y de Sofía.
+implementados. Faltan las vistas de vendedores y de Martina.
 
 **Ventaja.** La vista de vendedores es la que permite hablar de tiempos de
 respuesta con datos en vez de con impresiones.
@@ -298,7 +298,7 @@ así que conviene revisar las pantallas antes de aplicarlo.
 
 **Estado.** Pendiente.
 
-## F4-PANEL — pantalla de configuración de Sofía por tenant
+## F4-PANEL — pantalla de configuración de Martina por tenant
 
 **Qué es.** Administración de bot activo/inactivo, horario y días de atención,
 timeout de handoff, mensaje fuera de horario, criterios comerciales, URL del
@@ -326,10 +326,10 @@ con el cliente registrada en el CRM en vez de en el Gmail de cada vendedor.
 
 ## F9-PANEL — Analíticas en cuatro pestañas + reporte mensual en PDF
 
-**Qué es.** Analíticas pasa a tener Panorama, Consultas, Sofía y Propiedades, y
+**Qué es.** Analíticas pasa a tener Panorama, Consultas, Martina y Propiedades, y
 cada KPI muestra su variación contra el período anterior. El botón "Reporte
 mensual" abre `/analiticas/reporte?mes=AAAA-MM`: una página armada para
-imprimir (resumen del mes con variaciones, consultas, Sofía y propiedades) que
+imprimir (resumen del mes con variaciones, consultas, Martina y propiedades) que
 se guarda como PDF desde el navegador. Sin dependencias nuevas.
 
 **Ventaja.** Un reporte para mandarle a los dueños sin armarlo a mano, y

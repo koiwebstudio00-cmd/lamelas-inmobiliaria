@@ -15,7 +15,7 @@ export default async function AgentSettingsPage() {
       <div>
         <h1 className="text-2xl font-semibold">Ajustes del agente</h1>
         <p className="text-sm text-muted-foreground">
-          Estado, seguimientos y capacidades de Sofi para las conversaciones de WhatsApp.
+          Estado, seguimientos y capacidades de Martina para las conversaciones de WhatsApp.
         </p>
       </div>
 
