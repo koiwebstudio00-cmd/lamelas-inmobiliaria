@@ -31,6 +31,7 @@ import type {
   FeedbackEstado,
   FeedbackItem,
   FeedbackTipo,
+  PlanAgente,
   Incidente,
   Invitacion,
   Lead,
@@ -490,6 +491,8 @@ export interface LeadFilters {
   atencion?: string;
   /** "pendiente" → solo las que esperan que el vendedor cargue un avance. */
   avance?: string;
+  /** "true" → por atender: abiertas, asignadas y sin tomar. */
+  sinTomar?: string;
   /** "venta" | "alquiler" → ganadas cerradas con esa operación. */
   cierre?: string;
   asignado?: string;
@@ -514,6 +517,7 @@ export async function getLeads(filters: LeadFilters) {
       clasificacion: oneOf(CLASIF_VALUES, filters.clasificacion),
       atencion: filters.atencion === "true" ? "true" : undefined,
       avance: filters.avance === "pendiente" ? "pendiente" : undefined,
+      por_atender: filters.sinTomar === "true" ? "true" : undefined,
       operacion_cierre: oneOf(["venta", "alquiler"] as const, filters.cierre),
       assigned_to: UUID.test(filters.asignado ?? "") ? filters.asignado : undefined,
       // Separacion agente/consultas: el backend excluye las conversaciones del
@@ -528,12 +532,12 @@ export async function getLeads(filters: LeadFilters) {
   return { leads, count: meta.total, page: meta.page };
 }
 
-/** Cantidad de consultas pendientes visibles para el usuario actual. */
+/** Consultas por atender del usuario actual (o del equipo, si es admin): burbuja del menú. */
 export async function getConsultasSinTomarCount(): Promise<number> {
   try {
     const { meta } = await apiFetch<{ meta: { total: number } }>("/v1/leads", {
       query: {
-        sin_tomar: true,
+        por_atender: true,
         excluir_agente_web: true,
         page: 1,
         limit: 1,
@@ -634,6 +638,20 @@ export function getAnalyticsLeads(filters: AnalyticsFilters) {
   return apiFetch<AnalyticsLeads>("/v1/analytics/leads", {
     query: analyticsQuery(filters),
   });
+}
+
+/**
+ * Uso del plan de conversaciones del agente en un mes (`AAAA-MM`; por defecto
+ * el actual). Nunca lanza: sin dato, no se muestra el medidor.
+ */
+export async function getPlanAgente(mes?: string): Promise<PlanAgente | null> {
+  try {
+    return await apiFetch<PlanAgente>("/v1/analytics/plan", {
+      query: mes && /^\d{4}-(0[1-9]|1[0-2])$/.test(mes) ? { mes } : {},
+    });
+  } catch {
+    return null;
+  }
 }
 
 export function getAnalyticsSofia(filters: AnalyticsFilters) {
@@ -872,12 +890,67 @@ export async function getFollowupSettings(): Promise<FollowupSettings> {
   };
 }
 
+// ── Correos de operación (Configuración → Correos, solo admin) ───────────────
+
+export type TipoCorreo = "lead_asignado";
+export type CorreosActivos = Record<TipoCorreo, boolean>;
+
+export interface CorreoReciente {
+  id: string;
+  tipo: TipoCorreo;
+  destinatario: string;
+  asunto: string;
+  estado: "pendiente" | "enviando" | "enviado" | "fallido";
+  intentos: number;
+  error: string | null;
+  lead_id: string | null;
+  created_at: string;
+  enviado_at: string | null;
+}
+
+export async function getCorreosConfig(): Promise<CorreosActivos> {
+  const { tenant } = await apiFetch<{ tenant: { correosActivos?: Partial<CorreosActivos> } }>(
+    "/v1/tenants/current"
+  );
+  return { lead_asignado: tenant.correosActivos?.lead_asignado ?? true };
+}
+
+export async function getCorreosRecientes(): Promise<CorreoReciente[]> {
+  const { data } = await apiFetch<{
+    data: {
+      id: string;
+      tipo: TipoCorreo;
+      destinatario: string;
+      asunto: string;
+      estado: CorreoReciente["estado"];
+      intentos: number;
+      error: string | null;
+      leadId: string | null;
+      createdAt: string;
+      enviadoAt: string | null;
+    }[];
+  }>("/v1/correos", { query: { limit: 20 } });
+  return data.map((c) => ({
+    id: c.id,
+    tipo: c.tipo,
+    destinatario: c.destinatario,
+    asunto: c.asunto,
+    estado: c.estado,
+    intentos: c.intentos,
+    error: c.error,
+    lead_id: c.leadId,
+    created_at: c.createdAt,
+    enviado_at: c.enviadoAt,
+  }));
+}
+
 // ── Resumen de la home ───────────────────────────────────────────────────────
 
 // El resumen de la home muestra tres contadores; no necesita todos los estados.
 export interface Resumen {
   propiedades: Record<"disponible" | "reservado" | "vendida", number>;
-  consultasNuevas: number;
+  /** Abiertas, asignadas y sin tomar: del vendedor, o de todo el equipo para el admin. */
+  consultasPorAtender: number;
   ultimasConsultas: Lead[];
   ultimasPropiedades: PropertyCardData[];
 }
@@ -904,12 +977,15 @@ export async function getResumen(): Promise<Resumen> {
       query: { estado, page: 1, limit: 1 },
     }).then((r) => r.meta.total);
 
-  const [disponible, reservado, vendida, nuevas, consultas, propiedades] = await Promise.all([
+  const [disponible, reservado, vendida, porAtender, consultas, propiedades] = await Promise.all([
     total("disponible"),
     total("reservado"),
     total("vendida"),
+    // "Por atender": el backend ya acota al vendedor a las suyas. Es el mismo
+    // filtro que la burbuja del menú y el listado (?sin_tomar=true), así los
+    // tres números coinciden.
     apiFetch<{ meta: { total: number } }>("/v1/leads", {
-      query: { ...misConsultas, estado: "nueva", excluir_agente_web: true, page: 1, limit: 1 },
+      query: { por_atender: true, excluir_agente_web: true, page: 1, limit: 1 },
     }).then((r) => r.meta.total),
     apiFetch<{ data: ApiLead[] }>("/v1/leads", {
       query: { ...misConsultas, excluir_agente_web: true, page: 1, limit: 5 },
@@ -919,7 +995,7 @@ export async function getResumen(): Promise<Resumen> {
 
   return {
     propiedades: { disponible, reservado, vendida },
-    consultasNuevas: nuevas,
+    consultasPorAtender: porAtender,
     ultimasConsultas: consultas.data.map(toLead),
     ultimasPropiedades: propiedades.data.map(toCard),
   };

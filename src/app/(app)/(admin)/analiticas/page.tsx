@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AnalyticsFilters } from "@/components/analytics/analytics-filters";
+import { PlanMeter } from "@/components/analytics/plan-meter";
 import { formatDate } from "@/components/analytics/labels";
 import { ReportButton } from "@/components/analytics/report-button";
 import {
@@ -14,6 +15,7 @@ import {
   getAnalyticsOverview,
   getAnalyticsProperties,
   getAnalyticsSofia,
+  getPlanAgente,
   getVendedores,
   type AnalyticsFilters as Filters,
 } from "@/lib/queries";
@@ -26,7 +28,7 @@ type Params = Record<string, string | undefined>;
 const TABS = {
   resumen: { label: "Panorama", subtitle: "Panorama comercial" },
   consultas: { label: "Consultas", subtitle: "Seguimiento de consultas y leads" },
-  sofia: { label: "Sofía", subtitle: "Lo que atiende el agente por WhatsApp" },
+  sofia: { label: "Martina", subtitle: "Lo que atiende el agente por WhatsApp" },
   propiedades: { label: "Propiedades", subtitle: "Demanda e inventario" },
 } as const;
 
@@ -76,6 +78,10 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
   const params = await searchParams;
   const tab: Tab = params.tab && params.tab in TABS ? (params.tab as Tab) : "resumen";
   const [loaded, vendedores] = await Promise.all([load(tab, filters(params)), getVendedores()]);
+  // El medidor del plan sigue al mes en que termina el período elegido: mirando
+  // septiembre se ve el uso de septiembre (cerrado), no el del mes en curso.
+  const planAgente =
+    tab === "sofia" ? await getPlanAgente(loaded.data.period.to.slice(0, 7)) : null;
   const period = loaded.data.period;
   // El reporte arranca en el mes del final del rango elegido; no hay meses futuros.
   const currentMonth = new Intl.DateTimeFormat("en-CA", {
@@ -116,7 +122,12 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
 
       {loaded.tab === "resumen" ? <OverviewSections data={loaded.data} /> : null}
       {loaded.tab === "consultas" ? <LeadsSections data={loaded.data} /> : null}
-      {loaded.tab === "sofia" ? <SofiaSections data={loaded.data} /> : null}
+      {loaded.tab === "sofia" ? (
+        <>
+          <PlanMeter plan={planAgente} />
+          <SofiaSections data={loaded.data} />
+        </>
+      ) : null}
       {loaded.tab === "propiedades" ? <PropertiesSections data={loaded.data} /> : null}
 
       <p className="border-l-2 border-primary pl-3 text-xs text-muted-foreground">

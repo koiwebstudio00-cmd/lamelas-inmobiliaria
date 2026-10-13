@@ -15,6 +15,13 @@ export const STATE_LABELS: Record<string, string> = {
   perdida: "Perdidas",
 };
 
+/** Perdidas por motivo (último avance del vendedor). */
+export const LOST_REASON_LABELS: Record<string, string> = {
+  no_interesado: "No le interesa",
+  no_califica: "No califica",
+  otro: "Otro motivo / sin avance",
+};
+
 /** Desglose de las ganadas por lo que se concretó. */
 export const CLOSING_LABELS: Record<string, string> = {
   venta: "Ventas",

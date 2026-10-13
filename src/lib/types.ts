@@ -106,6 +106,8 @@ export type AnalyticsLeads = {
   } | null;
   by_channel: Record<string, number>;
   by_state: Record<string, number>;
+  /** Perdidas por motivo: último avance "no le interesa" / "no califica", u "otro". */
+  by_lost_reason: Record<string, number>;
   by_classification: Record<string, number>;
   by_property_relation: Record<string, number>;
   by_taken_origin: Record<string, number>;
@@ -122,6 +124,12 @@ export type AnalyticsLeads = {
 };
 
 export type AnalyticsSofiaSummary = {
+  /** Mensajes que mandó el agente en el período, por fecha del mensaje. */
+  messages_sent: number;
+  replies_sent: number;
+  followups_sent: number;
+  conversations_with_messages: number;
+  avg_messages_per_conversation: number;
   conversations: number;
   handed_off: number;
   handoff_rate: number;
@@ -429,7 +437,8 @@ export type AvanceResultado =
   | "visita_agendada"
   | "visita_realizada"
   | "en_negociacion"
-  | "no_interesado";
+  | "no_interesado"
+  | "no_califica";
 
 export type LeadAvance = {
   id: string;
@@ -702,8 +711,8 @@ export const OPERACIONES_CIERRE: { value: OperacionCierre; label: string }[] = [
 ];
 
 /**
- * Resultados de un avance, en el orden en que se ofrecen. `no_interesado`
- * cierra la consulta como perdida (lo hace la API).
+ * Resultados de un avance, en el orden en que se ofrecen. `no_interesado` y
+ * `no_califica` cierran la consulta como perdida (lo hace la API).
  */
 export const AVANCE_RESULTADOS: { value: AvanceResultado; label: string }[] = [
   { value: "sin_respuesta", label: "No contestó" },
@@ -712,13 +721,17 @@ export const AVANCE_RESULTADOS: { value: AvanceResultado; label: string }[] = [
   { value: "visita_realizada", label: "Visita realizada" },
   { value: "en_negociacion", label: "En negociación" },
   { value: "no_interesado", label: "No le interesa" },
+  { value: "no_califica", label: "No califica" },
 ];
+
+/** Resultados que cierran la consulta como perdida. */
+export const AVANCE_CIERRAN: AvanceResultado[] = ["no_interesado", "no_califica"];
 
 export const AVANCE_LABELS = Object.fromEntries(
   AVANCE_RESULTADOS.map((r) => [r.value, r.label])
 ) as Record<AvanceResultado, string>;
 
-/** Motivos con los que Sofía deriva a un humano (contrato del agente). */
+/** Motivos con los que Martina deriva a un humano (contrato del agente). */
 export type MotivoDerivacion =
   | "visita"
   | "reserva"
@@ -814,3 +827,17 @@ export const ESTADOS_FEEDBACK: { value: FeedbackEstado; label: string }[] = [
   { value: "resuelta", label: "Resuelta" },
   { value: "descartada", label: "Descartada" },
 ];
+
+/** Uso del plan mensual de conversaciones del agente (solo admin). */
+export type PlanAgente = {
+  mes: string;
+  /** Conversaciones incluidas en el plan; null = sin plan cargado. */
+  limite: number | null;
+  usadas: number;
+  porcentaje: number | null;
+  proyeccion: number;
+  dias_del_mes: number;
+  dias_transcurridos: number;
+  es_mes_actual: boolean;
+};
+

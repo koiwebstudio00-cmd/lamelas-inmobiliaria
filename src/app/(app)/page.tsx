@@ -82,6 +82,7 @@ export default async function HomePage() {
         propiedades: "Últimas propiedades",
         propiedadesVacio: "Todavía no hay propiedades cargadas.",
         verPropiedades: "/propiedades",
+        porAtender: "Del equipo, todavía sin tomar",
       }
     : {
         resumen: `${total} ${total === 1 ? "propiedad tuya" : "propiedades tuyas"} cargadas.`,
@@ -90,6 +91,7 @@ export default async function HomePage() {
         propiedades: "Tus últimas propiedades",
         propiedadesVacio: "Todavía no cargaste propiedades.",
         verPropiedades: "/mis-propiedades",
+        porAtender: "Asignadas a vos, todavía sin tomar",
       };
 
   return (
@@ -137,7 +139,7 @@ export default async function HomePage() {
           </Link>
         ))}
         <Link
-          href="/consultas?estado=nueva"
+          href="/consultas?sin_tomar=true"
           prefetch={false}
           className="group relative overflow-hidden border bg-background p-4 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
@@ -149,13 +151,11 @@ export default async function HomePage() {
             <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
           </div>
           <p className="mt-4 text-4xl font-semibold leading-none tabular-nums text-primary">
-            {resumen.consultasNuevas}
+            {resumen.consultasPorAtender}
           </p>
           <div className="mt-2">
-            <p className="font-medium">
-              {resumen.consultasNuevas === 1 ? "Consulta nueva" : "Consultas nuevas"}
-            </p>
-            <p className="text-xs text-muted-foreground">Pendientes de primera respuesta</p>
+            <p className="font-medium">Por atender</p>
+            <p className="text-xs text-muted-foreground">{textos.porAtender}</p>
           </div>
         </Link>
       </div>

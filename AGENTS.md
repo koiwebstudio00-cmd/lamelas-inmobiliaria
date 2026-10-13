@@ -51,7 +51,7 @@ npm run lint && npx tsc --noEmit && npm run build
 | `/consultas`, `/consultas/[id]`, `/consultas/nueva` | Bandeja de leads: filtros, cambio de estado, reasignación y notas internas. |
 | `/analiticas` | Resumen y analíticas de consultas (solo admin). |
 | `/feedback/sugerencias`, `/feedback/reportes`, `/feedback/[id]` | Feedback, altas y seguimiento. |
-| `/probar-agente` | Probador web de Sofi; sesiones `prueba-*` separadas de leads reales (solo admin). |
+| `/probar-agente` | Probador web de Martina; sesiones `prueba-*` separadas de leads reales (solo admin). |
 | `/whatsapp/conectar` | Estado y conexión del número mediante Zernio (solo admin). |
 | `/clientes`, `/clientes/[id]` | Vista previa con datos de muestra; todavía no es un módulo persistente (solo admin). |
 | `/equipo` | Usuarios e invitaciones (solo admin). |

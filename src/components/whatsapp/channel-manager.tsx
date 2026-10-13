@@ -121,7 +121,7 @@ function AccionesCuenta({ cuenta }: { cuenta: ChannelAccount }) {
           <AlertDialogHeader>
             <AlertDialogTitle>¿Desconectar este número?</AlertDialogTitle>
             <AlertDialogDescription>
-              Sofi deja de recibir y de contestar los mensajes que lleguen a{" "}
+              Martina deja de recibir y de contestar los mensajes que lleguen a{" "}
               {cuenta.display_phone ?? "este número"}. Las conversaciones ya
               guardadas no se borran. Para volver a activarlo hay que rehacer la
               autorización con Meta.
@@ -183,7 +183,7 @@ export function ChannelManager({ cuentas }: { cuentas: ChannelAccount[] }) {
 
       {cuentas.length === 0 ? (
         <p className="p-6 text-center text-sm text-muted-foreground">
-          Todavía no hay ningún número conectado. Sin uno, Sofi no recibe
+          Todavía no hay ningún número conectado. Sin uno, Martina no recibe
           mensajes de WhatsApp.
         </p>
       ) : (

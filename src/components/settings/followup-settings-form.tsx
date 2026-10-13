@@ -21,7 +21,7 @@ export function FollowupSettingsForm({ settings }: { settings: FollowupSettings 
         <div className="space-y-0.5">
           <Label htmlFor="followup-enabled">Activar seguimiento automático</Label>
           <p id="followup-enabled-description" className="text-muted-foreground">
-            Sofi vuelve a escribir a las 2 y 4 horas. Si no hay respuesta, a las
+            Martina vuelve a escribir a las 2 y 4 horas. Si no hay respuesta, a las
             6 horas marca el lead como fantasma y lo asigna a un vendedor.
           </p>
         </div>

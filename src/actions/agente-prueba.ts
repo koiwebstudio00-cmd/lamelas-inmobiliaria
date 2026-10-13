@@ -26,7 +26,7 @@ function message(error: unknown, fallback: string): string {
   return error instanceof ApiError ? error.message : fallback;
 }
 
-/** Manda un mensaje a Sofi por el workflow web y devuelve lo que respondió. */
+/** Manda un mensaje a Martina por el workflow web y devuelve lo que respondió. */
 export async function enviarMensajeAgente(input: {
   sessionId: string;
   nombre?: string;

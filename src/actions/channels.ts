@@ -88,8 +88,8 @@ export async function desconectarCanal(id: string): Promise<string | null> {
 }
 
 /**
- * Le pregunta a Zernio si la cuenta sigue viva. Sirve para distinguir "Sofi no
- * contesta porque el número se cayó" de "Sofi no contesta por otra cosa".
+ * Le pregunta a Zernio si la cuenta sigue viva. Sirve para distinguir "Martina no
+ * contesta porque el número se cayó" de "Martina no contesta por otra cosa".
  */
 export async function verificarCanal(id: string): Promise<{ error?: string }> {
   const denegado = await soloAdmin();

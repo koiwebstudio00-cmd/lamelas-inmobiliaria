@@ -79,7 +79,7 @@ export function LeadSinTomarBadge() {
 }
 
 /**
- * Sofía derivó y nadie tomó el chat: alguien del equipo tiene que atenderlo.
+ * Martina derivó y nadie tomó el chat: alguien del equipo tiene que atenderlo.
  * Es el badge más fuerte de la bandeja a propósito — es lo único que pide una
  * acción humana ahora mismo.
  */
@@ -93,7 +93,7 @@ export function LeadAtencionBadge({ motivo }: { motivo: MotivoDerivacion }) {
 }
 
 /**
- * Sofía le hizo seguimiento y el lead no contestó. Va en gris y al final: es
+ * Martina le hizo seguimiento y el lead no contestó. Va en gris y al final: es
  * información, no una tarea.
  */
 export function LeadFantasmaBadge() {

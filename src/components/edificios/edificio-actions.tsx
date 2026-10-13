@@ -60,7 +60,7 @@ export function EdificioActions({
           <DialogHeader>
             <DialogTitle>Renombrar edificio</DialogTitle>
             <DialogDescription>
-              El nombre se muestra en el panel, en el sitio y lo usa Sofía.
+              El nombre se muestra en el panel, en el sitio y lo usa Martina.
             </DialogDescription>
           </DialogHeader>
           <form

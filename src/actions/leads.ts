@@ -124,6 +124,7 @@ const avanceSchema = z.object({
     "visita_realizada",
     "en_negociacion",
     "no_interesado",
+    "no_califica",
   ]),
   comentario: z.string().trim().max(2000, "El comentario es demasiado largo.").optional(),
 });

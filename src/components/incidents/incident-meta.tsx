@@ -14,7 +14,7 @@ export const INCIDENTE_AYUDA: Record<IncidenteTipo, string> = {
   n8n_ejecucion:
     "Un paso del agente falló en n8n. Abrí la ejecución para ver el detalle y, cuando esté corregido, marcalo como resuelto.",
   n8n_sin_respuesta:
-    "El sistema no puede entregarle los mensajes de WhatsApp a n8n, así que Sofía no responde. Hay que revisar que n8n esté funcionando y el workflow de WhatsApp publicado. Se resuelve solo cuando n8n vuelve a responder.",
+    "El sistema no puede entregarle los mensajes de WhatsApp a n8n, así que Martina no responde. Hay que revisar que n8n esté funcionando y el workflow de WhatsApp publicado. Se resuelve solo cuando n8n vuelve a responder.",
   n8n_sin_senal:
     "n8n dejó de dar señales de vida: puede estar caído o el workflow lamelas-agente-vencidos quedó despublicado. Se resuelve solo con la próxima señal.",
   whatsapp_desconectado:

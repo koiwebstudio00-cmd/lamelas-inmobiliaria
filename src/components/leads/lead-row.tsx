@@ -16,7 +16,7 @@ import { AVANCE_LABELS, type Lead } from "@/lib/types";
  * es lo único cómodo de tocar (design-system.md, targets de 44px).
  */
 export function LeadRow({ lead }: { lead: Lead }) {
-  // Necesita atención = Sofía derivó y el handoff sigue pendiente. Cuando está,
+  // Necesita atención = Martina derivó y el handoff sigue pendiente. Cuando está,
   // reemplaza a "Sin tomar": dice lo mismo pero con el motivo.
   const necesitaAtencion = lead.derivacion?.pendiente === true;
   const esFantasma = lead.clasificacion === "fantasma";

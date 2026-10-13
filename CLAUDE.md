@@ -57,13 +57,14 @@ Secciones del panel, todas dentro de `(app)`:
 | `/propiedades`, `/mis-propiedades`, `/propiedades/[id]`, `/propiedades/nueva` | Catálogo interno y alta/edición. Filtros incl. **dormitorios** y **edificio**. Form con sección de alquiler condicional + mapa Leaflet + sección **Edificio** (edificio y unidad). `nueva?desde=<id>` precarga los datos de otra propiedad. El admin edita/elimina cualquier propiedad del tenant. |
 | `/propiedades/edificios` | Edificios que agrupan unidades; renombrar y borrar solo admin. |
 | `/consultas`, `/consultas/[id]`, `/consultas/nueva` | Bandeja de leads: filtros por texto, estado, canal, **clasificación** y vendedor; contadores potencial/fantasma (admin); detalle con cambio de estado (**"Ganada" abre el diálogo de cierre: venta o alquiler + propiedad**), **clasificación** (potencial/fantasma), reasignación, **avances del vendedor** y notas internas. |
-| `/notificaciones` | Avisos internos del usuario (la campanita de la barra superior muestra los últimos 6, con los críticos sin leer fijados arriba). Reemplazan a los correos de operación. |
+| `/notificaciones` | Avisos internos del usuario (la campanita de la barra superior muestra los últimos 6, con los críticos sin leer fijados arriba). Además, la asignación de una consulta llega por correo al vendedor (ver `/configuracion/correos`). |
 | `/configuracion/equipo` | Usuarios e invitaciones (solo admin). |
 | `/configuracion/incidentes`, `/configuracion/incidentes/[id]` | Incidentes del agente de WhatsApp: errores de n8n, n8n caído, WhatsApp desconectado (solo admin). |
+| `/configuracion/correos` | Interruptores de los correos de operación (hoy: "te asignaron una consulta") y últimos envíos (solo admin). |
 | `/configuracion/integraciones` | API keys del sitio y del agente, con scopes (solo admin). `/configuracion` redirige acá. |
 | `/analiticas` | Resumen y analíticas de consultas (solo admin). |
 | `/feedback`, `/feedback/[id]` | Canal del equipo: errores, problemas y sugerencias que todos ven y responden en hilo. El estado lo cambia el admin; el autor puede marcar lo suyo como resuelto. Se refresca solo (`components/auto-refresh.tsx`). |
-| `/probar-agente` | Probador web de Sofi con sesiones separadas (solo admin). |
+| `/probar-agente` | Probador web de Martina con sesiones separadas (solo admin). |
 | `/whatsapp/conectar` | Conexión y estado de WhatsApp mediante Zernio (solo admin). |
 | `/clientes`, `/clientes/[id]` | Vista previa con datos de ejemplo; no persiste clientes todavía (solo admin). |
 | `/perfil` | Datos de la propia cuenta. |
@@ -76,7 +77,7 @@ Notas de estructura que conviene tener a mano:
 - **Navegación en `src/components/nav/app-nav.tsx`:** armada sobre el bloque `sidebar-03` de shadcn (`src/components/ui/sidebar.tsx`, copiado del registro oficial junto con `sheet`, `tooltip` y `separator`). Barra fija en escritorio y cajón (`Sheet`) en móvil, con submenús colgando de Propiedades, Consultas, WhatsApp y Configuración (Equipo, Incidentes, Integraciones; con el contador rojo de incidentes críticos). El layout `(app)/layout.tsx` resuelve `getCurrentUser()` una vez, le pasa nombre y rol a la navegación, lee la cookie `sidebar_state` en el server para que la barra no parpadee y envuelve todo en `SidebarProvider` + `SidebarInset`. Los archivos de `components/ui/` que vienen del registro no se editan a mano: para personalizar, componer arriba.
 - **No editar `components/ui/sidebar.tsx` para cambiar estilos.** Los radios están en cero globalmente desde `globals.css` (`--radius-*: 0`) y las animaciones del cajón son `@keyframes` propios porque `tw-animate-css` no está instalado.
 - **`src/app/not-found.tsx`** cubre el 404 y también los 403: cuando alguien pide una propiedad o una consulta que no le corresponde, `queries.ts` devuelve `null` y la página llama a `notFound()`, para no delatar qué hay cargado del otro lado.
-- **`src/components/pagination.tsx`** es compartido (propiedades y consultas); recibe `basePath`. Los componentes por sección viven en `src/components/{properties,leads,team,settings}/`.
+- **`src/components/pagination.tsx`** es compartido (consultas, propiedades, feedback, notificaciones, incidentes); recibe `basePath`. Páginas numeradas con saltos (`paginasVisibles`): dos vecinas por lado en escritorio, una en el celular. Los componentes por sección viven en `src/components/{properties,leads,team,settings}/`.
 - **Acciones por dominio:** `src/actions/{auth,properties,images,profile,leads,team,api-keys,notifications,edificios}.ts`.
 - **La campanita vive en el layout de `(app)`**: las actions que cambian avisos revalidan con `revalidatePath("/", "layout")`. `getResumenNotificaciones()` nunca lanza (devuelve vacío): un error ahí dejaría todo el panel sin poder usarse.
 
