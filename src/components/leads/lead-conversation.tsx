@@ -1,23 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, Bot, MessageSquare, Paperclip, RefreshCw, Undo2, UserCheck } from "lucide-react";
+import { AlertTriangle, Bot, MessageSquare, RefreshCw, Undo2, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { releaseConversacion, takeConversacion } from "@/actions/conversations";
-import { cn, formatDateTime } from "@/lib/utils";
-import type { Conversacion, ConversacionMensaje, RolMensaje } from "@/lib/types";
-
-// Quién escribe cada mensaje: define alineación y estilo de la burbuja. El lead
-// va a la izquierda; el equipo (bot y vendedor) a la derecha; el sistema, al
-// centro y en chico, porque son avisos, no parte de la charla.
-const ROL: Record<RolMensaje, { lado: "izq" | "der" | "centro"; etiqueta: string }> = {
-  lead: { lado: "izq", etiqueta: "Lead" },
-  agente_ia: { lado: "der", etiqueta: "Martina (IA)" },
-  vendedor: { lado: "der", etiqueta: "Vendedor" },
-  sistema: { lado: "centro", etiqueta: "Sistema" },
-};
+import { ChatThread } from "@/components/leads/chat-thread";
+import { cn } from "@/lib/utils";
+import type { Conversacion, ConversacionMensaje } from "@/lib/types";
 
 export function LeadConversation({
   conversacion,
@@ -33,16 +24,8 @@ export function LeadConversation({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   const { estado } = conversacion;
-
-  // El hilo abre mostrando lo último (como cualquier chat). Se reancla cuando
-  // cambia la cantidad de mensajes (p. ej. tras "Refrescar").
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [mensajes.length]);
 
   function correr(fn: () => Promise<string | null>) {
     setError(null);
@@ -130,61 +113,12 @@ export function LeadConversation({
           </Button>
         </CardHeader>
         <CardContent className="p-0 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col">
-          <div ref={scrollRef} className="h-[60vh] overflow-y-auto p-4 lg:h-auto lg:min-h-0 lg:flex-1">
-            {mensajes.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Todavía no hay mensajes en esta conversación.
-              </p>
-            ) : (
-              <ul className="space-y-3">
-              {mensajes.map((m) => {
-                const rol = ROL[m.rol];
-                const etiqueta = m.rol === "lead" ? leadNombre : rol.etiqueta;
-
-                if (rol.lado === "centro") {
-                  return (
-                    <li key={m.id} className="text-center">
-                      <span className="text-xs text-muted-foreground">{m.contenido}</span>
-                    </li>
-                  );
-                }
-
-                const derecha = rol.lado === "der";
-                const esVendedor = m.rol === "vendedor";
-
-                return (
-                  <li key={m.id} className={cn("flex flex-col", derecha ? "items-end" : "items-start")}>
-                    <div
-                      className={cn(
-                        "max-w-[85%] px-3 py-2 text-sm",
-                        esVendedor
-                          ? "bg-primary text-primary-foreground"
-                          : derecha
-                            ? "bg-primary/10 text-foreground"
-                            : "bg-muted text-foreground"
-                      )}
-                    >
-                      {m.contenido && <p className="whitespace-pre-wrap">{m.contenido}</p>}
-                      {m.media_url && (
-                        <a
-                          href={m.media_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-1 inline-flex items-center gap-1 text-xs underline"
-                        >
-                          <Paperclip className="size-3" /> Ver adjunto ({m.tipo})
-                        </a>
-                      )}
-                    </div>
-                    <span className="mt-1 text-xs text-muted-foreground">
-                      {etiqueta} · {formatDateTime(m.creado_at)}
-                    </span>
-                  </li>
-                );
-              })}
-              </ul>
-            )}
-          </div>
+          <ChatThread
+            conversacionId={conversacion.id}
+            mensajes={mensajes}
+            leadNombre={leadNombre}
+            className="h-[60vh] lg:h-auto lg:min-h-0 lg:flex-1"
+          />
         </CardContent>
       </Card>
     </div>

@@ -22,6 +22,9 @@ import type {
   ClasificacionLead,
   Conversacion,
   ConversacionMensaje,
+  CitaMensaje,
+  AnuncioOrigen,
+  AdjuntoMensaje,
   Edificio,
   EstadoConversacion,
   EstadoLead,
@@ -732,6 +735,9 @@ interface ApiMensaje {
   contenido: string;
   media_url: string | null;
   creado_at: string;
+  cita?: CitaMensaje | null;
+  anuncio?: AnuncioOrigen | null;
+  adjuntos?: AdjuntoMensaje[];
 }
 
 // Algunos campos del perfil son arrays en la API (columnas de array en la BD),
@@ -766,6 +772,10 @@ function toMensaje(m: ApiMensaje): ConversacionMensaje {
     contenido: m.contenido,
     media_url: m.media_url,
     creado_at: m.creado_at,
+    // Opcionales en la API vieja: un backend sin CHAT-WHATSAPP-01 no los manda.
+    cita: m.cita ?? null,
+    anuncio: m.anuncio ?? null,
+    adjuntos: m.adjuntos ?? [],
   };
 }
 

@@ -77,6 +77,9 @@ export function Breakdown({
     reservado: "bg-amber-500",
     vendida: "bg-slate-600",
     alquilada: "bg-slate-500",
+    whatsapp_anuncio: "bg-fuchsia-600",
+    whatsapp_directo: "bg-sky-600",
+    formulario: "bg-emerald-600",
   };
 
   return (

@@ -24,6 +24,7 @@ import {
   closingSummary,
   HANDOFF_LABELS,
   INTENT_LABELS,
+  LEAD_ORIGIN_LABELS,
   OPERATION_LABELS,
   ORIGIN_LABELS,
   PROPERTY_RELATION_LABELS,
@@ -37,6 +38,7 @@ import {
 } from "@/components/analytics/labels";
 import { AnalyticsMetric, Breakdown } from "@/components/analytics/metric";
 import { TimeDistribution } from "@/components/analytics/time-distribution";
+import { TopAds } from "@/components/analytics/top-ads";
 import { TopProperties } from "@/components/analytics/top-properties";
 import { ZoneDemand } from "@/components/analytics/zone-demand";
 import type {
@@ -227,13 +229,23 @@ export function LeadsSections({ data, readOnly = false }: { data: AnalyticsLeads
 
       <AnalyticsSection
         title="Entrada de consultas"
-        description="Cuándo llegan, por qué canal y si están vinculadas a una propiedad."
+        description="Cuándo llegan, desde dónde y si están vinculadas a una propiedad."
       >
         <DailyVolume rows={data.daily} />
         <div className="grid gap-3 lg:grid-cols-2 print:grid-cols-2">
-          <Breakdown title="Canal de entrada" values={data.by_channel} labels={CHANNEL_LABELS} />
+          {data.by_origin ? (
+            <Breakdown
+              title="Desde dónde llegan"
+              description="El WhatsApp se separa según si el cliente escribió tocando un anuncio o directo."
+              values={data.by_origin}
+              labels={LEAD_ORIGIN_LABELS}
+            />
+          ) : (
+            <Breakdown title="Canal de entrada" values={data.by_channel} labels={CHANNEL_LABELS} />
+          )}
           <Breakdown title="Consulta general o por propiedad" values={data.by_property_relation} labels={PROPERTY_RELATION_LABELS} />
         </div>
+        {data.top_ads && <TopAds rows={data.top_ads} />}
       </AnalyticsSection>
 
       <AnalyticsSection
