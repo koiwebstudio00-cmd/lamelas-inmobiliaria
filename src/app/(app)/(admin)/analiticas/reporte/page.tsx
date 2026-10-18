@@ -75,6 +75,15 @@ export default async function MonthlyReportPage({ searchParams }: { searchParams
           : ""),
       comparison: { current: k.ganadas, previous: pk?.ganadas, format: "count" },
     },
+    ...(leads.from_ads !== undefined
+      ? [
+          {
+            label: "Consultas desde anuncios",
+            value: `${leads.from_ads}${k.leads_created ? ` (${Math.round((leads.from_ads / k.leads_created) * 1000) / 10}%)` : ""}`,
+            comparison: { current: leads.from_ads, previous: leads.previous_summary?.from_ads, format: "count" as const },
+          },
+        ]
+      : []),
     { label: "Conversaciones de Martina", value: s.conversations, comparison: { current: s.conversations, previous: ps?.conversations, format: "count" } },
     { label: "Derivadas a un vendedor", value: `${s.handed_off} (${s.handoff_rate}%)`, comparison: { current: s.handoff_rate, previous: ps?.handoff_rate, format: "pct" } },
     { label: "Recuperadas por seguimiento", value: s.recovered_by_followup, comparison: { current: s.recovered_by_followup, previous: ps?.recovered_by_followup, format: "count" } },

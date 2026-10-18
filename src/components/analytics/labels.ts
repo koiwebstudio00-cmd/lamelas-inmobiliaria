@@ -8,6 +8,16 @@ export const CHANNEL_LABELS: Record<string, string> = {
   messenger: "Messenger",
 };
 
+/** Origen del lead: separa el WhatsApp que vino de un anuncio del directo. */
+export const LEAD_ORIGIN_LABELS: Record<string, string> = {
+  whatsapp_anuncio: "WhatsApp desde un anuncio",
+  whatsapp_directo: "WhatsApp directo",
+  formulario: "Formulario del sitio",
+  manual: "Carga manual",
+  instagram: "Instagram",
+  messenger: "Messenger",
+};
+
 export const STATE_LABELS: Record<string, string> = {
   nueva: "Nuevas",
   en_contacto: "En contacto",

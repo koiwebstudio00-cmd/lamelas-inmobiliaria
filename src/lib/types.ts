@@ -103,8 +103,15 @@ export type AnalyticsLeads = {
     take_rate: number;
     median_take_minutes: number | null;
     p90_take_minutes: number | null;
+    /** Leads del período anterior que llegaron desde un anuncio. */
+    from_ads?: number;
   } | null;
   by_channel: Record<string, number>;
+  /** whatsapp_anuncio | whatsapp_directo | formulario | manual | instagram | messenger. */
+  by_origin?: Record<string, number>;
+  from_ads?: number;
+  /** Anuncios de Facebook/Instagram que trajeron leads, agrupados por su texto. */
+  top_ads?: AnuncioRanking[];
   by_state: Record<string, number>;
   /** Perdidas por motivo: último avance "no le interesa" / "no califica", u "otro". */
   by_lost_reason: Record<string, number>;
@@ -121,6 +128,16 @@ export type AnalyticsLeads = {
     destacada: boolean;
     consultas: number;
   }[];
+};
+
+export type AnuncioRanking = {
+  headline: string | null;
+  body: string | null;
+  image_url: string | null;
+  leads: number;
+  derivadas: number;
+  tomadas: number;
+  ganadas: number;
 };
 
 export type AnalyticsSofiaSummary = {
@@ -606,6 +623,29 @@ export type Conversacion = {
   creada_at: string;
 };
 
+/** Mensaje citado por una respuesta (CHAT-WHATSAPP-01). */
+export type CitaMensaje =
+  | { message_id: string; rol: RolMensaje; tipo: TipoMensaje; extracto: string }
+  | { desconocida: true };
+
+/** Anuncio de Facebook/Instagram desde el que el cliente escribió. */
+export type AnuncioOrigen = {
+  headline: string | null;
+  body: string | null;
+  image_url: string | null;
+  source_url: string | null;
+};
+
+/** Archivo de un mensaje de WhatsApp guardado por el backend (CHAT-MEDIA-01). */
+export type AdjuntoMensaje = {
+  id: string;
+  tipo: "imagen" | "audio" | "video" | "documento";
+  mime: string | null;
+  nombre_archivo: string | null;
+  bytes: number | null;
+  estado: "pendiente" | "guardado" | "no_soportado" | "expirado" | "fallido" | "borrado";
+};
+
 export type ConversacionMensaje = {
   id: string;
   rol: RolMensaje;
@@ -613,6 +653,9 @@ export type ConversacionMensaje = {
   contenido: string;
   media_url: string | null;
   creado_at: string;
+  cita: CitaMensaje | null;
+  anuncio: AnuncioOrigen | null;
+  adjuntos: AdjuntoMensaje[];
 };
 
 export const ESTADOS_CONVERSACION: { value: EstadoConversacion; label: string }[] = [
