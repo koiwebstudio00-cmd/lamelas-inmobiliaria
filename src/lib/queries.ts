@@ -8,8 +8,10 @@
 
 import { ApiError, apiFetch, getCurrentUser } from "@/lib/api";
 import { esAdmin } from "@/lib/permisos";
+import { normalizarDatos } from "@/lib/captacion";
 import type { PropertyCardData } from "@/components/properties/property-card";
 import type {
+  Captacion,
   AnalyticsLeads,
   AnalyticsOverview,
   AnalyticsProperties,
@@ -1332,5 +1334,64 @@ export async function getIncidentesCriticosAbiertosCount(): Promise<number> {
     return meta.criticos_abiertos;
   } catch {
     return 0;
+  }
+}
+
+// ── Captaciones (CAPTACION-01) ───────────────────────────────────────────────
+type ApiCaptacion = {
+  id: string;
+  operacion: "alquiler";
+  tipo: string;
+  direccion: string;
+  localidad: string | null;
+  barrio: string | null;
+  datos: unknown;
+  mensaje: string;
+  autor: { id: string; nombre: string } | null;
+  responsable: { id: string; nombre: string } | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+function toCaptacion(c: ApiCaptacion): Captacion {
+  return {
+    id: c.id,
+    operacion: c.operacion,
+    tipo: c.tipo,
+    direccion: c.direccion,
+    localidad: c.localidad,
+    barrio: c.barrio,
+    datos: normalizarDatos(c.datos),
+    mensaje: c.mensaje,
+    autor: { id: c.autor?.id ?? "", nombre: c.autor?.nombre ?? "—" },
+    responsable: c.responsable ? { id: c.responsable.id, nombre: c.responsable.nombre } : null,
+    created_at: c.createdAt,
+    updated_at: c.updatedAt,
+  };
+}
+
+export async function getCaptaciones(filters: { q?: string; mias?: boolean; pagina?: number }) {
+  const page = Math.max(1, filters.pagina || 1);
+  const { data, meta } = await apiFetch<{
+    data: ApiCaptacion[];
+    meta: { page: number; limit: number; total: number };
+  }>("/v1/captaciones", {
+    query: {
+      q: filters.q?.trim() || undefined,
+      mias: filters.mias ? "true" : undefined,
+      page,
+      limit: PAGE_SIZE,
+    },
+  });
+  return { items: data.map(toCaptacion), count: meta.total, page: meta.page };
+}
+
+export async function getCaptacion(id: string): Promise<Captacion | null> {
+  try {
+    const { item } = await apiFetch<{ item: ApiCaptacion }>(`/v1/captaciones/${id}`);
+    return toCaptacion(item);
+  } catch (error) {
+    if (error instanceof ApiError && (error.status === 404 || error.status === 400)) return null;
+    throw error;
   }
 }

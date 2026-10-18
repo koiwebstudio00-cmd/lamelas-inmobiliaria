@@ -30,9 +30,11 @@ después se pasa a `main` y se sube al remoto.
 
 | ID | Item | Esfuerzo | Estado |
 |---|---|:---:|---|
-| ANALITICAS-ORIGEN-01 | Analíticas: "Desde dónde llegan" (anuncio / WhatsApp directo / formulario / manual), ranking de anuncios y fila en el reporte mensual | S | en `feature/chats`, sin verificar — `back-lamelas/docs/deploy-tanda-2026-10-15.md` |
-| CHAT-WHATSAPP-01 | Chat de la consulta como WhatsApp: separadores por día, respuestas citadas con salto al original, anuncio de origen, imagen con el análisis plegado | M | en `feature/chats`, sin verificar — `back-lamelas/docs/deploy-tanda-2026-10-15.md` |
-| CHAT-MEDIA-01 | Imágenes, audios, videos y PDFs en el chat (guardados 90 días en el VPS; link firmado que baja directo de la API) | M | en `feature/chats`, sin verificar — `back-lamelas/docs/deploy-tanda-2026-10-15.md` |
+| ANALITICAS-ORIGEN-01 | Analíticas: "Desde dónde llegan" (anuncio / WhatsApp directo / formulario / manual), ranking de anuncios y fila en el reporte mensual | S | en producción (2026-10-18) |
+| ANUNCIO-ORIGEN-02 | Chat y ranking de anuncios: app del anuncio (Facebook, Instagram o Meta) y link "Ver anuncio"; consultas por app en el ranking (`lib/anuncios.ts`) | S | en `feature/addsandcalendar`, sin verificar |
+| CAPTACION-01 | `/captaciones`: formulario de captación de alquileres en 4 pasos (el de Netlify), mensaje para el grupo con "Abrir WhatsApp" y "Copiar texto", historial con búsqueda y "Mías" (`lib/captacion.ts`) | M | en `feature/addsandcalendar`, sin verificar |
+| CHAT-WHATSAPP-01 | Chat de la consulta como WhatsApp: separadores por día, respuestas citadas con salto al original, anuncio de origen, imagen con el análisis plegado | M | en producción (2026-10-18) |
+| CHAT-MEDIA-01 | Imágenes, audios, videos y PDFs en el chat (guardados 90 días en el VPS; link firmado que baja directo de la API) | M | en producción (2026-10-18) |
 | ZONA-SELECT-01 | Cerrar la carga de zona a una lista, con escape "Otra" | S | implementado en local, sin commitear |
 | ZONA-SELECT-02 | Consecuencias de la lista cerrada en filtros | S | pendiente |
 | PUNTO-REF-01 | Campo "punto de referencia" en el form y la ficha | S | implementado en dev, sin commitear |

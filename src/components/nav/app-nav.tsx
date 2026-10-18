@@ -6,6 +6,7 @@ import {
   Building2,
   ChartNoAxesCombined,
   ChevronRight,
+  ClipboardList,
   HeartHandshake,
   Home,
   Inbox,
@@ -84,6 +85,15 @@ const ITEMS: Item[] = [
     subs: [
       { href: "/consultas", label: "Todas las consultas", incluye: ["/consultas/"] },
       { href: "/consultas/nueva", label: "Nueva consulta" },
+    ],
+  },
+  {
+    label: "Captaciones",
+    icon: ClipboardList,
+    soloAdmin: false,
+    subs: [
+      { href: "/captaciones", label: "Todas las captaciones", incluye: ["/captaciones/"] },
+      { href: "/captaciones/nueva", label: "Nueva captación" },
     ],
   },
   { href: "/clientes", label: "Clientes", icon: HeartHandshake, soloAdmin: true, subs: [] },

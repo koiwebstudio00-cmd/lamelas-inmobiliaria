@@ -1,8 +1,9 @@
 "use client";
 
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-import { Bot, ChevronDown, Download, FileText, Headset, ImageIcon, Loader2, Megaphone, UserRound, type LucideIcon } from "lucide-react";
+import { Bot, ChevronDown, Download, ExternalLink, FileText, Headset, ImageIcon, Loader2, Megaphone, UserRound, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { origenAnuncio } from "@/lib/anuncios";
 import type { AdjuntoMensaje, AnuncioOrigen, CitaMensaje, ConversacionMensaje, RolMensaje } from "@/lib/types";
 
 // Chat del panel con la forma de WhatsApp (CHAT-WHATSAPP-01): separadores por
@@ -193,6 +194,7 @@ function TarjetaAnuncio({ anuncio }: { anuncio: AnuncioOrigen }) {
   const [verMas, setVerMas] = useState(false);
   const [sinImagen, setSinImagen] = useState(false);
   const largo = (anuncio.body?.length ?? 0) > 160;
+  const origen = origenAnuncio(anuncio);
   return (
     <div className="mb-2 border border-black/10 bg-background/70 text-foreground">
       <div className="flex gap-2 p-2">
@@ -208,7 +210,7 @@ function TarjetaAnuncio({ anuncio }: { anuncio: AnuncioOrigen }) {
         )}
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-primary">
-            <Megaphone className="size-3" /> Llegó desde un anuncio
+            <Megaphone className="size-3" /> Llegó desde {origen.descripcion}
           </p>
           {anuncio.headline && <p className="truncate text-xs font-medium">{anuncio.headline}</p>}
           {anuncio.body && (
@@ -216,14 +218,28 @@ function TarjetaAnuncio({ anuncio }: { anuncio: AnuncioOrigen }) {
               {anuncio.body}
             </p>
           )}
-          {largo && (
-            <button
-              type="button"
-              onClick={() => setVerMas((v) => !v)}
-              className="text-xs text-primary underline-offset-2 hover:underline"
-            >
-              {verMas ? "Ver menos" : "Ver más"}
-            </button>
+          {(largo || origen.link) && (
+            <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+              {largo && (
+                <button
+                  type="button"
+                  onClick={() => setVerMas((v) => !v)}
+                  className="text-xs text-primary underline-offset-2 hover:underline"
+                >
+                  {verMas ? "Ver menos" : "Ver más"}
+                </button>
+              )}
+              {origen.link && (
+                <a
+                  href={origen.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-primary underline-offset-2 hover:underline"
+                >
+                  {origen.accion} <ExternalLink className="size-3" aria-hidden />
+                </a>
+              )}
+            </div>
           )}
         </div>
       </div>
