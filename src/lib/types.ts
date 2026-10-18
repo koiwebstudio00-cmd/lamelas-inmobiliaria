@@ -134,7 +134,11 @@ export type AnuncioRanking = {
   headline: string | null;
   body: string | null;
   image_url: string | null;
+  /** Link a la publicación (prefiere el de Instagram). */
+  link?: string | null;
   leads: number;
+  /** Consultas por app donde se tocó el anuncio. */
+  por_plataforma?: { facebook: number; instagram: number; meta: number };
   derivadas: number;
   tomadas: number;
   ganadas: number;
@@ -633,7 +637,10 @@ export type AnuncioOrigen = {
   headline: string | null;
   body: string | null;
   image_url: string | null;
+  /** Link a la publicación en Facebook/Instagram (ver `lib/anuncios.ts`). */
   source_url: string | null;
+  /** `ad` (anuncio pago) o `post` (publicación). */
+  source_type: string | null;
 };
 
 /** Archivo de un mensaje de WhatsApp guardado por el backend (CHAT-MEDIA-01). */
@@ -884,3 +891,19 @@ export type PlanAgente = {
   es_mes_actual: boolean;
 };
 
+
+/** Captación de un alquiler (CAPTACION-01). `datos` es el formulario completo. */
+export type Captacion = {
+  id: string;
+  operacion: "alquiler";
+  tipo: string;
+  direccion: string;
+  localidad: string | null;
+  barrio: string | null;
+  datos: import("@/lib/captacion").CaptacionDatos;
+  mensaje: string;
+  autor: { id: string; nombre: string };
+  responsable: { id: string; nombre: string } | null;
+  created_at: string;
+  updated_at: string;
+};

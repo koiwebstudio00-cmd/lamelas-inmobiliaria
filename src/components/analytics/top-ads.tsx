@@ -1,5 +1,8 @@
-import { Megaphone } from "lucide-react";
+import { ExternalLink, Megaphone } from "lucide-react";
+import { linkSeguro, PLATAFORMA_LABELS, type PlataformaAnuncio } from "@/lib/anuncios";
 import type { AnuncioRanking } from "@/lib/types";
+
+const PLATAFORMAS: PlataformaAnuncio[] = ["facebook", "instagram", "meta"];
 
 /**
  * Anuncios de Facebook/Instagram que trajeron consultas por WhatsApp en el
@@ -30,6 +33,7 @@ export function TopAds({ rows }: { rows: AnuncioRanking[] }) {
                   {row.body && (
                     <p className="line-clamp-2 whitespace-pre-line text-xs text-muted-foreground">{row.body}</p>
                   )}
+                  <OrigenFila row={row} />
                 </div>
               </div>
               <dl className="grid shrink-0 grid-cols-4 gap-3 text-center sm:w-72">
@@ -52,5 +56,29 @@ export function TopAds({ rows }: { rows: AnuncioRanking[] }) {
         </ul>
       )}
     </section>
+  );
+}
+
+/** "Facebook 32 · Instagram 21" y el link a la publicación. */
+function OrigenFila({ row }: { row: AnuncioRanking }) {
+  const link = linkSeguro(row.link);
+  const partes = PLATAFORMAS.filter((p) => (row.por_plataforma?.[p] ?? 0) > 0).map(
+    (p) => `${PLATAFORMA_LABELS[p]} ${row.por_plataforma![p]}`,
+  );
+  if (!link && partes.length === 0) return null;
+  return (
+    <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+      {partes.length > 0 && <span className="tabular-nums">{partes.join(" · ")}</span>}
+      {link && (
+        <a
+          href={link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-primary underline-offset-2 hover:underline"
+        >
+          Ver anuncio <ExternalLink className="size-3" aria-hidden />
+        </a>
+      )}
+    </p>
   );
 }
