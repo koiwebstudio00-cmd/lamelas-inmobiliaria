@@ -12,6 +12,7 @@ import { normalizarDatos } from "@/lib/captacion";
 import type { PropertyCardData } from "@/components/properties/property-card";
 import type {
   Captacion,
+  PushEstado,
   AnalyticsLeads,
   AnalyticsOverview,
   AnalyticsProperties,
@@ -815,6 +816,7 @@ interface ApiUsuario {
   rol: Rol;
   estado: EstadoUsuario;
   createdAt: string;
+  pushActivo?: boolean;
 }
 
 /** Todos los del tenant, activos e inactivos. La API ordena por antigüedad. */
@@ -827,6 +829,7 @@ export async function getUsuarios(): Promise<Usuario[]> {
     rol: u.rol,
     estado: u.estado,
     created_at: u.createdAt,
+    push_activo: u.pushActivo,
   }));
 }
 
@@ -912,7 +915,8 @@ export interface CorreoReciente {
   tipo: TipoCorreo;
   destinatario: string;
   asunto: string;
-  estado: "pendiente" | "enviando" | "enviado" | "fallido";
+  /** `cancelado`: correo de respaldo de un push que sí llegó (PUSH-PWA-01). */
+  estado: "pendiente" | "enviando" | "enviado" | "fallido" | "cancelado";
   intentos: number;
   error: string | null;
   lead_id: string | null;
@@ -1393,5 +1397,30 @@ export async function getCaptacion(id: string): Promise<Captacion | null> {
   } catch (error) {
     if (error instanceof ApiError && (error.status === 404 || error.status === 400)) return null;
     throw error;
+  }
+}
+
+// ── Notificaciones al celular (PUSH-PWA-01) ──────────────────────────────────
+
+interface ApiPushEstado extends Omit<PushEstado, "dispositivos"> {
+  dispositivos: { id: string; etiqueta: string | null; createdAt: string; ultimoUso: string | null }[];
+}
+
+/** Preferencias de aviso y dispositivos del usuario de la sesión. */
+export async function getPushEstado(): Promise<PushEstado | null> {
+  try {
+    const r = await apiFetch<ApiPushEstado>("/v1/push");
+    return {
+      ...r,
+      dispositivos: r.dispositivos.map((d) => ({
+        id: d.id,
+        etiqueta: d.etiqueta,
+        created_at: d.createdAt,
+        ultimo_uso: d.ultimoUso,
+      })),
+    };
+  } catch {
+    // Super admin (sin tenant) o API vieja sin el módulo: la sección no se muestra.
+    return null;
   }
 }

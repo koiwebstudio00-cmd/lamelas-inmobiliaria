@@ -31,6 +31,21 @@ const nextConfig: NextConfig = {
       { source: "/feedback/reportes/:rest*", destination: "/feedback?tipo=error", permanent: false },
     ];
   },
+  /**
+   * El service worker (PUSH-PWA-01) no se cachea: si no, un cambio en `sw.js`
+   * tardaría días en llegar a los celulares que ya instalaron la app.
+   */
+  async headers() {
+    return [
+      {
+        source: "/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+          { key: "Content-Type", value: "application/javascript; charset=utf-8" },
+        ],
+      },
+    ];
+  },
   images: {
     // Las fotos ya llegan optimizadas: el navegador las redimensiona a 1600px y
     // las pasa a WebP (~150 KB) antes de subirlas a R2. Volver a pasarlas por la

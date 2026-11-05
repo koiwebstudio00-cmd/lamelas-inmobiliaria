@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ChevronsUpDown, LogOut, UserCog } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -19,6 +20,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { signOut } from "@/actions/auth";
+import { suscripcionActual } from "@/lib/pwa";
 import { cn } from "@/lib/utils";
 
 /**
@@ -38,6 +40,11 @@ function iniciales(nombre: string) {
 
 export function NavUser({ nombre, email }: { nombre: string; email: string }) {
   const { isMobile, setOpenMobile } = useSidebar();
+  // Endpoint push de este navegador, para darlo de baja al cerrar sesión.
+  const [pushEndpoint, setPushEndpoint] = useState("");
+  useEffect(() => {
+    void suscripcionActual().then((s) => setPushEndpoint(s?.endpoint ?? ""));
+  }, []);
 
   return (
     <SidebarMenu>
@@ -108,6 +115,7 @@ export function NavUser({ nombre, email }: { nombre: string; email: string }) {
               desmonta solo; no hace falta cerrarlo a mano.
             */}
             <form action={signOut}>
+              <input type="hidden" name="push_endpoint" value={pushEndpoint} />
               <button
                 type="submit"
                 className={cn(

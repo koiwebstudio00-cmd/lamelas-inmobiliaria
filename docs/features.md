@@ -1,6 +1,6 @@
 # Features por implementar — lamelas (panel interno)
 
-**Última revisión:** 2026-10-05
+**Última revisión:** 2026-11-04
 
 Backlog exclusivo de **este repo**. Cuando una feature se implementa y queda
 verificada, se saca de acá; el historial vive en commits y en `docs/bugfix/`.
@@ -56,6 +56,13 @@ después se pasa a `main` y se sube al remoto.
 | LEAD-AVANCES-01 | Avances del vendedor en la consulta | M | en dev, listo para desplegar |
 | NOTIF-TIEMPO-REAL-01 | Campanita en tiempo real por SSE | M | propuesto — se decide después del deploy |
 | AUTH-REFRESH-RACE-01 | Cierre de sesión por dos renovaciones a la vez | S | propuesto — depende del backend |
+| PROP-IA-TEXTO-01 | Título con estructura fija + descripción ordenada con IA (sugerencia que el vendedor acepta o edita; masivo para el admin) | M | propuesto (2026-11-04) |
+| PORTADA-MEJORA-01 | Mejora mínima de la portada (niveles, luz, enfoque leve) sin IA generativa, con antes/después | S/M | propuesto (2026-11-04) |
+| FILTROS-PRECIO-01 | Filtro por rango de precio en el listado de propiedades (con moneda) | S | propuesto (2026-11-04) |
+| FILTROS-PANEL-01 | Mejoras de filtros: orden, ambientes/baños, zona/ciudad, chips activos, cajón en móvil | S/M | propuesto — falta definir alcance |
+| PUSH-PWA-01 | Panel instalable (PWA) + aviso de consulta nueva por push o correo, a elección de cada usuario | M | en `dev`, sin verificar (`back-lamelas/docs/deploy-tanda-2026-11-04.md`) |
+| EQUIPO-PRUEBAS-01 | Equipo: suspendidos en rojo, "App con avisos" y botones Probar correo / Probar notificación por usuario | S | en `dev`, sin verificar (misma tanda) |
+| MAIL-FALLBACK-01 | Configuración → Correos: proveedor de cada envío (Resend/Brevo) y cupo del día/mes | S | pendiente — depende de `back-lamelas` |
 
 ---
 
@@ -457,3 +464,142 @@ menú agrupa Equipo, Incidentes e Integraciones (las API keys) bajo
 `next.config.ts`. Deploy junto con la tanda de incidentes
 (`back-lamelas/docs/deploy-tanda-2026-10-09.md`).
 
+## PROP-IA-TEXTO-01 — título y descripción con estructura fija (IA)
+
+**Qué es.** Botón "Mejorar con IA" en el form/ficha de propiedad que propone un
+título y una descripción con estructura común, y una acción masiva solo admin
+para pasar el catálogo existente.
+- **Título: plantilla determinística, sin IA.** Se arma con los datos cargados,
+  p. ej. *"Departamento 2 dorm. en alquiler – Barrio Norte, San Miguel de
+  Tucumán"*. Sale siempre igual y no cuesta nada.
+- **Descripción: IA.** Reordena el texto libre del vendedor en secciones fijas
+  (ambientes, comodidades, ubicación, condiciones) y propone campos que están en
+  el texto pero vacíos en la ficha (p. ej. dormitorios).
+- La IA **nunca guarda directo**: el panel muestra antes/después y el vendedor
+  acepta o edita; se guarda con el `PATCH` de siempre.
+
+**Ventaja.** Catálogo homogéneo (listado, sitio y buscador de Martina), mejor
+SEO en `lamelas-web` y menos trabajo de redacción para los vendedores.
+
+**Viabilidad.** M (1–2 días). Panel: botón + diálogo de comparación + acción
+masiva. Backend: endpoint de sugerencia (ver `back-lamelas` →
+`PROP-IA-TEXTO-01`). Modelo propuesto: `gpt-5-mini` con la key de OpenAI que ya
+usa el agente (alternativa: `gpt-4.1-mini`, el del agente), con salida JSON
+estricta, razonamiento mínimo y 2–3 ejemplos reales de Lamelas en el prompt.
+Costo estimado < US$0,002 por propiedad (precios de agregadores, confirmar en la
+consola de OpenAI).
+
+**Ojo SEO.** El beneficio en el sitio depende de `lamelas-web` →
+`OG-DINAMICO-01`: hoy `seo.ts` setea los meta tags por JS, que WhatsApp/Facebook
+no ejecutan y Google indexa con demora.
+
+**Estado.** Propuesto el 2026-11-04. Falta definir con Cacho la plantilla del
+título y las secciones de la descripción.
+
+## PORTADA-MEJORA-01 — mejora mínima de la foto de portada
+
+**Qué es.** Botón en el administrador de fotos para mejorar la portada: niveles
+automáticos, un poco de brillo/sombras solo si la foto está oscura y enfoque
+leve. Se guarda como foto nueva (la original se conserva) y el vendedor elige
+cuál queda de portada después de ver el antes/después.
+
+**Decisión propuesta: sin IA generativa.** Los modelos de edición (gpt-image,
+Gemini 2.5 Flash Image ~US$0,04/imagen) redibujan la foto entera aunque se pida
+un cambio mínimo: pueden alterar ventanas, humedad o muebles (riesgo de
+publicidad engañosa) y devuelven a menor resolución que los 1600 px actuales.
+El procesamiento clásico no inventa píxeles y cuesta cero.
+
+**Viabilidad.** S/M. Se puede hacer client-side con el mismo canvas de
+`src/lib/resize-image.ts`, sin librerías nuevas, y subir el resultado por el
+flujo presign/confirm existente. Límite: trabaja sobre la copia ya reducida a
+1600 px WebP, no sobre el original del celular. Sin cambios de backend salvo que
+se quiera marcar la foto como "mejorada".
+
+**Estado.** Propuesto el 2026-11-04. Falta el OK de Cacho a hacerlo sin IA
+generativa.
+
+## FILTROS-PRECIO-01 — rango de precio en el listado
+
+**Qué es.** Campos "Precio desde / hasta" + moneda en `filters.tsx`, que viajan
+como `precio_min`, `precio_max`, `moneda` en los query params.
+
+**Ventaja.** Es la pregunta más habitual al buscar qué ofrecer a un cliente.
+
+**Viabilidad.** S (medio día a un día con el backend, ver `back-lamelas` →
+`FILTROS-PRECIO-01`). Dos detalles:
+- **Moneda:** ARS y USD no se comparan sin tipo de cambio; el rango va siempre
+  con una moneda (USD por defecto en venta, ARS en alquiler).
+- **Operación "ambos":** usa `precio` si se filtra venta y `precio_alquiler` si
+  se filtra alquiler.
+
+**Estado.** Propuesto el 2026-11-04.
+
+## FILTROS-PANEL-01 — mejoras generales de los filtros
+
+**Qué es.** Hoy hay búsqueda, operación, dormitorios, tipo, estado, vendedor y
+edificio. Propuesta:
+- ordenar por precio y por fecha;
+- ambientes y baños;
+- zona (lista de `ZONAS`, ver `ZONA-SELECT-02`) y ciudad;
+- chips con los filtros activos + "Limpiar";
+- en el celular, los filtros dentro de un `Sheet` para que no ocupen media
+  pantalla.
+
+**Viabilidad.** S/M. Mayormente panel; orden y ambientes/baños necesitan
+parámetros nuevos en la API (aditivos, no rompen `/v1`).
+
+**Estado.** Propuesto el 2026-11-04. Falta que Cacho defina qué entra.
+
+## PUSH-PWA-01 — panel instalable y aviso de consulta nueva en el celular
+
+**Qué es.** El panel se puede instalar como app (PWA) y, desde la app
+instalada, cada usuario puede recibir el aviso de **consulta nueva** como
+notificación nativa del celular.
+
+Decisiones de Cacho (2026-11-04):
+- **Un solo aviso por push:** "consulta nueva" para el vendedor, que es el mismo
+  evento que hoy dispara el correo "te asignaron una consulta" (derivación de
+  Martina, vencimiento, seguimiento, reasignación de un admin, formulario que
+  entra asignado). Feedback, incidentes y avisos de cuenta no van por push.
+- **Cada usuario elige push, correo o los dos, pero al menos uno.** El push
+  solo se puede prender desde la app instalada (en el navegador común se ve
+  el botón "Instalar app").
+- **Texto genérico** en la pantalla bloqueada, sin datos del cliente: "Nueva
+  consulta — Te asignaron una consulta nueva en el panel." Al tocarlo abre la
+  consulta.
+- **Horario igual que el correo:** sin filtro, sale cuando ocurre la asignación.
+- **El interruptor del admin** en Configuración → Correos se mantiene como está
+  (apaga solo el correo, no el push).
+
+**Cómo.**
+- `src/app/manifest.ts`, íconos 192/512, `public/sw.js` (solo recibe avisos;
+  no cachea páginas). `sw.js` y el manifiesto quedan fuera del `matcher` del
+  middleware (si no, redirige al login y el service worker no se registra).
+- Botón "Instalar app": en Android/Chrome instala directo
+  (`beforeinstallprompt`); en iPhone abre el menú Compartir y muestra la guía
+  "Agregar a inicio" (iOS no permite instalar desde un botón).
+- `/perfil` → sección Notificaciones: interruptores push/correo, lista de
+  dispositivos con "Quitar" y "Enviar prueba".
+- Al cerrar sesión se da de baja el dispositivo.
+
+**Viabilidad.** M. Backend en `back-lamelas` → `PUSH-PWA-01`. Sin variables
+nuevas en Vercel (la clave pública se pide a la API).
+
+- Si eligió solo push y el aviso no llega, a los 10 minutos sale el correo
+  igual (respaldo); en Configuración → Correos aparece como "No hizo falta"
+  cuando el push sí llegó.
+
+**Estado.** Implementado en `dev` el 2026-11-04, sin commitear ni verificar.
+Archivos: `src/app/manifest.ts`, `public/sw.js`, `public/icons/`,
+`src/lib/pwa.ts`, `src/components/pwa/`, `src/actions/push.ts`,
+`(app)/perfil/page.tsx`, `actions/auth.ts` (baja al salir),
+`nav/nav-user.tsx`, `middleware.ts`, `next.config.ts`, `app/layout.tsx`.
+
+## MAIL-FALLBACK-01 — proveedor y cupo en Configuración → Correos
+
+**Qué es.** Parte de panel del respaldo Resend → Brevo (detalle en
+`back-lamelas/docs/features.md` → `MAIL-FALLBACK-01`): mostrar por qué
+proveedor salió cada correo y cuánto cupo de Resend queda en el día UTC y en
+el mes. Opción de forzar Brevo en "Probar correo" de Equipo.
+
+**Estado.** Pendiente, depende del backend.

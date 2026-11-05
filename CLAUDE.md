@@ -34,6 +34,7 @@ Requiere `back-lamelas` corriendo en `API_URL` (por defecto `http://localhost:30
 7. **Altas:** el alta de propiedad es en dos pasos (`POST` con lo obligatorio + `PATCH` con el resto), porque la API separa el alta rápida. Ver `src/actions/properties.ts`.
 8. **Adjuntos del chat (única excepción al punto 1):** `src/app/api/chat-media/[conv]/[id]/route.ts` pide a la API un link firmado de 5 minutos (con la sesión, vía `apiFetch`) y redirige el navegador a `API_PUBLIC_URL ?? API_URL` + `/v1/media/:id?exp&firma`. El archivo baja directo de la API sin cookies, así no pasa por Vercel (tope de 4,5 MB por respuesta). La autorización sigue en la API: sin sesión válida no hay link.
 9. **Invitaciones:** no hay auto-registro. Un admin invita y la persona entra por `/aceptar-invitacion?token=`.
+10. **App instalable y push (PUSH-PWA-01):** `src/app/manifest.ts` + `public/sw.js` (solo muestra avisos y abre el panel; **no cachea páginas**). `sw.js` y `/manifest.webmanifest` están fuera del `matcher` del middleware (si no, redirigen al login y la app no se instala) y `sw.js` se sirve sin caché. La suscripción la arma el navegador (`src/lib/pwa.ts`) y viaja a la API por Server Action (`src/actions/push.ts`). Al cerrar sesión, `signOut` da de baja el dispositivo con el endpoint que manda el form de `nav-user.tsx`.
 
 ## Reglas del proyecto
 
@@ -60,7 +61,7 @@ Secciones del panel, todas dentro de `(app)`:
 | `/consultas`, `/consultas/[id]`, `/consultas/nueva` | Bandeja de leads: filtros por texto, estado, canal, **clasificación** y vendedor; contadores potencial/fantasma (admin); detalle con cambio de estado (**"Ganada" abre el diálogo de cierre: venta o alquiler + propiedad**), **clasificación** (potencial/fantasma), reasignación, **avances del vendedor**, notas internas y el chat con el agente en formato WhatsApp (`components/leads/chat-thread.tsx`: separadores por día, respuestas citadas con salto al original, anuncio de origen, adjuntos: imagen, audio, video y PDF). |
 | `/captaciones`, `/captaciones/nueva`, `/captaciones/[id]`, `/captaciones/[id]/editar` | Captación de alquileres (todos los usuarios): el formulario de 4 pasos que se usaba en Netlify arma el mensaje para el grupo de WhatsApp ("Abrir WhatsApp" / "Copiar texto") y cada captación queda guardada. Opciones, reglas por tipo de inmueble y el armado del mensaje en `src/lib/captacion.ts`; edita o borra el autor o el admin. |
 | `/notificaciones` | Avisos internos del usuario (la campanita de la barra superior muestra los últimos 6, con los críticos sin leer fijados arriba). Además, la asignación de una consulta llega por correo al vendedor (ver `/configuracion/correos`). |
-| `/configuracion/equipo` | Usuarios e invitaciones (solo admin). |
+| `/configuracion/equipo` | Usuarios e invitaciones (solo admin). Suspendidos en rojo; por usuario, **Probar correo** (sale directo por SMTP y muestra la respuesta del servidor) y **Probar notificación** (sigue el envío hasta 30 s), en `components/team/probar-envios.tsx`. |
 | `/configuracion/incidentes`, `/configuracion/incidentes/[id]` | Incidentes del agente de WhatsApp: errores de n8n, n8n caído, WhatsApp desconectado (solo admin). |
 | `/configuracion/correos` | Interruptores de los correos de operación (hoy: "te asignaron una consulta") y últimos envíos (solo admin). |
 | `/configuracion/integraciones` | API keys del sitio y del agente, con scopes (solo admin). `/configuracion` redirige acá. |
@@ -69,7 +70,7 @@ Secciones del panel, todas dentro de `(app)`:
 | `/probar-agente` | Probador web de Martina con sesiones separadas (solo admin). |
 | `/whatsapp/conectar` | Conexión y estado de WhatsApp mediante Zernio (solo admin). |
 | `/clientes`, `/clientes/[id]` | Vista previa con datos de ejemplo; no persiste clientes todavía (solo admin). |
-| `/perfil` | Datos de la propia cuenta. |
+| `/perfil` | Datos de la propia cuenta y **Avisos de consultas nuevas** (PUSH-PWA-01): notificación al celular, correo o los dos (nunca ninguno), botón **Instalar app** y lista de dispositivos. La notificación solo se prende desde la app instalada. |
 
 Notas de estructura que conviene tener a mano:
 
