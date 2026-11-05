@@ -683,7 +683,24 @@ export type Usuario = {
   rol: Rol;
   estado: EstadoUsuario;
   created_at: string;
+  /** Solo lo ve el admin: tiene la app instalada con las notificaciones activas. */
+  push_activo?: boolean;
 };
+
+/** Resultado de la prueba de correo desde Equipo (sale directo por SMTP). */
+export interface PruebaCorreo {
+  ok: boolean;
+  destinatario: string;
+  codigo: string;
+  /** `consola`: sin servidor de correo configurado (entorno local). */
+  modo: "smtp" | "consola";
+  message_id: string | null;
+  respuesta: string | null;
+  rechazados: string[];
+  error: string | null;
+}
+
+export type EstadoEnvioPush = "pendiente" | "enviando" | "enviado" | "fallido";
 
 /** Invitación pendiente: la API solo lista las no aceptadas y sin vencer. */
 export type Invitacion = {
@@ -907,3 +924,27 @@ export type Captacion = {
   created_at: string;
   updated_at: string;
 };
+
+// ── Notificaciones al celular (PUSH-PWA-01) ──────────────────────────────────
+
+export interface PushDispositivo {
+  id: string;
+  etiqueta: string | null;
+  created_at: string;
+  ultimo_uso: string | null;
+}
+
+/** Estado de la sección Notificaciones del perfil. */
+export interface PushEstado {
+  /** null = el servidor no tiene push configurado (faltan las claves VAPID). */
+  vapid_public_key: string | null;
+  /** Lo que eligió el usuario. */
+  notif_push: boolean;
+  notif_correo: boolean;
+  /** Lo que pasa de verdad: con push elegido y sin dispositivos, llega por correo. */
+  push_activo: boolean;
+  correo_activo: boolean;
+  /** El admin puede apagar el correo de asignación para toda la inmobiliaria. */
+  correo_tenant_activo: boolean;
+  dispositivos: PushDispositivo[];
+}

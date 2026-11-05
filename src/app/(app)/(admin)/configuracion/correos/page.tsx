@@ -11,6 +11,8 @@ const ESTADO: Record<CorreoReciente["estado"], { label: string; clase: string }>
   enviando: { label: "Enviando", clase: "bg-amber-100 text-amber-900" },
   enviado: { label: "Enviado", clase: "bg-green-100 text-green-800" },
   fallido: { label: "Falló", clase: "bg-red-100 text-red-800" },
+  // Respaldo de un aviso push que llegó al celular: no hizo falta mandarlo.
+  cancelado: { label: "No hizo falta", clase: "bg-muted text-muted-foreground" },
 };
 
 export default async function CorreosPage() {
@@ -55,7 +57,10 @@ export default async function CorreosPage() {
                   <p className="text-xs text-muted-foreground">
                     Para {c.destinatario} · {formatDateTime(c.enviado_at ?? c.created_at)}
                   </p>
-                  {c.error && c.estado !== "enviado" && (
+                  {c.estado === "cancelado" && (
+                    <p className="text-xs text-muted-foreground">El aviso le llegó al celular.</p>
+                  )}
+                  {c.error && c.estado !== "enviado" && c.estado !== "cancelado" && (
                     <p className="text-xs text-destructive">
                       {c.estado === "fallido" ? "No se pudo enviar" : `Reintentando (${c.intentos})`}: {c.error}
                     </p>

@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { AppNav } from "@/components/nav/app-nav";
 import { NotificationsBell } from "@/components/notifications/notifications-bell";
+import { PwaInit } from "@/components/pwa/pwa-init";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { getCurrentUser } from "@/lib/api";
 import { esAdmin } from "@/lib/permisos";
@@ -33,6 +34,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <SidebarProvider defaultOpen={abiertaPorDefecto}>
+      {/* Service worker de la app instalable y de los avisos push (PUSH-PWA-01). */}
+      <PwaInit />
       <AppNav
         nombre={me.nombre}
         email={me.email}

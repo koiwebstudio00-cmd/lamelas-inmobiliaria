@@ -5,6 +5,7 @@ import { z } from "zod";
 import { ApiError, apiFetch, getCurrentUser } from "@/lib/api";
 import { esAdmin } from "@/lib/permisos";
 import { getUsuarios } from "@/lib/queries";
+import type { EstadoEnvioPush, PruebaCorreo } from "@/lib/types";
 
 /**
  * Equipo: usuarios e invitaciones. Todo esto es solo para admins — lo impone
@@ -131,4 +132,61 @@ export async function changeUserPassword(
 
   revalidatePath("/configuracion/equipo");
   return null;
+}
+
+// ── Pruebas de envío (Configuración → Equipo) ─────────────────────────────────
+
+const idSchema = z.string().uuid();
+
+/** Manda un correo de prueba directo y devuelve lo que contestó el servidor. */
+export async function probarCorreo(
+  userId: string
+): Promise<{ resultado?: PruebaCorreo; error?: string }> {
+  const prohibido = await soloAdmin();
+  if (prohibido) return { error: prohibido };
+  if (!idSchema.safeParse(userId).success) return { error: "Usuario inválido." };
+  try {
+    const resultado = await apiFetch<PruebaCorreo>("/v1/correos/prueba", {
+      method: "POST",
+      body: { user_id: userId },
+    });
+    return { resultado };
+  } catch (error) {
+    return { error: message(error, "No pudimos hacer la prueba. Intentá de nuevo.") };
+  }
+}
+
+/** Encola un aviso push de prueba a los dispositivos de un usuario del equipo. */
+export async function probarNotificacion(
+  userId: string
+): Promise<{ envioId?: string; error?: string }> {
+  const prohibido = await soloAdmin();
+  if (prohibido) return { error: prohibido };
+  if (!idSchema.safeParse(userId).success) return { error: "Usuario inválido." };
+  try {
+    const r = await apiFetch<{ envio_id: string }>("/v1/push/prueba", {
+      method: "POST",
+      body: { user_id: userId },
+    });
+    return { envioId: r.envio_id };
+  } catch (error) {
+    return { error: message(error, "No pudimos mandar el aviso de prueba.") };
+  }
+}
+
+/** Estado del aviso de prueba (el panel lo consulta cada 2 segundos). */
+export async function estadoNotificacion(
+  envioId: string
+): Promise<{ estado?: EstadoEnvioPush; detalle?: string | null; error?: string }> {
+  const prohibido = await soloAdmin();
+  if (prohibido) return { error: prohibido };
+  if (!idSchema.safeParse(envioId).success) return { error: "Envío inválido." };
+  try {
+    const { envio } = await apiFetch<{ envio: { estado: EstadoEnvioPush; error: string | null } }>(
+      `/v1/push/envios/${envioId}`
+    );
+    return { estado: envio.estado, detalle: envio.error };
+  } catch (error) {
+    return { error: message(error, "No pudimos consultar el envío.") };
+  }
 }

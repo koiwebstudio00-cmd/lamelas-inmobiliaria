@@ -53,7 +53,18 @@ export async function acceptInvitation(
   redirect("/");
 }
 
-export async function signOut() {
+export async function signOut(formData?: FormData) {
+  // PUSH-PWA-01: si este celular recibía avisos, se da de baja antes de cerrar
+  // la sesión (el endpoint lo manda el navegador en el form). Si no, un celular
+  // compartido seguiría recibiendo las consultas de quien salió.
+  const endpoint = formData?.get("push_endpoint");
+  if (typeof endpoint === "string" && endpoint.startsWith("https://")) {
+    try {
+      await apiFetch("/v1/push/dispositivos/baja", { method: "POST", body: { endpoint } });
+    } catch {
+      // Cerrar la sesión no depende de esto.
+    }
+  }
   await endSession();
   revalidatePath("/", "layout");
   redirect("/login");

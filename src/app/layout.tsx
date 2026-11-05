@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -16,6 +16,17 @@ export const metadata: Metadata = {
     shortcut: "/favicon.ico",
     apple: "/apple-icon.png",
   },
+  // App instalada en iPhone (PUSH-PWA-01): nombre bajo el ícono y barra de
+  // estado. El manifiesto lo arma src/app/manifest.ts.
+  appleWebApp: {
+    capable: true,
+    title: "Lamelas",
+    statusBarStyle: "default",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0E9145",
 };
 
 export default function RootLayout({

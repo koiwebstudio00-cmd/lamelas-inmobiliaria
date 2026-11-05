@@ -80,12 +80,12 @@ export function UserActions({ usuario, esYo }: { usuario: Usuario; esYo: boolean
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="outline" size="sm" disabled={pending}>
-              Desactivar
+              Suspender
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>¿Desactivar a {usuario.nombre}?</AlertDialogTitle>
+              <AlertDialogTitle>¿Suspender a {usuario.nombre}?</AlertDialogTitle>
               <AlertDialogDescription>
                 No va a poder entrar más al panel. Sus propiedades y sus consultas
                 quedan como están, y podés reactivarlo cuando quieras.
@@ -94,9 +94,9 @@ export function UserActions({ usuario, esYo }: { usuario: Usuario; esYo: boolean
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
               <AlertDialogAction
-                onClick={() => run({ estado: "inactivo" }, "Usuario desactivado")}
+                onClick={() => run({ estado: "inactivo" }, "Usuario suspendido")}
               >
-                Desactivar
+                Suspender
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

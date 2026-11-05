@@ -86,5 +86,9 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|webp|ico)$).*)"],
+  // `sw.js` y el manifiesto los pide el navegador sin sesión (PUSH-PWA-01): si
+  // pasaran por acá se redirigirían al login y la app no se podría instalar.
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|sw\\.js|manifest\\.webmanifest|.*\\.(?:svg|png|jpg|jpeg|webp|ico)$).*)",
+  ],
 };

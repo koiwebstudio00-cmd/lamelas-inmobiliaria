@@ -1,6 +1,7 @@
 import { updateProfile } from "@/actions/profile";
 import { AuthForm } from "@/components/auth/auth-form";
 import { ChangePasswordDialog } from "@/components/profile/change-password-dialog";
+import { NotificacionesCard } from "@/components/pwa/notificaciones-card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import type { Rol } from "@/lib/types";
-import { getPerfil } from "@/lib/queries";
+import { getPerfil, getPushEstado } from "@/lib/queries";
 
 export const metadata = { title: "Mi perfil — Lamelas & Chaumont" };
 
@@ -24,7 +25,7 @@ function getIniciales(nombre: string) {
 }
 
 export default async function PerfilPage() {
-  const profile = await getPerfil();
+  const [profile, push] = await Promise.all([getPerfil(), getPushEstado()]);
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
@@ -79,6 +80,9 @@ export default async function PerfilPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* PUSH-PWA-01: canal del aviso de consulta nueva (push, correo o los dos). */}
+      {push && <NotificacionesCard estado={push} />}
 
       {profile?.created_at && (
         <p className="text-xs text-muted-foreground">
