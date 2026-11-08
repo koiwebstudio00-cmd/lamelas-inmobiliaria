@@ -12,7 +12,7 @@ function respuestas(n: number) {
 /** Publicaciones del canal, la más nueva arriba. Cada una abre su hilo. */
 export function FeedbackFeed({ items, now }: { items: FeedbackItem[]; now: Date }) {
   return (
-    <ul className="divide-y border bg-background">
+    <ul className="rounded-xl overflow-hidden divide-y border bg-background">
       {items.map((f) => (
         <li key={f.id}>
           <Link

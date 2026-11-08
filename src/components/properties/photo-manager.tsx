@@ -108,7 +108,7 @@ export function PhotoManager({
       </div>
 
       {images.length === 0 ? (
-        <p className="border border-dashed p-8 text-center text-sm text-muted-foreground">
+        <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
           Sin fotos todavía. La primera que subas queda como portada.
         </p>
       ) : (

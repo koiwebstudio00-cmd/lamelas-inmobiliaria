@@ -41,7 +41,7 @@ export default async function CaptacionesPage({ searchParams }: { searchParams: 
       </Suspense>
 
       {items.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 border border-dashed p-12 text-center">
+        <div className="rounded-xl flex flex-col items-center gap-2 border border-dashed p-12 text-center">
           <ClipboardList className="size-8 text-muted-foreground" />
           <p className="font-medium">{filtrando ? "No hay captaciones con esos filtros" : "Todavía no hay captaciones"}</p>
           <p className="text-sm text-muted-foreground">
@@ -49,7 +49,7 @@ export default async function CaptacionesPage({ searchParams }: { searchParams: 
           </p>
         </div>
       ) : (
-        <ul className="divide-y border bg-background">
+        <ul className="rounded-xl overflow-hidden divide-y border bg-background">
           {items.map((c) => (
             <li key={c.id}>
               <Link

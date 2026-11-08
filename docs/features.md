@@ -1,6 +1,6 @@
 # Features por implementar — lamelas (panel interno)
 
-**Última revisión:** 2026-11-04
+**Última revisión:** 2026-11-08
 
 Backlog exclusivo de **este repo**. Cuando una feature se implementa y queda
 verificada, se saca de acá; el historial vive en commits y en `docs/bugfix/`.
@@ -59,10 +59,12 @@ después se pasa a `main` y se sube al remoto.
 | PROP-IA-TEXTO-01 | Título con estructura fija + descripción ordenada con IA (sugerencia que el vendedor acepta o edita; masivo para el admin) | M | propuesto (2026-11-04) |
 | PORTADA-MEJORA-01 | Mejora mínima de la portada (niveles, luz, enfoque leve) sin IA generativa, con antes/después | S/M | propuesto (2026-11-04) |
 | FILTROS-PRECIO-01 | Filtro por rango de precio en el listado de propiedades (con moneda) | S | propuesto (2026-11-04) |
-| FILTROS-PANEL-01 | Mejoras de filtros: orden, ambientes/baños, zona/ciudad, chips activos, cajón en móvil | S/M | propuesto — falta definir alcance |
+| FILTROS-PANEL-01 | Mejoras de filtros: orden, ambientes/baños, zona/ciudad, chips activos, cajón en móvil | S/M | parcial — el cajón en móvil y "Limpiar" salieron con `MOBILE-UI-01`; el resto falta definir |
 | PUSH-PWA-01 | Panel instalable (PWA) + aviso de consulta nueva por push o correo, a elección de cada usuario | M | en `dev`, sin verificar (`back-lamelas/docs/deploy-tanda-2026-11-04.md`) |
 | EQUIPO-PRUEBAS-01 | Equipo: suspendidos en rojo, "App con avisos" y botones Probar correo / Probar notificación por usuario | S | en `dev`, sin verificar (misma tanda) |
 | MAIL-FALLBACK-01 | Configuración → Correos: proveedor de cada envío (Resend/Brevo) y cupo del día/mes | S | pendiente — depende de `back-lamelas` |
+| TEMA-UI-01 | Tema de tweakcn (teal `#00857A`, radios 0.5rem, Inter + JetBrains Mono) + micro-interacciones y animaciones de diálogos/menús (`tw-animate-css`) | M | en `dev`, sin verificar (2026-11-08) |
+| MOBILE-UI-01 | Celular: barra de navegación inferior con "+", filtros en panel inferior, áreas táctiles de 44px, barra de guardar fija, tarjeta de propiedad compacta | M | en `dev`, sin verificar (2026-11-08) |
 
 ---
 
@@ -548,7 +550,9 @@ edificio. Propuesta:
 **Viabilidad.** S/M. Mayormente panel; orden y ambientes/baños necesitan
 parámetros nuevos en la API (aditivos, no rompen `/v1`).
 
-**Estado.** Propuesto el 2026-11-04. Falta que Cacho defina qué entra.
+**Estado.** Propuesto el 2026-11-04. Falta que Cacho defina qué entra. El
+punto del celular (filtros en un panel inferior, con contador de aplicados y
+"Limpiar") ya salió con `MOBILE-UI-01` (`components/filtros-plegables.tsx`).
 
 ## PUSH-PWA-01 — panel instalable y aviso de consulta nueva en el celular
 
@@ -603,3 +607,58 @@ proveedor salió cada correo y cuánto cupo de Resend queda en el día UTC y en
 el mes. Opción de forzar Brevo en "Probar correo" de Equipo.
 
 **Estado.** Pendiente, depende del backend.
+
+## TEMA-UI-01 — tema nuevo y micro-interacciones
+
+**Qué es.** Pedido de Cacho (2026-11-07): reemplazar el tema por el de tweakcn
+`cmnl3tsn3000204l3ff39foko` y que la UI se sienta más suave y moderna.
+
+**Cómo.**
+- `src/app/globals.css`: tokens del tema (claro y `.dark`, sin selector todavía),
+  radios 0.5rem en lugar de los bordes rectos, sombras del tema. Se conservan
+  los tokens propios (warning, info, badges de estado de propiedad y consulta).
+  Las saturaciones > 100% que exporta tweakcn se normalizaron a 100%.
+- `tw-animate-css` estaba instalado pero no se importaba: diálogos, menús,
+  tooltips y el cajón aparecían de golpe. Ahora se importa.
+- Micro-interacciones en `globals.css` (capa `components`, sobre los
+  `data-slot` de shadcn, sin editar `components/ui/`): botón que se hunde al
+  presionar, sombra de color en hover, transiciones con curva suave (200 ms),
+  clase `tarjeta-interactiva`, entrada de cada pantalla
+  (`src/app/(app)/template.tsx`). Todo respeta `prefers-reduced-motion`.
+- Paneles, avisos y estados vacíos redondeados en todas las pantallas.
+- JetBrains Mono por `next/font`; `themeColor` del navegador y del manifiesto
+  en `#00857A`.
+
+**Pendiente de decidir.** El logo y los íconos de la app siguen en el verde
+original. `lamelas-web` mantiene su identidad (no se tocó).
+
+**Estado.** En `dev`, sin verificar.
+
+## MOBILE-UI-01 — versión mobile más simple de navegar
+
+**Qué es.** Pedido de Cacho (2026-11-07): que el panel sea más amigable en el
+celular.
+
+**Cómo.**
+- **Barra inferior** (`components/nav/barra-inferior.tsx`, < md): Inicio,
+  Propiedades, "+" (panel con Nueva propiedad / consulta / captación),
+  Consultas con el contador de sin tomar, y Menú (abre el cajón). Se oculta en
+  los formularios de alta y edición (`OCULTA_EN`). El encabezado muestra la
+  marca en lugar de la hamburguesa.
+- **Filtros** de Propiedades y Consultas con `components/filtros-plegables.tsx`:
+  búsqueda a la vista, botón "Filtros" con la cantidad aplicada, panel inferior
+  con selects grandes, "Limpiar" y "Ver resultados".
+- **Toque:** en pantallas táctiles botones y campos de 44px y campos en 16px
+  (iOS no hace zoom al enfocar).
+- **Formularios:** el botón de guardar de propiedad queda fijo abajo (como en
+  captaciones). `viewportFit: "cover"` + `env(safe-area-inset-bottom)` en todo
+  lo fijo abajo.
+- **Listados:** la vista Tabla/Cards funciona igual que en escritorio (decisión
+  de Cacho, 2026-11-08: no forzar tarjetas); la tabla se desplaza hacia el
+  costado. En Cards, la tarjeta de propiedad es horizontal (foto chica a la
+  izquierda). Las etiquetas de la consulta bajan de línea y "Cargar consulta"
+  se oculta (está en el "+").
+
+**Estado.** En `dev`, revisado en simulación de 390px con datos locales;
+falta probar en un celular real.
+

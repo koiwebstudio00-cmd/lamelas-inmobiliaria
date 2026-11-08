@@ -51,13 +51,13 @@ export default async function IncidentePage({ params }: { params: Promise<{ id: 
         <h1 className="text-2xl font-semibold leading-tight">{incidente.titulo}</h1>
       </div>
 
-      <section className="border bg-background p-4 text-sm">
+      <section className="rounded-xl border bg-background p-4 text-sm">
         <h2 className="mb-1 font-semibold">Qué significa</h2>
         <p className="text-muted-foreground">{INCIDENTE_AYUDA[incidente.tipo]}</p>
         <p className="mt-2 text-muted-foreground">Si no tenés acceso a n8n o a Zernio, avisale a Koi.</p>
       </section>
 
-      <dl className="grid grid-cols-1 gap-x-6 gap-y-2 border bg-background p-4 text-sm sm:grid-cols-[auto_1fr]">
+      <dl className="rounded-xl grid grid-cols-1 gap-x-6 gap-y-2 border bg-background p-4 text-sm sm:grid-cols-[auto_1fr]">
         {datos.map(([label, valor]) => (
           <div key={label} className="contents">
             <dt className="text-muted-foreground">{label}</dt>

@@ -426,7 +426,7 @@ export function CaptacionForm({
       )}
 
       {!listo && (
-        <div className="sticky bottom-0 -mx-4 flex gap-2 border-t bg-background/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
+        <div className="sticky bottom-0 z-10 -mx-4 flex gap-2 border-t bg-background/90 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-lg sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
           {paso > 0 && (
             <Button type="button" variant="outline" onClick={() => irA(paso - 1)} disabled={pending}>
               <ChevronLeft className="size-4" /> Atrás
@@ -474,7 +474,7 @@ function Encabezado({ paso }: { paso: number }) {
 }
 
 function Seccion({ children }: { children: React.ReactNode }) {
-  return <div className="space-y-4 border bg-background p-4">{children}</div>;
+  return <div className="rounded-xl space-y-4 border bg-background p-4">{children}</div>;
 }
 
 function Campo({

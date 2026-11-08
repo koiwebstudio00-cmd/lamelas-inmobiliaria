@@ -21,7 +21,7 @@ export function LeadRow({ lead }: { lead: Lead }) {
   const necesitaAtencion = lead.derivacion?.pendiente === true;
   const esFantasma = lead.clasificacion === "fantasma";
   return (
-    <li className="border bg-background">
+    <li className="rounded-xl border bg-background">
       <Link
         href={`/consultas/${lead.id}`}
         prefetch={false}
@@ -49,7 +49,7 @@ export function LeadRow({ lead }: { lead: Lead }) {
               )}
             </p>
           </div>
-          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-1.5 sm:shrink-0 sm:justify-end sm:gap-2">
             {/* Orden deliberado: primero lo que pide acción, después el contexto. */}
             {necesitaAtencion && <LeadAtencionBadge motivo={lead.derivacion!.motivo} />}
             <CanalBadge canal={lead.canal} />

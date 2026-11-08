@@ -103,7 +103,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams: Pr
         <ReportButton defaultMonth={reportMonth} maxMonth={currentMonth} />
       </div>
 
-      <nav className="flex overflow-x-auto border bg-background p-1" aria-label="Sección de analíticas">
+      <nav className="rounded-xl flex overflow-x-auto border bg-background p-1" aria-label="Sección de analíticas">
         {(Object.keys(TABS) as Tab[]).map((key) => (
           <Button key={key} asChild size="sm" variant={tab === key ? "default" : "ghost"} className="shrink-0">
             <Link href={tabHref(params, key)} prefetch={false} aria-current={tab === key ? "page" : undefined}>

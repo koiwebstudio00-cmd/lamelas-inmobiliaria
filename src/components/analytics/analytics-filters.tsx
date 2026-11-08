@@ -47,7 +47,7 @@ export function AnalyticsFilters({
   ).length;
 
   return (
-    <section className="space-y-3 border bg-background p-3 sm:p-4">
+    <section className="rounded-xl space-y-3 border bg-background p-3 sm:p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm font-medium">
           <Filter className="size-4 text-primary" /> Filtros

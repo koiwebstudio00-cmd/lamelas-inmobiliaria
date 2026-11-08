@@ -45,7 +45,7 @@ export function PropertyTable({
   filtroOperacion?: "venta" | "alquiler";
 }) {
   return (
-    <div className="overflow-x-auto border bg-background">
+    <div className="rounded-xl overflow-x-auto border bg-background">
       <Table>
         <TableHeader>
           <TableRow>

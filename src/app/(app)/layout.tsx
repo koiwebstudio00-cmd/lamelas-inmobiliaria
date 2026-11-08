@@ -1,6 +1,9 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import { Logo } from "@/components/logo";
 import { AppNav } from "@/components/nav/app-nav";
+import { BarraInferior } from "@/components/nav/barra-inferior";
 import { NotificationsBell } from "@/components/notifications/notifications-bell";
 import { PwaInit } from "@/components/pwa/pwa-init";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -45,15 +48,21 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       />
       {/* `min-w-0`: sin esto una tabla ancha estira la página entera en vez de
           scrollear dentro de su contenedor (y la campanita queda fuera de vista). */}
-      <SidebarInset className="min-w-0 bg-secondary">
-        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-4 print:hidden">
-          <SidebarTrigger />
+      <SidebarInset className="min-w-0 bg-muted/50">
+        <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b bg-background/85 px-4 backdrop-blur-lg print:hidden">
+          {/* En el celular el menú está en la barra inferior: arriba va la marca. */}
+          <SidebarTrigger className="hidden md:inline-flex" />
+          <Link href="/" prefetch={false} className="flex items-center gap-2 font-semibold md:hidden">
+            <Logo className="size-7" />
+            Lamelas &amp; Chaumont
+          </Link>
           {/* Campanita a la derecha: avisos internos (reemplazan a los correos). */}
           <div className="ml-auto">
             <NotificationsBell inicial={notificaciones} />
           </div>
         </header>
         <div className="mx-auto w-full p-4 sm:p-6 print:p-0">{children}</div>
+        <BarraInferior consultasSinTomar={consultasSinTomar} />
       </SidebarInset>
     </SidebarProvider>
   );

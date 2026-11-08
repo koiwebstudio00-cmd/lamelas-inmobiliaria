@@ -98,7 +98,7 @@ export function NuevaPublicacion({ userId, nombre }: { userId: string; nombre: s
   if (!abierta) {
     return (
       <div className="space-y-2">
-        {aviso && <p className="border bg-amber-50 p-3 text-sm text-amber-900">{aviso}</p>}
+        {aviso && <p className="rounded-xl border bg-amber-50 p-3 text-sm text-amber-900">{aviso}</p>}
         <button
           type="button"
           onClick={() => setAbierta(true)}
@@ -112,7 +112,7 @@ export function NuevaPublicacion({ userId, nombre }: { userId: string; nombre: s
   }
 
   return (
-    <form ref={formRef} onSubmit={onSubmit} className="space-y-4 border bg-background p-4">
+    <form ref={formRef} onSubmit={onSubmit} className="rounded-xl space-y-4 border bg-background p-4">
       <div className="space-y-2">
         <Label>¿Qué querés publicar?</Label>
         <div role="radiogroup" aria-label="Tipo" className="grid grid-cols-3 gap-2">
@@ -181,7 +181,7 @@ export function NuevaPublicacion({ userId, nombre }: { userId: string; nombre: s
           </div>
           <div className="space-y-2">
             <Label>Capturas (opcional, hasta {MAX})</Label>
-            <label className="flex cursor-pointer items-center gap-2 border border-dashed p-3 text-sm text-muted-foreground hover:bg-muted/40">
+            <label className="rounded-xl flex cursor-pointer items-center gap-2 border border-dashed p-3 text-sm text-muted-foreground hover:bg-muted/40">
               <Paperclip className="size-4" /> Agregar capturas
               <input
                 type="file"

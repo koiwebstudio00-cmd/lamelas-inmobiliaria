@@ -7,7 +7,7 @@ function Toaster(props: React.ComponentProps<typeof Sonner>) {
     <Sonner
       position="top-center"
       toastOptions={{
-        style: { borderRadius: 0 },
+        style: { borderRadius: "var(--radius)" },
       }}
       {...props}
     />

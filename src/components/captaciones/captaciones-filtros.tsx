@@ -46,7 +46,7 @@ export function CaptacionesFiltros() {
           aria-label="Buscar captaciones"
         />
       </div>
-      <div className="flex border bg-background p-1" role="tablist" aria-label="Qué captaciones ver">
+      <div className="rounded-xl flex border bg-background p-1" role="tablist" aria-label="Qué captaciones ver">
         {[
           ["", "Todas"],
           ["1", "Mías"],
@@ -60,7 +60,7 @@ export function CaptacionesFiltros() {
               aria-selected={activo}
               onClick={() => setParam("mias", valor)}
               className={cn(
-                "min-h-9 flex-1 px-4 text-sm sm:flex-none",
+                "min-h-9 flex-1 rounded-lg px-4 text-sm transition-colors active:scale-[0.98] sm:flex-none",
                 activo ? "bg-primary text-primary-foreground" : "hover:bg-muted",
               )}
             >

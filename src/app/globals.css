@@ -1,30 +1,50 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
+@custom-variant dark (&:is(.dark *));
+
+/* Tema de tweakcn (cmnl3tsn3000204l3ff39foko), nov 2026. Reemplaza al verde
+   #0E9145 con bordes rectos del design system original. Los valores de
+   saturación > 100% que exporta tweakcn se normalizaron a 100% (el navegador
+   igual los recorta). */
 :root {
-  --background: #ffffff;
-  --foreground: #171d19;
-  --card: #ffffff;
-  --card-foreground: #171d19;
-  --popover: #ffffff;
-  --popover-foreground: #171d19;
-  --primary: #0e9145;
-  --primary-foreground: #ffffff;
-  --primary-hover: #12a853;
-  --primary-active: #0b7438;
-  --secondary: #f7f8f7;
-  --secondary-foreground: #171d19;
-  --muted: #f7f8f7;
-  --muted-foreground: #6b7570;
-  --accent: #ebf7ef;
-  --accent-foreground: #07481f;
-  --destructive: #dc2626;
-  --destructive-foreground: #ffffff;
+  --background: hsl(200 100% 98.8235%);
+  --foreground: hsl(188.8889 81.8182% 6.4706%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(188.8889 81.8182% 6.4706%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(240 30% 15.6863%);
+  --primary: hsl(175.0198 100% 26.0563%);
+  --primary-foreground: hsl(0 0% 98.8235%);
+  --primary-hover: hsl(175.0198 100% 30%);
+  --primary-active: hsl(175.0198 100% 21%);
+  --secondary: hsl(180 35% 92.1569%);
+  --secondary-foreground: hsl(189.2308 30.2326% 25.2941%);
+  --muted: hsl(180 29.0323% 93.9216%);
+  --muted-foreground: hsl(190.3448 15.3439% 37.0588%);
+  --accent: hsl(160.9756 51.8987% 84.5098%);
+  --accent-foreground: hsl(180 100% 19.4118%);
+  --destructive: hsl(1.8605 56.8282% 55.4902%);
+  --destructive-foreground: hsl(0 0% 100%);
   --warning: #d97706;
   --info: #2563eb;
-  --border: #e4e7e4;
-  --input: #e4e7e4;
-  --ring: #0e9145;
-  --radius: 0rem; /* bordes rectos en toda la UI (design-system.md §5) */
+  --border: hsl(186 15.625% 87.451%);
+  --input: hsl(186 15.625% 87.451%);
+  --ring: hsl(175.0198 100% 26.0563%);
+  --chart-1: hsl(175.0198 100% 26.0563%);
+  --chart-2: hsl(194.5116 100% 42.1569%);
+  --chart-3: hsl(259.4737 98.2759% 77.2549%);
+  --chart-4: hsl(34.8529 100% 73.3333%);
+  --chart-5: hsl(92.9412 52.5773% 80.9804%);
+  --sidebar: hsl(192 33.3333% 97.0588%);
+  --sidebar-foreground: hsl(188.5714 50% 10.9804%);
+  --sidebar-primary: hsl(175.0198 100% 26.0563%);
+  --sidebar-primary-foreground: hsl(240 42.8571% 98.6275%);
+  --sidebar-accent: hsl(160.9756 51.8987% 84.5098%);
+  --sidebar-accent-foreground: hsl(240 30% 15.6863%);
+  --sidebar-border: hsl(183 32.2581% 87.8431%);
+  --sidebar-ring: hsl(250.8108 53.11% 59.0196%);
+  --radius: 0.5rem;
 
   /* badges de estado de propiedad */
   --estado-disponible-bg: #d2eedd;
@@ -43,18 +63,45 @@
   --lead-ganada-fg: #07481f;
   --lead-perdida-bg: #f1f2f1;
   --lead-perdida-fg: #4b524e;
+}
 
-  /* barra lateral (componente `sidebar` de shadcn).
-     Blanca como estaba antes, con el contenido en `secondary` al lado, para
-     que las Card sigan destacando. El item activo usa el verde suave `accent`. */
-  --sidebar: #ffffff;
-  --sidebar-foreground: #171d19;
-  --sidebar-primary: #0e9145;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #ebf7ef;
-  --sidebar-accent-foreground: #07481f;
-  --sidebar-border: #e4e7e4;
-  --sidebar-ring: #0e9145;
+/* Modo oscuro del tema. Hoy no hay selector: se activa poniendo la clase
+   `dark` en <html>. */
+.dark {
+  --background: hsl(180 57.1429% 2.7451%);
+  --foreground: hsl(186 22.7273% 91.3725%);
+  --card: hsl(184 55.5556% 5.2941%);
+  --card-foreground: hsl(186 22.7273% 91.3725%);
+  --popover: hsl(235.7143 24.1379% 11.3725%);
+  --popover-foreground: hsl(240 42.8571% 93.1373%);
+  --primary: hsl(175.0198 100% 26.0563%);
+  --primary-foreground: hsl(0 0% 100%);
+  --primary-hover: hsl(175.0198 100% 30%);
+  --primary-active: hsl(175.0198 100% 21%);
+  --secondary: hsl(182.3077 54.1667% 9.4118%);
+  --secondary-foreground: hsl(182.069 25.6637% 77.8431%);
+  --muted: hsl(184 33.3333% 8.8235%);
+  --muted-foreground: hsl(182.1429 11.7647% 53.3333%);
+  --accent: hsl(176.8538 100% 17.2823%);
+  --accent-foreground: hsl(180 35.3659% 67.8431%);
+  --destructive: hsl(0 92.5134% 63.3333%);
+  --destructive-foreground: hsl(240 42.8571% 98.6275%);
+  --border: hsl(184 27.2727% 10.7843%);
+  --input: hsl(184 27.2727% 10.7843%);
+  --ring: hsl(175.0198 100% 26.0563%);
+  --chart-1: hsl(175.0198 100% 26.0563%);
+  --chart-2: hsl(194.5116 100% 42.1569%);
+  --chart-3: hsl(259.4737 98.2759% 77.2549%);
+  --chart-4: hsl(34.8529 100% 73.3333%);
+  --chart-5: hsl(92.9412 52.5773% 80.9804%);
+  --sidebar: hsl(184.2857 70% 3.9216%);
+  --sidebar-foreground: hsl(186 22.7273% 91.3725%);
+  --sidebar-primary: hsl(175.0198 100% 26.0563%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(176.8538 100% 17.2823%);
+  --sidebar-accent-foreground: hsl(240 42.8571% 93.1373%);
+  --sidebar-border: hsl(237 18.8679% 20.7843%);
+  --sidebar-ring: hsl(249.1892 100% 78.2353%);
 }
 
 @theme inline {
@@ -81,6 +128,11 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -89,82 +141,185 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --radius-none: 0;
 
-  /* El design-system (§5) pide bordes rectos en toda la UI, pero el codigo
-     del registro de shadcn viene lleno de `rounded-md`. En vez de editar los
-     componentes uno por uno, dejamos la escala de radios en cero: cualquier
-     `rounded-*` queda recto. Para volver a las esquinas redondeadas, borrar
-     este bloque. */
-  --radius-xs: 0;
-  --radius-sm: 0;
-  --radius-md: 0;
-  --radius-lg: 0;
-  --radius-xl: 0;
-  --radius-2xl: 0;
-  --radius-3xl: 0;
+  /* Fuentes: Inter y JetBrains Mono llegan por next/font (layout.tsx). */
+  --font-sans: var(--font-inter), Inter, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, monospace;
+  --font-serif: Georgia, serif;
 
-  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
-* {
-  border-color: var(--border);
+@theme {
+  --shadow-2xs: 0px 4px 10px 0px hsl(240 29.6875% 25.098% / 0.06);
+  --shadow-xs: 0px 4px 10px 0px hsl(240 29.6875% 25.098% / 0.06);
+  --shadow-sm: 0px 4px 10px 0px hsl(240 29.6875% 25.098% / 0.12), 0px 1px 2px -1px hsl(240 29.6875% 25.098% / 0.12);
+  --shadow: 0px 4px 10px 0px hsl(240 29.6875% 25.098% / 0.12), 0px 1px 2px -1px hsl(240 29.6875% 25.098% / 0.12);
+  --shadow-md: 0px 4px 10px 0px hsl(240 29.6875% 25.098% / 0.12), 0px 2px 4px -1px hsl(240 29.6875% 25.098% / 0.12);
+  --shadow-lg: 0px 4px 10px 0px hsl(240 29.6875% 25.098% / 0.12), 0px 4px 6px -1px hsl(240 29.6875% 25.098% / 0.12);
+  --shadow-xl: 0px 4px 10px 0px hsl(240 29.6875% 25.098% / 0.12), 0px 8px 10px -1px hsl(240 29.6875% 25.098% / 0.12);
+  --shadow-2xl: 0px 4px 10px 0px hsl(240 29.6875% 25.098% / 0.3);
+  --tracking-normal: 0em;
+
+  /* Movimiento. Todas las utilidades `transition-*` heredan esta curva y
+     duración: arrancan rápido y frenan suave (nada lineal ni brusco). */
+  --ease-suave: cubic-bezier(0.22, 1, 0.36, 1);
+  --default-transition-duration: 200ms;
+  --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-entrada-pagina: entrada-pagina 320ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    -webkit-tap-highlight-color: transparent; /* sin el flash gris al tocar en el celular */
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "cv11", "ss01"; /* Inter: dígitos y letras más limpios */
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--primary) 22%, transparent);
+  }
+  a {
+    transition: color 150ms var(--ease-suave);
+  }
 }
 
-/* Animaciones del cajón lateral en movil. Son las unicas que usa `sheet.tsx`;
-   están acá para no depender de `tw-animate-css`. Tienen que ser animaciones
-   (no transiciones) porque Radix espera el `animationend` para desmontar. */
-@keyframes fundido-entra {
-  from { opacity: 0; }
-  to { opacity: 1; }
+/* Micro-interacciones. Van acá (y no editando components/ui/) para respetar
+   la regla de no tocar a mano el código del registro de shadcn. Están en la
+   capa `components`, así cualquier clase utilitaria puntual las pisa. */
+@layer components {
+  /* Botones: se hunden apenas al presionar y vuelven con rebote suave. */
+  [data-slot="button"]:not([data-variant="link"]) {
+    touch-action: manipulation;
+  }
+  [data-slot="button"]:not([data-variant="link"]):not(:disabled):active {
+    scale: 0.97;
+  }
+  [data-slot="button"][data-variant="default"]:not(:disabled):hover {
+    box-shadow: 0 6px 16px -6px color-mix(in oklab, var(--primary) 55%, transparent);
+  }
+  [data-slot="button"][data-variant="destructive"]:not(:disabled):hover {
+    box-shadow: 0 6px 16px -6px color-mix(in oklab, var(--destructive) 55%, transparent);
+  }
+
+  /* Ítems de menús desplegables: el resaltado entra con fundido. */
+  [data-slot="dropdown-menu-item"],
+  [data-slot="dropdown-menu-checkbox-item"],
+  [data-slot="dropdown-menu-radio-item"],
+  [data-slot="dropdown-menu-sub-trigger"] {
+    transition: background-color 150ms var(--ease-suave), color 150ms var(--ease-suave);
+  }
+
+  /* Campos de formulario (select nativo y textarea no traen transición). */
+  select,
+  textarea {
+    transition: border-color 200ms var(--ease-suave), box-shadow 200ms var(--ease-suave);
+  }
+
+  /* Tarjetas clicables: se elevan un poco al pasar el mouse. */
+  .tarjeta-interactiva {
+    transition:
+      translate 250ms var(--ease-suave),
+      box-shadow 250ms var(--ease-suave),
+      background-color 200ms var(--ease-suave),
+      border-color 200ms var(--ease-suave);
+  }
+  @media (hover: hover) {
+    .tarjeta-interactiva:hover {
+      translate: 0 -2px;
+      box-shadow: var(--shadow-lg);
+      border-color: color-mix(in oklab, var(--primary) 30%, var(--border));
+    }
+  }
+  .tarjeta-interactiva:active {
+    translate: 0 0;
+    scale: 0.99;
+  }
 }
-@keyframes fundido-sale {
-  from { opacity: 1; }
-  to { opacity: 0; }
+
+/* Celular y tablet (puntero táctil): áreas de toque de al menos 44px y
+   campos en 16px para que iOS no haga zoom al enfocarlos. `min-height` gana
+   sobre los `h-*` del registro sin tener que editarlos. */
+@layer components {
+  @media (pointer: coarse) {
+    [data-slot="button"][data-size="default"],
+    [data-slot="button"][data-size="lg"],
+    [data-slot="input"],
+    select {
+      min-height: 2.75rem;
+    }
+    [data-slot="button"][data-size="icon"] {
+      min-height: 2.75rem;
+      min-width: 2.75rem;
+    }
+    [data-slot="button"][data-size="sm"] {
+      min-height: 2.5rem;
+    }
+    [data-slot="button"][data-size="icon-sm"] {
+      min-height: 2.5rem;
+      min-width: 2.5rem;
+    }
+    [data-slot="input"],
+    select,
+    textarea {
+      font-size: 16px;
+    }
+    [data-slot="dropdown-menu-item"],
+    [data-slot="dropdown-menu-checkbox-item"],
+    [data-slot="dropdown-menu-radio-item"] {
+      min-height: 2.75rem;
+    }
+    /* Cajón lateral en el celular: filas más altas y fáciles de tocar. */
+    [data-mobile="true"] [data-slot="sidebar-menu-button"],
+    [data-mobile="true"] [data-slot="sidebar-menu-sub-button"] {
+      min-height: 2.75rem;
+    }
+  }
 }
-@keyframes cajon-entra-izq {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(0); }
+
+/* Barra lateral: sumamos color y escala a la transición que trae el registro
+   (ancho/alto/padding para colapsar). Fuera de capa para ganarle a la
+   utilidad `transition-[width,height,padding]` del componente. */
+[data-slot="sidebar-menu-button"],
+[data-slot="sidebar-menu-sub-button"] {
+  transition-property: width, height, padding, background-color, color, scale;
+  transition-duration: 200ms;
+  transition-timing-function: var(--ease-suave);
 }
-@keyframes cajon-sale-izq {
-  from { transform: translateX(0); }
-  to { transform: translateX(-100%); }
+[data-slot="sidebar-menu-button"]:active,
+[data-slot="sidebar-menu-sub-button"]:active {
+  scale: 0.98;
 }
-@keyframes cajon-entra-der {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
-}
-@keyframes cajon-sale-der {
-  from { transform: translateX(0); }
-  to { transform: translateX(100%); }
-}
-@keyframes cajon-entra-arriba {
-  from { transform: translateY(-100%); }
-  to { transform: translateY(0); }
-}
-@keyframes cajon-sale-arriba {
-  from { transform: translateY(0); }
-  to { transform: translateY(-100%); }
-}
-@keyframes cajon-entra-abajo {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
-}
-@keyframes cajon-sale-abajo {
-  from { transform: translateY(0); }
-  to { transform: translateY(-100%); }
+
+/* Entrada de cada pantalla (src/app/(app)/template.tsx): fundido con un
+   desplazamiento mínimo. `backwards` no deja transform al terminar, así no
+   rompe elementos `fixed`/`sticky` adentro de la página. */
+@keyframes entrada-pagina {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-slot="sheet-content"],
-  [data-slot="sheet-overlay"] {
+  *,
+  *::before,
+  *::after {
     animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+  [data-slot="button"]:active,
+  .tarjeta-interactiva:hover {
+    scale: none !important;
+    translate: none !important;
   }
 }
 

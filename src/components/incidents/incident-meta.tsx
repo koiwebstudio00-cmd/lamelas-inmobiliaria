@@ -24,7 +24,7 @@ export const INCIDENTE_AYUDA: Record<IncidenteTipo, string> = {
 export function GravedadBadge({ incidente }: { incidente: Pick<Incidente, "gravedad" | "estado"> }) {
   if (incidente.estado === "resuelto") {
     return (
-      <span className="inline-flex items-center gap-1 border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-xs font-medium text-emerald-700">
+      <span className="rounded-md inline-flex items-center gap-1 border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-xs font-medium text-emerald-700">
         <CircleCheck className="size-3.5" /> Resuelto
       </span>
     );

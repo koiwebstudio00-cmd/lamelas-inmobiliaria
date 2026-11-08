@@ -58,7 +58,7 @@ export function LeadAvances({
   return (
     <div className="space-y-4">
       {pendiente && puedeCargar && (
-        <div className="flex items-start gap-2 border border-amber-200 bg-amber-50 p-3">
+        <div className="rounded-xl flex items-start gap-2 border border-amber-200 bg-amber-50 p-3">
           <Clock3 className="mt-0.5 size-4 shrink-0 text-amber-700" />
           <p className="text-sm text-amber-900">
             <span className="font-medium">Hace varios días que no hay novedades.</span> Contanos

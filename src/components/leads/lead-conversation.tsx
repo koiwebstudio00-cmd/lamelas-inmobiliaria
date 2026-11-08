@@ -42,7 +42,7 @@ export function LeadConversation({
   return (
     <div className="space-y-4 lg:flex lg:h-full lg:min-h-0 lg:flex-col">
       {estado === "esperando_humano" && (
-        <div className="flex flex-wrap items-center justify-between gap-3 border border-amber-200 bg-amber-50 p-4">
+        <div className="rounded-xl flex flex-wrap items-center justify-between gap-3 border border-amber-200 bg-amber-50 p-4">
           <div className="flex items-start gap-2">
             <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600" />
             <div>

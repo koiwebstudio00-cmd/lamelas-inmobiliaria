@@ -15,7 +15,7 @@ export function AnalyticsMetric({
   comparison?: Comparison;
 }) {
   return (
-    <div className="border bg-background p-4">
+    <div className="rounded-xl border bg-background p-4">
       <div className="flex items-start justify-between gap-3">
         <p className="text-sm text-muted-foreground">{label}</p>
         <Icon className="size-4 shrink-0 text-primary" />
@@ -83,7 +83,7 @@ export function Breakdown({
   };
 
   return (
-    <section className="border bg-background">
+    <section className="rounded-xl border bg-background">
       <div className="border-b px-4 py-3">
         <h3 className="text-sm font-semibold">{title}</h3>
         {description ? <p className="mt-0.5 text-xs text-muted-foreground">{description}</p> : null}

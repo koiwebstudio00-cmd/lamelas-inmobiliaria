@@ -28,7 +28,7 @@ export function DailyVolume({ rows }: { rows: { date: string; canal: string; cou
 
   return (
     <section
-      className="border bg-background"
+      className="rounded-xl border bg-background"
       aria-label={`Volumen diario de consultas: ${rows.reduce((sum, row) => sum + row.count, 0)} en total`}
     >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3">

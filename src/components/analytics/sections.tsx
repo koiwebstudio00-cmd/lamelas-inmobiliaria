@@ -252,7 +252,7 @@ export function LeadsSections({ data, readOnly = false }: { data: AnalyticsLeads
         title="Atención del equipo"
         description="Qué tan rápido se toman los leads y cuáles necesitan seguimiento."
       >
-        <div className="grid gap-3 border bg-background p-4 sm:grid-cols-3">
+        <div className="rounded-xl grid gap-3 border bg-background p-4 sm:grid-cols-3">
           <div><p className="text-xs text-muted-foreground">Asignados</p><p className="mt-1 text-xl font-semibold tabular-nums">{data.summary.assigned}</p></div>
           <div><p className="text-xs text-muted-foreground">Sin asignar</p><p className="mt-1 text-xl font-semibold tabular-nums">{data.summary.unassigned}</p></div>
           <div><p className="text-xs text-muted-foreground">El 90% se tomó antes de</p><p className="mt-1 text-xl font-semibold tabular-nums">{minutes(data.summary.p90_take_minutes)}</p></div>
@@ -363,7 +363,7 @@ export function SofiaSections({ data }: { data: AnalyticsSofia }) {
       >
         <div className="grid gap-3 lg:grid-cols-2 print:grid-cols-2">
           <Breakdown title="Resultado de las derivaciones" values={data.by_handoff_result} labels={HANDOFF_LABELS} />
-          <div className="grid gap-3 border bg-background p-4 sm:grid-cols-2">
+          <div className="rounded-xl grid gap-3 border bg-background p-4 sm:grid-cols-2">
             <div>
               <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><MessagesSquare className="size-3.5" /> Mensajes de leads</p>
               <p className="mt-1 text-xl font-semibold tabular-nums">{s.lead_messages}</p>

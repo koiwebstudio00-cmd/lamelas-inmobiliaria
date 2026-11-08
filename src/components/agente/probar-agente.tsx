@@ -112,7 +112,7 @@ export function ProbarAgente({ conversaciones }: { conversaciones: ConversacionP
   }
 
   return (
-    <div className="flex h-[calc(100dvh-11rem)] flex-col overflow-hidden border bg-background lg:flex-row">
+    <div className="rounded-xl flex h-[calc(100dvh-11rem)] flex-col overflow-hidden border bg-background lg:flex-row">
       {/* Sidebar: conversaciones de prueba */}
       <aside className="flex shrink-0 flex-col border-b lg:h-full lg:w-72 lg:border-b-0 lg:border-r">
         <div className="flex items-center justify-between gap-2 border-b bg-muted/40 p-3">

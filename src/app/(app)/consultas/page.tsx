@@ -67,7 +67,7 @@ export default async function ConsultasPage({
         <div className="flex items-center gap-2">
           <VistaToggle vista={vista} />
           <RefreshButton label="Actualizar consultas" />
-          <Button asChild size="sm">
+          <Button asChild size="sm" className="hidden sm:inline-flex">
             <Link href="/consultas/nueva" prefetch={false}>
               <Plus /> Cargar consulta
             </Link>
@@ -82,7 +82,7 @@ export default async function ConsultasPage({
             { label: "Fantasmas", value: clasif.fantasma ?? 0 },
             { label: "Sin clasificar", value: clasif.sin_clasificar ?? 0 },
           ].map((s) => (
-            <div key={s.label} className="border bg-background p-3">
+            <div key={s.label} className="rounded-xl border bg-background p-3">
               <p className="text-2xl font-semibold tabular-nums">{s.value}</p>
               <p className="text-xs text-muted-foreground">{s.label}</p>
             </div>
@@ -94,7 +94,7 @@ export default async function ConsultasPage({
         <Link
           href="/consultas?avance=pendiente"
           prefetch={false}
-          className="flex items-center gap-3 border border-amber-200 bg-amber-50 p-3 text-amber-950 hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="rounded-xl flex items-center gap-3 border border-amber-200 bg-amber-50 p-3 text-amber-950 hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <ClipboardList className="size-5 shrink-0 text-amber-700" />
           <p className="text-sm">
@@ -116,7 +116,7 @@ export default async function ConsultasPage({
       </Suspense>
 
       {leads.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 border border-dashed p-12 text-center">
+        <div className="rounded-xl flex flex-col items-center gap-2 border border-dashed p-12 text-center">
           <Inbox className="size-8 text-muted-foreground" />
           <p className="font-medium">No hay consultas para mostrar</p>
           <p className="text-sm text-muted-foreground">

@@ -94,7 +94,7 @@ export default async function ConsultaPage({
         {/* Columna principal: la conversación (o la consulta suelta) */}
         <div className="min-w-0 space-y-4 lg:min-h-0 lg:overflow-hidden">
           {!lead.tomado_at && puedeTomar && !puedeTomarseDesdeChat ? (
-            <div className="flex flex-wrap items-center justify-between gap-3 border border-amber-200 bg-amber-50 p-4">
+            <div className="rounded-xl flex flex-wrap items-center justify-between gap-3 border border-amber-200 bg-amber-50 p-4">
               <div className="flex items-start gap-2">
                 <UserCheck className="mt-0.5 size-5 shrink-0 text-amber-700" />
                 <div>

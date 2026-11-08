@@ -27,7 +27,7 @@ export default async function CorreosPage() {
         </p>
       </div>
 
-      <section className="border bg-background">
+      <section className="rounded-xl border bg-background">
         <div className="flex items-center gap-2 border-b bg-muted/40 px-4 py-3">
           <Mail className="size-5 text-primary" />
           <h2 className="font-semibold">Correos activos</h2>
@@ -35,7 +35,7 @@ export default async function CorreosPage() {
         <CorreosForm config={config} />
       </section>
 
-      <section className="border bg-background">
+      <section className="rounded-xl border bg-background">
         <div className="flex items-center gap-2 border-b bg-muted/40 px-4 py-3">
           <Send className="size-5 text-primary" />
           <h2 className="font-semibold">Últimos envíos</h2>

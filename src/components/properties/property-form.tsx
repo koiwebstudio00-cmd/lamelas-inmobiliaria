@@ -752,7 +752,7 @@ export function PropertyForm({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex w-full flex-col items-center gap-2 border border-dashed p-8 text-sm text-muted-foreground hover:border-primary hover:text-primary"
+                className="rounded-xl flex w-full flex-col items-center gap-2 border border-dashed p-8 text-sm text-muted-foreground hover:border-primary hover:text-primary"
               >
                 <ImagePlus className="size-6" />
                 Tocá para agregar fotos (máx. {MAX_FOTOS}). La primera queda como
@@ -801,12 +801,14 @@ export function PropertyForm({
       )}
 
       {state.error && (
-        <p className="border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+        <p className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
           {state.error}
         </p>
       )}
 
-      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+      {/* En el celular el botón queda fijo abajo: el formulario es largo y así
+          se puede guardar sin bajar hasta el final. */}
+      <div className="sticky bottom-0 z-10 -mx-4 -mb-4 flex flex-col-reverse gap-3 rounded-b-xl border-t bg-background/90 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur-lg sm:static sm:m-0 sm:flex-row sm:justify-end sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
         <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={pending}>
           {(pending || uploadingPhotos) && <Loader2 className="animate-spin" />}
           {uploadingPhotos ? "Subiendo fotos..." : pending ? "Guardando..." : submitLabel}

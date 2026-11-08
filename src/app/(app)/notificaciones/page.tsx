@@ -71,7 +71,7 @@ export default async function NotificacionesPage({
       </div>
 
       {notificaciones.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 border border-dashed bg-background p-12 text-center">
+        <div className="rounded-xl flex flex-col items-center gap-2 border border-dashed bg-background p-12 text-center">
           <BellOff className="size-8 text-muted-foreground" />
           <p className="font-medium">
             {soloNoLeidas ? "No hay notificaciones sin leer" : "Todavía no hay notificaciones"}

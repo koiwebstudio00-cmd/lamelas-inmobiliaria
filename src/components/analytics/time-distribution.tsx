@@ -22,7 +22,7 @@ export function TimeDistribution({
   const step = rows.length > 12 ? 3 : 1;
 
   return (
-    <section className="border bg-background" aria-label={`${title}: ${total} en total`}>
+    <section className="rounded-xl border bg-background" aria-label={`${title}: ${total} en total`}>
       <div className="border-b px-4 py-3">
         <h3 className="text-sm font-semibold">{title}</h3>
         {description ? <p className="mt-0.5 text-xs text-muted-foreground">{description}</p> : null}

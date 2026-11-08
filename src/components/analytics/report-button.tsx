@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
  */
 export function ReportButton({ defaultMonth, maxMonth }: { defaultMonth: string; maxMonth: string }) {
   return (
-    <form action="/analiticas/reporte" className="flex items-center gap-1 border bg-background p-1">
+    <form action="/analiticas/reporte" className="rounded-xl flex items-center gap-1 border bg-background p-1">
       <label className="sr-only" htmlFor="report-month">Mes del reporte</label>
       <Input
         id="report-month"

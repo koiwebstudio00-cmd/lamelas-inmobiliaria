@@ -44,7 +44,7 @@ export default async function FeedbackHiloPage({
         {admin && <EliminarFeedback id={item.id} />}
       </div>
 
-      <article className="space-y-5 border bg-background p-4 sm:p-5">
+      <article className="rounded-xl space-y-5 border bg-background p-4 sm:p-5">
         <header className="flex gap-3">
           <AutorAvatar id={item.autor?.id ?? ""} nombre={item.autor?.nombre ?? "?"} className="size-10" />
           <div className="min-w-0 flex-1 space-y-1">

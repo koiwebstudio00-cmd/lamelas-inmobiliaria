@@ -86,7 +86,7 @@ export default async function IncidentesPage({ searchParams }: { searchParams: S
       </div>
 
       {incidentes.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 border border-dashed bg-background p-12 text-center">
+        <div className="rounded-xl flex flex-col items-center gap-2 border border-dashed bg-background p-12 text-center">
           <ShieldCheck className="size-8 text-muted-foreground" />
           <p className="font-medium">
             {ver === "resueltos" || ver === "todos" ? "No hay incidentes para mostrar" : "No hay incidentes abiertos"}
