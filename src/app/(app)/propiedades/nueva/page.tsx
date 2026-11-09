@@ -39,7 +39,7 @@ export default async function NuevaPropiedadPage({
           podés agregar acá mismo o después desde el detalle.
         </p>
       )}
-      <div className="border bg-background p-4 sm:p-6">
+      <div className="rounded-xl border bg-background p-4 sm:p-6">
         <PropertyForm
           // `key`: al pasar de una plantilla a otra el form se rearma entero.
           key={desde ?? "nueva"}

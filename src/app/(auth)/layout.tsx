@@ -7,7 +7,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <Logo className="size-10" />
         <span className="text-xl font-semibold">Lamelas & Chaumont</span>
       </div>
-      <div className="w-full max-w-sm border bg-background p-6 shadow-sm">
+      <div className="rounded-xl w-full max-w-sm border bg-background p-6 shadow-sm">
         {children}
       </div>
     </div>

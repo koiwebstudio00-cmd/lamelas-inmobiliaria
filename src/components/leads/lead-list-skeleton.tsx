@@ -19,7 +19,7 @@ export function LeadListSkeleton() {
 
       <div className="grid grid-cols-3 gap-2">
         {ROWS.slice(0, 3).map((row) => (
-          <div key={row} className="space-y-2 border bg-background p-3">
+          <div key={row} className="rounded-xl space-y-2 border bg-background p-3">
             <Skeleton className="h-7 w-12" />
             <Skeleton className="h-3 w-24 max-w-full" />
           </div>
@@ -35,7 +35,7 @@ export function LeadListSkeleton() {
         </div>
       </div>
 
-      <div className="hidden overflow-hidden border bg-background md:block">
+      <div className="rounded-xl hidden overflow-hidden border bg-background md:block">
         <div className="grid h-11 grid-cols-[1.2fr_1fr_.6fr_1.2fr_.8fr_.8fr_.7fr] items-center gap-4 border-b px-4">
           {ROWS.map((row) => (
             <Skeleton key={row} className="h-3 w-16 max-w-full" />
@@ -65,7 +65,7 @@ export function LeadListSkeleton() {
 
       <div className="space-y-2 md:hidden">
         {ROWS.slice(0, 5).map((row) => (
-          <div key={row} className="space-y-3 border bg-background p-4">
+          <div key={row} className="rounded-xl space-y-3 border bg-background p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-2">
                 <Skeleton className="h-4 w-36" />

@@ -32,10 +32,10 @@ export default async function EditarPropiedadPage({
   return (
     <div className="mx-auto max-w-2xl space-y-4">
       <h1 className="text-2xl font-semibold">Editar propiedad</h1>
-      <div className="border bg-background p-4">
+      <div className="rounded-xl border bg-background p-4">
         <PhotoManager propertyId={property.id} images={images} />
       </div>
-      <div className="border bg-background p-4 sm:p-6">
+      <div className="rounded-xl border bg-background p-4 sm:p-6">
         <PropertyForm
           action={action}
           property={property}

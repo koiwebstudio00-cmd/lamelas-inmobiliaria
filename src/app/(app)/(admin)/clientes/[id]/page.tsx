@@ -84,7 +84,7 @@ export default async function ClienteDetallePage({
         </Link>
       </Button>
 
-      <section className="border bg-background">
+      <section className="rounded-xl border bg-background">
         <div className="h-24 bg-[linear-gradient(110deg,#0E9145_0%,#0E9145_32%,#E9C46A_32%,#E9C46A_58%,#F7F7F4_58%,#F7F7F4_100%)] sm:h-32" />
         <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-end sm:justify-between sm:p-6">
           <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end">
@@ -124,17 +124,17 @@ export default async function ClienteDetallePage({
       </section>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <div className="border bg-background p-4">
+        <div className="rounded-xl border bg-background p-4">
           <p className="text-sm text-muted-foreground">Propiedades</p>
           <p className="mt-1 text-3xl font-semibold tabular-nums">
             {cliente.propiedades.length}
           </p>
         </div>
-        <div className="border bg-background p-4">
+        <div className="rounded-xl border bg-background p-4">
           <p className="text-sm text-muted-foreground">En venta</p>
           <p className="mt-1 text-3xl font-semibold tabular-nums">{propiedadesEnVenta}</p>
         </div>
-        <div className="border bg-background p-4">
+        <div className="rounded-xl border bg-background p-4">
           <p className="text-sm text-muted-foreground">En alquiler</p>
           <p className="mt-1 text-3xl font-semibold tabular-nums">
             {propiedadesEnAlquiler}

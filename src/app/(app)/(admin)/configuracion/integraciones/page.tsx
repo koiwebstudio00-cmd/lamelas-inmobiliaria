@@ -30,7 +30,7 @@ export default async function IntegracionesPage() {
         <ApiKeyDialog scopes={scopes} />
       </div>
 
-      <section className="border bg-background">
+      <section className="rounded-xl border bg-background">
         <div className="flex items-center gap-2 border-b bg-muted/40 px-4 py-3">
           <KeyRound className="size-5 text-primary" />
           <h2 className="font-semibold">Keys activas ({keys.length})</h2>

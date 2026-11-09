@@ -29,7 +29,7 @@ export default function ClientesPage() {
       </div>
 
       {/* Aviso: esta es la vista previa del módulo, con datos de muestra. */}
-      <div className="flex items-start gap-3 border border-dashed bg-muted/40 p-4 text-sm">
+      <div className="rounded-xl flex items-start gap-3 border border-dashed bg-muted/40 p-4 text-sm">
         <Sparkles className="mt-0.5 size-5 shrink-0 text-primary" />
         <div>
           <p className="font-medium">Vista previa con datos de ejemplo</p>

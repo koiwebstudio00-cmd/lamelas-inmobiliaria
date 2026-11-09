@@ -54,7 +54,7 @@ export default async function MisPropiedadesPage({
       </div>
 
       {properties.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 border border-dashed p-12 text-center">
+        <div className="rounded-xl flex flex-col items-center gap-3 border border-dashed p-12 text-center">
           <p className="font-medium">Todavía no cargaste propiedades</p>
           <Button asChild>
             <Link href="/propiedades/nueva" prefetch={false}>

@@ -27,7 +27,7 @@ export default async function ConectarWhatsappPage({
       </div>
 
       {params.error && (
-        <div className="flex items-start gap-2 border border-destructive/30 bg-destructive/5 p-3">
+        <div className="rounded-xl flex items-start gap-2 border border-destructive/30 bg-destructive/5 p-3">
           <TriangleAlert className="mt-0.5 size-4 shrink-0 text-destructive" />
           <p className="text-sm">{params.error}</p>
         </div>

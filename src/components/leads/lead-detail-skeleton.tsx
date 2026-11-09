@@ -17,7 +17,7 @@ export function LeadDetailSkeleton() {
       </div>
 
       <div className="grid gap-4 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="min-w-0 border bg-background lg:flex lg:min-h-0 lg:flex-col">
+        <div className="rounded-xl min-w-0 border bg-background lg:flex lg:min-h-0 lg:flex-col">
           <div className="flex h-14 items-center justify-between border-b bg-muted/40 px-4">
             <div className="flex items-center gap-2">
               <Skeleton className="size-5" />
@@ -39,7 +39,7 @@ export function LeadDetailSkeleton() {
         </div>
 
         <div className="space-y-4 lg:min-h-0 lg:overflow-hidden">
-          <div className="border bg-background">
+          <div className="rounded-xl border bg-background">
             <div className="flex h-14 items-center justify-between border-b bg-muted/40 px-4">
               <Skeleton className="h-4 w-28" />
               <Skeleton className="h-7 w-16" />
@@ -54,7 +54,7 @@ export function LeadDetailSkeleton() {
             </div>
           </div>
 
-          <div className="border bg-background">
+          <div className="rounded-xl border bg-background">
             <div className="border-b bg-muted/40 p-4">
               <Skeleton className="h-4 w-32" />
             </div>
@@ -65,7 +65,7 @@ export function LeadDetailSkeleton() {
             </div>
           </div>
 
-          <div className="border bg-background">
+          <div className="rounded-xl border bg-background">
             <div className="border-b bg-muted/40 p-4">
               <Skeleton className="h-4 w-28" />
             </div>

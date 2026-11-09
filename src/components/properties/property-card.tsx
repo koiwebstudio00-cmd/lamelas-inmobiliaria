@@ -74,33 +74,39 @@ export function PropertyCard({
 }) {
   const precios = preciosDeCard(property, filtroOperacion);
   return (
-    <div className="flex flex-col border bg-card shadow-sm">
+    // En el celular la tarjeta es horizontal (foto chica a la izquierda) para
+    // ver varias por pantalla; desde sm vuelve a la tarjeta con foto arriba.
+    <div className="tarjeta-interactiva group flex flex-row overflow-hidden rounded-xl border bg-card shadow-xs sm:flex-col">
       <Link
         href={`/propiedades/${property.id}`}
         prefetch={false}
-        className="relative block aspect-[4/3] bg-muted"
+        className="relative block w-28 shrink-0 self-stretch overflow-hidden bg-muted min-[400px]:w-32 sm:aspect-[4/3] sm:w-auto sm:self-auto"
       >
         {property.portada ? (
           <Image
             src={imageUrl(property.portada)}
             alt={property.titulo}
             fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover"
+            sizes="(max-width: 640px) 128px, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />
         ) : (
           <span className="flex h-full items-center justify-center text-muted-foreground">
             <ImageOff className="size-8" />
           </span>
         )}
-        <EstadoBadge estado={property.estado} className="absolute left-2 top-2" />
+        <EstadoBadge
+          estado={property.estado}
+          className="absolute left-1.5 top-1.5 px-1.5 text-[10px] sm:left-2 sm:top-2 sm:px-2 sm:text-xs"
+        />
         {property.destacada && (
-          <span className="absolute right-2 top-2 inline-flex items-center gap-1 bg-amber-400 px-2 py-0.5 text-[11px] font-semibold text-amber-950">
-            <Star className="size-3 fill-current" /> Destacada
+          <span className="absolute bottom-1.5 left-1.5 inline-flex items-center gap-1 rounded-md bg-amber-400 px-1.5 py-0.5 text-[11px] font-semibold text-amber-950 sm:bottom-auto sm:left-auto sm:right-2 sm:top-2 sm:px-2">
+            <Star className="size-3 fill-current" />
+            <span className="hidden sm:inline">Destacada</span>
           </span>
         )}
       </Link>
-      <div className="flex flex-1 flex-col gap-1 p-4">
+      <div className="flex min-w-0 flex-1 flex-col gap-1 p-3 sm:p-4">
         <p className="text-xs uppercase text-muted-foreground">
           {OPERACION_LABEL[property.operacion]} · {property.tipo}
           {property.zona ? ` · ${property.zona}` : ""}
@@ -108,7 +114,7 @@ export function PropertyCard({
         <Link
           href={`/propiedades/${property.id}`}
           prefetch={false}
-          className="font-semibold hover:text-primary"
+          className="line-clamp-2 font-semibold leading-snug transition-colors hover:text-primary sm:line-clamp-none"
         >
           {property.titulo}
         </Link>

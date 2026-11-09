@@ -117,11 +117,11 @@ export default async function HomePage() {
             key={c.estado}
             href={`${textos.verPropiedades}?estado=${c.estado}`}
             prefetch={false}
-            className="group relative overflow-hidden border bg-background p-4 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="tarjeta-interactiva group relative overflow-hidden rounded-xl border bg-background p-4 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <span className="absolute inset-x-0 top-0 h-1" style={{ background: c.color }} />
             <div className="flex items-start justify-between gap-3">
-              <span className={`flex size-10 items-center justify-center ${c.bg}`}>
+              <span className={`flex size-10 items-center justify-center rounded-lg ${c.bg}`}>
                 <c.icon className="size-5" style={{ color: c.color }} />
               </span>
               <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
@@ -141,11 +141,11 @@ export default async function HomePage() {
         <Link
           href="/consultas?sin_tomar=true"
           prefetch={false}
-          className="group relative overflow-hidden border bg-background p-4 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="tarjeta-interactiva group relative overflow-hidden rounded-xl border bg-background p-4 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <span className="absolute inset-x-0 top-0 h-1 bg-primary" />
           <div className="flex items-start justify-between gap-3">
-            <span className="flex size-10 items-center justify-center bg-accent text-accent-foreground">
+            <span className="flex size-10 items-center justify-center rounded-lg bg-accent text-accent-foreground">
               <Inbox className="size-5" />
             </span>
             <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
@@ -172,7 +172,7 @@ export default async function HomePage() {
           </Button>
         </div>
         {resumen.ultimasConsultas.length === 0 ? (
-          <p className="border border-dashed p-6 text-center text-sm text-muted-foreground">
+          <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
             {textos.consultasVacio}
           </p>
         ) : (
@@ -192,7 +192,7 @@ export default async function HomePage() {
           </Button>
         </div>
         {resumen.ultimasPropiedades.length === 0 ? (
-          <p className="border border-dashed p-6 text-center text-sm text-muted-foreground">
+          <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
             {textos.propiedadesVacio}
           </p>
         ) : (
@@ -205,7 +205,7 @@ export default async function HomePage() {
 
 function HomeLeadTable({ leads }: { leads: Lead[] }) {
   return (
-    <div className="overflow-x-auto border bg-background">
+    <div className="rounded-xl overflow-x-auto border bg-background">
       <Table>
         <TableHeader>
           <TableRow>
@@ -270,7 +270,7 @@ function HomeLeadTable({ leads }: { leads: Lead[] }) {
 
 function HomePropertyTable({ properties }: { properties: PropertyCardData[] }) {
   return (
-    <div className="overflow-x-auto border bg-background">
+    <div className="rounded-xl overflow-x-auto border bg-background">
       <Table>
         <TableHeader>
           <TableRow>

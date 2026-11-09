@@ -2,8 +2,8 @@
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Search, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
+import { FiltrosPlegables } from "@/components/filtros-plegables";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { OPERACIONES, TIPOS, ESTADOS } from "@/lib/types";
@@ -47,31 +47,57 @@ export function PropertyFilters({
       searchParams.get(k)
     );
 
+  const activos = ["operacion", "tipo", "estado", "vendedor", "edificio", "dormitorios", "zona_revisar"].filter(
+    (k) => searchParams.get(k)
+  ).length;
+
   return (
-    <div className="space-y-2">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Buscar por título o dirección..."
-          className="pl-9"
-          aria-label="Buscar"
-        />
-      </div>
-      <div
-        className={
+    <FiltrosPlegables
+      activos={activos}
+      busqueda={
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Buscar por título o dirección..."
+              className="h-11 pl-9 sm:h-9"
+              aria-label="Buscar"
+            />
+          </div>
+      }
+      gridClassName={
           // Con el filtro de edificio son seis selects: una columna más en escritorio.
           edificios.length > 0
             ? "grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6"
             : "grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5"
-        }
-      >
+      }
+      extra={
+          <label className="flex w-fit items-center gap-2 text-sm text-muted-foreground">
+            <input
+              type="checkbox"
+              className="size-4 accent-[var(--primary)]"
+              checked={searchParams.get("zona_revisar") === "true"}
+              onChange={(ev) => setParam("zona_revisar", ev.target.checked ? "true" : "")}
+            />
+            Solo zonas a revisar
+          </label>
+      }
+      onLimpiar={
+        hasFilters
+          ? () => {
+              setQ("");
+              router.replace(pathname);
+            }
+          : undefined
+      }
+    >
+
         <Select
           aria-label="Operación"
           value={searchParams.get("operacion") ?? ""}
           onChange={(e) => setParam("operacion", e.target.value)}
-          className="h-9 text-sm"
+          className="h-11 text-base sm:h-9 sm:text-sm"
         >
           <option value="">Operación</option>
           {OPERACIONES.map((o) => (
@@ -84,7 +110,7 @@ export function PropertyFilters({
           aria-label="Dormitorios"
           value={searchParams.get("dormitorios") ?? ""}
           onChange={(e) => setParam("dormitorios", e.target.value)}
-          className="h-9 text-sm"
+          className="h-11 text-base sm:h-9 sm:text-sm"
         >
           <option value="">Dormitorios</option>
           <option value="1">1 dormitorio</option>
@@ -96,7 +122,7 @@ export function PropertyFilters({
           aria-label="Tipo"
           value={searchParams.get("tipo") ?? ""}
           onChange={(e) => setParam("tipo", e.target.value)}
-          className="h-9 text-sm"
+          className="h-11 text-base sm:h-9 sm:text-sm"
         >
           <option value="">Tipo</option>
           {TIPOS.map((t) => (
@@ -109,7 +135,7 @@ export function PropertyFilters({
           aria-label="Estado"
           value={searchParams.get("estado") ?? ""}
           onChange={(e) => setParam("estado", e.target.value)}
-          className="h-9 text-sm"
+          className="h-11 text-base sm:h-9 sm:text-sm"
         >
           <option value="">Estado</option>
           {ESTADOS.map((s) => (
@@ -122,7 +148,7 @@ export function PropertyFilters({
           aria-label="Vendedor"
           value={searchParams.get("vendedor") ?? ""}
           onChange={(e) => setParam("vendedor", e.target.value)}
-          className="h-9 text-sm"
+          className="h-11 text-base sm:h-9 sm:text-sm"
         >
           <option value="">Vendedor</option>
           {vendedores.map((v) => (
@@ -136,7 +162,7 @@ export function PropertyFilters({
             aria-label="Edificio"
             value={searchParams.get("edificio") ?? ""}
             onChange={(e) => setParam("edificio", e.target.value)}
-            className="h-9 text-sm"
+            className="h-11 text-base sm:h-9 sm:text-sm"
           >
             <option value="">Edificio</option>
             {edificios.map((ed) => (
@@ -146,28 +172,6 @@ export function PropertyFilters({
             ))}
           </Select>
         )}
-      </div>
-      <label className="flex w-fit items-center gap-2 text-sm text-muted-foreground">
-        <input
-          type="checkbox"
-          className="size-4 accent-[var(--primary)]"
-          checked={searchParams.get("zona_revisar") === "true"}
-          onChange={(ev) => setParam("zona_revisar", ev.target.checked ? "true" : "")}
-        />
-        Solo zonas a revisar
-      </label>
-      {hasFilters && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            setQ("");
-            router.replace(pathname);
-          }}
-        >
-          <X /> Limpiar filtros
-        </Button>
-      )}
-    </div>
+    </FiltrosPlegables>
   );
 }

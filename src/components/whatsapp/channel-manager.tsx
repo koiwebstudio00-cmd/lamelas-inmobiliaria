@@ -166,7 +166,7 @@ export function ChannelManager({ cuentas }: { cuentas: ChannelAccount[] }) {
   }, [cuentas.length, router]);
 
   return (
-    <section className="border bg-background">
+    <section className="rounded-xl border bg-background">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-muted/40 px-4 py-3">
         <div className="flex items-center gap-2">
           <WhatsappIcon className="size-5 text-primary" />

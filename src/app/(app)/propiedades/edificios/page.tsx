@@ -21,7 +21,7 @@ export default async function EdificiosPage() {
       </div>
 
       {edificios.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 border border-dashed bg-background p-12 text-center">
+        <div className="rounded-xl flex flex-col items-center gap-2 border border-dashed bg-background p-12 text-center">
           <Building className="size-8 text-muted-foreground" />
           <p className="font-medium">Todavía no hay edificios</p>
           <p className="text-sm text-muted-foreground">
@@ -30,7 +30,7 @@ export default async function EdificiosPage() {
           </p>
         </div>
       ) : (
-        <ul className="border bg-background">
+        <ul className="rounded-xl border bg-background">
           {edificios.map((e) => (
             <li key={e.id} className="flex items-center gap-2 border-b px-4 py-3 last:border-b-0">
               <Link

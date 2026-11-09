@@ -38,7 +38,7 @@ export default async function CaptacionPage({ params }: { params: Promise<{ id: 
         </p>
       </div>
 
-      <section className="space-y-3 border bg-background p-4">
+      <section className="rounded-xl space-y-3 border bg-background p-4">
         <h2 className="text-sm font-semibold">Mensaje para el grupo</h2>
         <pre className="max-h-[60vh] overflow-auto whitespace-pre-wrap break-words bg-muted/40 p-3 font-mono text-[13px] leading-relaxed">
           {captacion.mensaje}

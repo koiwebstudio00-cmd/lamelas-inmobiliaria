@@ -11,7 +11,7 @@ const PLATAFORMAS: PlataformaAnuncio[] = ["facebook", "instagram", "meta"];
  */
 export function TopAds({ rows }: { rows: AnuncioRanking[] }) {
   return (
-    <section className="border bg-background">
+    <section className="rounded-xl border bg-background">
       <div className="border-b px-4 py-3">
         <h3 className="text-sm font-semibold">Anuncios que trajeron consultas</h3>
         <p className="mt-0.5 text-xs text-muted-foreground">

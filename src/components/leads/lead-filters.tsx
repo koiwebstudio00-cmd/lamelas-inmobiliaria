@@ -2,8 +2,8 @@
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Search, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
+import { FiltrosPlegables } from "@/components/filtros-plegables";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { CANALES, CLASIFICACIONES, ESTADOS_LEAD } from "@/lib/types";
@@ -93,30 +93,50 @@ export function LeadFilters({
     router.replace(`${pathname}?${params.toString()}`);
   }
 
+  // Cada select cuenta una vez (estado + cierre van juntos en "Estado").
+  const activos = [
+    pendiente,
+    estadoValor,
+    searchParams.get("canal"),
+    searchParams.get("clasificacion"),
+    searchParams.get("asignado"),
+  ].filter(Boolean).length;
+
   return (
-    <div className="space-y-2">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Buscar por nombre, email o teléfono..."
-          className="pl-9"
-          aria-label="Buscar consultas"
-        />
-      </div>
-      <div
-        className={
+    <FiltrosPlegables
+      activos={activos}
+      busqueda={
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Buscar por nombre, email o teléfono..."
+              className="h-11 pl-9 sm:h-9"
+              aria-label="Buscar consultas"
+            />
+          </div>
+      }
+      gridClassName={
           puedeFiltrarPorVendedor
             ? "grid grid-cols-2 gap-2 sm:grid-cols-5"
             : "grid grid-cols-2 gap-2 sm:grid-cols-4"
-        }
-      >
+      }
+      onLimpiar={
+        hasFilters
+          ? () => {
+              setQ("");
+              router.replace(pathname);
+            }
+          : undefined
+      }
+    >
+
         <Select
           aria-label="Pendientes"
           value={pendiente}
           onChange={(e) => setPendiente(e.target.value)}
-          className="h-9 text-sm"
+          className="h-11 text-base sm:h-9 sm:text-sm"
         >
           <option value="">Pendientes</option>
           <option value="sin_tomar">Sin tomar</option>
@@ -127,7 +147,7 @@ export function LeadFilters({
           aria-label="Estado"
           value={estadoValor}
           onChange={(e) => setEstado(e.target.value)}
-          className="h-9 text-sm"
+          className="h-11 text-base sm:h-9 sm:text-sm"
         >
           <option value="">Estado</option>
           {ESTADOS_LEAD.map((e) => (
@@ -142,7 +162,7 @@ export function LeadFilters({
           aria-label="Canal"
           value={searchParams.get("canal") ?? ""}
           onChange={(e) => setParam("canal", e.target.value)}
-          className="h-9 text-sm"
+          className="h-11 text-base sm:h-9 sm:text-sm"
         >
           <option value="">Canal</option>
           {CANALES.map((c) => (
@@ -155,7 +175,7 @@ export function LeadFilters({
           aria-label="Clasificación"
           value={searchParams.get("clasificacion") ?? ""}
           onChange={(e) => setParam("clasificacion", e.target.value)}
-          className="h-9 text-sm"
+          className="h-11 text-base sm:h-9 sm:text-sm"
         >
           <option value="">Clasificación</option>
           {CLASIFICACIONES.map((c) => (
@@ -169,7 +189,7 @@ export function LeadFilters({
             aria-label="Asignada a"
             value={searchParams.get("asignado") ?? ""}
             onChange={(e) => setParam("asignado", e.target.value)}
-            className="h-9 text-sm"
+            className="h-11 text-base sm:h-9 sm:text-sm"
           >
             <option value="">Asignada a</option>
             {vendedores.map((v) => (
@@ -179,19 +199,6 @@ export function LeadFilters({
             ))}
           </Select>
         )}
-      </div>
-      {hasFilters && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            setQ("");
-            router.replace(pathname);
-          }}
-        >
-          <X /> Limpiar filtros
-        </Button>
-      )}
-    </div>
+    </FiltrosPlegables>
   );
 }

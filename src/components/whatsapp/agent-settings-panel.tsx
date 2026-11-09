@@ -114,7 +114,7 @@ export function AgentSettingsPanel({
 
   return (
     <div className="space-y-4">
-      <section className="border bg-background">
+      <section className="rounded-xl border bg-background">
         <div className="flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5">
           <div className="flex min-w-0 items-start gap-3">
             <div
@@ -177,7 +177,7 @@ export function AgentSettingsPanel({
         </div>
       </section>
 
-      <section className="border bg-background">
+      <section className="rounded-xl border bg-background">
         <div
           role="tablist"
           aria-label="Secciones de ajustes del agente"

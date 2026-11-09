@@ -1,5 +1,7 @@
 # Design System — Inmobiliaria Lamelas
 
+> **Nov 2026:** el panel pasó al tema de tweakcn (primario teal `#00857A`, bordes redondeados `0.5rem`, Inter + JetBrains Mono, sombras suaves y micro-interacciones). La fuente de verdad de colores, radios y movimiento es `src/app/globals.css`. Lo de abajo sobre colores y bordes rectos es historia; las reglas de librerías, mobile-first y badges de estado siguen vigentes.
+
 Basado en el logo: isotipo de edificio isométrico en verde sobre blanco. Identidad limpia, geométrica y de alto contraste.
 
 ## 1. Principios

@@ -392,7 +392,7 @@ export function ChatThread({
                   )}
                   <div
                     className={cn(
-                      "relative max-w-[88%] px-2.5 pb-1 pt-1.5 text-sm shadow-sm transition-colors sm:max-w-[75%]",
+                      "relative max-w-[88%] rounded-lg px-2.5 pb-1 pt-1.5 text-sm shadow-sm transition-colors sm:max-w-[75%]",
                       esVendedor
                         ? "bg-primary text-primary-foreground"
                         : derecha
