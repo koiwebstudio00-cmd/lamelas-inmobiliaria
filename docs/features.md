@@ -1,6 +1,6 @@
 # Features por implementar — lamelas (panel interno)
 
-**Última revisión:** 2026-11-08
+**Última revisión:** 2026-11-08 (estados del índice verificados contra `origin/main`)
 
 Backlog exclusivo de **este repo**. Cuando una feature se implementa y queda
 verificada, se saca de acá; el historial vive en commits y en `docs/bugfix/`.
@@ -31,38 +31,40 @@ después se pasa a `main` y se sube al remoto.
 | ID | Item | Esfuerzo | Estado |
 |---|---|:---:|---|
 | ANALITICAS-ORIGEN-01 | Analíticas: "Desde dónde llegan" (anuncio / WhatsApp directo / formulario / manual), ranking de anuncios y fila en el reporte mensual | S | en producción (2026-10-18) |
-| ANUNCIO-ORIGEN-02 | Chat y ranking de anuncios: app del anuncio (Facebook, Instagram o Meta) y link "Ver anuncio"; consultas por app en el ranking (`lib/anuncios.ts`) | S | en `feature/addsandcalendar`, sin verificar |
-| CAPTACION-01 | `/captaciones`: formulario de captación de alquileres en 4 pasos (el de Netlify), mensaje para el grupo con "Abrir WhatsApp" y "Copiar texto", historial con búsqueda y "Mías" (`lib/captacion.ts`) | M | en `feature/addsandcalendar`, sin verificar |
+| ANUNCIO-ORIGEN-02 | Chat y ranking de anuncios: app del anuncio (Facebook, Instagram o Meta) y link "Ver anuncio"; consultas por app en el ranking (`lib/anuncios.ts`) | S | en `main` (revisado 2026-11-08) |
+| CAPTACION-01 | `/captaciones`: formulario de captación de alquileres en 4 pasos (el de Netlify), mensaje para el grupo con "Abrir WhatsApp" y "Copiar texto", historial con búsqueda y "Mías" (`lib/captacion.ts`) | M | en `main` (revisado 2026-11-08) |
 | CHAT-WHATSAPP-01 | Chat de la consulta como WhatsApp: separadores por día, respuestas citadas con salto al original, anuncio de origen, imagen con el análisis plegado | M | en producción (2026-10-18) |
 | CHAT-MEDIA-01 | Imágenes, audios, videos y PDFs en el chat (guardados 90 días en el VPS; link firmado que baja directo de la API) | M | en producción (2026-10-18) |
-| ZONA-SELECT-01 | Cerrar la carga de zona a una lista, con escape "Otra" | S | implementado en local, sin commitear |
+| ZONA-SELECT-01 | Cerrar la carga de zona a una lista, con escape "Otra" | S | en `main` (revisado 2026-11-08) |
 | ZONA-SELECT-02 | Consecuencias de la lista cerrada en filtros | S | pendiente |
-| PUNTO-REF-01 | Campo "punto de referencia" en el form y la ficha | S | implementado en dev, sin commitear |
-| CIUDAD-SUGERIDA-01 | Campo Ciudad con sugerencias (datalist) | S | implementado en dev, sin commitear |
-| ZONA-REVISAR-01 | Filtro "solo zonas a revisar" en el listado | S | implementado en dev, sin commitear |
-| CONSULTAS-UI-01 | Distinguir en Consultas fantasmas y los que necesitan atención | M | implementado en dev, sin commitear |
+| PUNTO-REF-01 | Campo "punto de referencia" en el form y la ficha | S | en `main` (revisado 2026-11-08) |
+| CIUDAD-SUGERIDA-01 | Campo Ciudad con sugerencias (datalist) | S | en `main` (revisado 2026-11-08) |
+| ZONA-REVISAR-01 | Filtro "solo zonas a revisar" en el listado | S | en `main` (revisado 2026-11-08) |
+| CONSULTAS-UI-01 | Distinguir en Consultas fantasmas y los que necesitan atención | M | en `main` (revisado 2026-11-08) |
 | LEAD-DATOS-01 | Datos extra del lead en la ficha | S/M | a definir — prioridad 3 |
 | MOTIVO-VISIBLE-01 | Mostrar y filtrar el motivo de derivación | S | pendiente |
 | SIN-LEER-01 | Estado "sin leer" por lead | M | pendiente (plan escrito) |
 | F1-PANEL | Vistas faltantes de analíticas | M | parcial |
-| F3-PANEL | Vista de incidentes de n8n y Zernio | M | en dev, sin verificar (2026-10-09) |
-| FEEDBACK-CANAL-01 | Feedback como canal compartido con hilos + menú con grupo Configuración | M | en dev, sin verificar (2026-10-09) |
-| CSS-BORDES-01 | Los colores de borde de Tailwind no se aplican | S | pendiente |
+| F3-PANEL | Vista de incidentes de n8n y Zernio | M | en `main` (revisado 2026-11-08) |
+| FEEDBACK-CANAL-01 | Feedback como canal compartido con hilos + menú con grupo Configuración | M | en `main` (revisado 2026-11-08) |
+| CSS-BORDES-01 | Los colores de borde de Tailwind no se aplican | S | probablemente resuelto con `TEMA-UI-01` (la regla `* { border-color }` pasó a `@layer base`) — confirmar a ojo |
 | F4-PANEL | Pantalla de configuración de Martina por tenant | M | pendiente |
 | F7-PANEL | Logs de correo y envío desde el lead | M | pendiente |
-| NOTIF-INTERNAS-01 | Campanita y página de notificaciones | M | en dev, listo para desplegar (ver guía de la tanda) |
-| LEAD-CIERRE-01 | Venta o alquiler al ganar una consulta | S/M | en dev, listo para desplegar |
-| EDIFICIOS-01 | Edificios: unidades agrupadas y alta desde otra unidad | M | en dev, listo para desplegar |
-| LEAD-AVANCES-01 | Avances del vendedor en la consulta | M | en dev, listo para desplegar |
+| NOTIF-INTERNAS-01 | Campanita y página de notificaciones | M | en `main` (revisado 2026-11-08) |
+| LEAD-CIERRE-01 | Venta o alquiler al ganar una consulta | S/M | en `main` (revisado 2026-11-08) |
+| EDIFICIOS-01 | Edificios: unidades agrupadas y alta desde otra unidad | M | en `main` (revisado 2026-11-08) |
+| LEAD-AVANCES-01 | Avances del vendedor en la consulta | M | en `main` (revisado 2026-11-08) |
 | NOTIF-TIEMPO-REAL-01 | Campanita en tiempo real por SSE | M | propuesto — se decide después del deploy |
 | AUTH-REFRESH-RACE-01 | Cierre de sesión por dos renovaciones a la vez | S | propuesto — depende del backend |
-| PROP-IA-TEXTO-01 | Título con estructura fija + descripción ordenada con IA (sugerencia que el vendedor acepta o edita; masivo para el admin) | M | propuesto (2026-11-04) |
-| PORTADA-MEJORA-01 | Mejora mínima de la portada (niveles, luz, enfoque leve) sin IA generativa, con antes/después | S/M | propuesto (2026-11-04) |
+| PROP-IA-TEXTO-01 | Título con estructura fija + descripción ordenada con IA (sugerencia que el vendedor acepta o edita; masivo para el admin) | M | **pedido 2026-11-08** — falta definir plantilla (Cubiko ya lo tiene, ver detalle) |
+| PORTADA-MEJORA-01 | Mejora mínima de la portada (niveles, luz, enfoque leve) sin IA generativa, con antes/después | S/M | **pedido 2026-11-08** ("imágenes con IA") — falta decidir IA generativa o procesamiento clásico |
 | FILTROS-PRECIO-01 | Filtro por rango de precio en el listado de propiedades (con moneda) | S | propuesto (2026-11-04) |
 | FILTROS-PANEL-01 | Mejoras de filtros: orden, ambientes/baños, zona/ciudad, chips activos, cajón en móvil | S/M | parcial — el cajón en móvil y "Limpiar" salieron con `MOBILE-UI-01`; el resto falta definir |
-| PUSH-PWA-01 | Panel instalable (PWA) + aviso de consulta nueva por push o correo, a elección de cada usuario | M | en `dev`, sin verificar (`back-lamelas/docs/deploy-tanda-2026-11-04.md`) |
-| EQUIPO-PRUEBAS-01 | Equipo: suspendidos en rojo, "App con avisos" y botones Probar correo / Probar notificación por usuario | S | en `dev`, sin verificar (misma tanda) |
+| PUSH-PWA-01 | Panel instalable (PWA) + aviso de consulta nueva por push o correo, a elección de cada usuario | M | en `main` (revisado 2026-11-08) |
+| EQUIPO-PRUEBAS-01 | Equipo: suspendidos en rojo, "App con avisos" y botones Probar correo / Probar notificación por usuario | S | en `main` (revisado 2026-11-08) |
 | MAIL-FALLBACK-01 | Configuración → Correos: proveedor de cada envío (Resend/Brevo) y cupo del día/mes | S | pendiente — depende de `back-lamelas` |
+| FOTOS-ORDEN-01 | Reordenar fotos arrastrándolas (y con flechas en el celular) | S | **pedido 2026-11-08** — la API ya lo soporta |
+| TEMA-OSCURO-01 | Selector de modo claro / oscuro / sistema | S/M | **pedido 2026-11-08** — los colores oscuros ya están en `globals.css` |
 | TEMA-UI-01 | Tema de tweakcn (teal `#00857A`, radios 0.5rem, Inter + JetBrains Mono) + micro-interacciones y animaciones de diálogos/menús (`tw-animate-css`) | M | en `dev`, sin verificar (2026-11-08) |
 | MOBILE-UI-01 | Celular: barra de navegación inferior con "+", filtros en panel inferior, áreas táctiles de 44px, barra de guardar fija, tarjeta de propiedad compacta | M | en `dev`, sin verificar (2026-11-08) |
 
@@ -495,8 +497,21 @@ consola de OpenAI).
 `OG-DINAMICO-01`: hoy `seo.ts` setea los meta tags por JS, que WhatsApp/Facebook
 no ejecutan y Google indexa con demora.
 
-**Estado.** Propuesto el 2026-11-04. Falta definir con Cacho la plantilla del
-título y las secciones de la descripción.
+**Referencia en Cubiko** (`ubikka/backend/src/modules/properties/copy-draft.ts`,
+botón "Sugerir título y descripción con IA" en `property-form.tsx`): endpoint
+`POST /properties/copy-draft` con rate limit, entrada validada con Zod (datos de
+la ficha), salida JSON `{ titulo, descripcion }`, el vendedor revisa antes de
+guardar, y una tabla de uso (`propertyCopyUsage`: tenant, usuario, modelo,
+tokens) para medir el costo por inmobiliaria. Diferencias con este plan:
+Cubiko genera **también el título con IA** (acá se propuso plantilla fija) y no
+tiene acción masiva. Se puede portar casi tal cual al backend de Lamelas.
+
+**Necesita en producción:** `OPENAI_API_KEY` (y el modelo) como variables del
+backend en Dokploy — hoy la key la usa solo n8n.
+
+**Estado.** Pedido por Cacho el 2026-11-08. Falta definir: título con plantilla
+fija o con IA (como Cubiko), secciones de la descripción y si va la acción
+masiva para el admin.
 
 ## PORTADA-MEJORA-01 — mejora mínima de la foto de portada
 
@@ -517,8 +532,10 @@ flujo presign/confirm existente. Límite: trabaja sobre la copia ya reducida a
 1600 px WebP, no sobre el original del celular. Sin cambios de backend salvo que
 se quiera marcar la foto como "mejorada".
 
-**Estado.** Propuesto el 2026-11-04. Falta el OK de Cacho a hacerlo sin IA
-generativa.
+**Estado.** Pedido por Cacho el 2026-11-08 como "imágenes con IA". Falta
+decidir el enfoque: procesamiento clásico (recomendado: no altera la foto, costo
+cero) o IA generativa (riesgo de publicidad engañosa y menor resolución, ver
+arriba). Cubiko no tiene nada de esto para tomar como base.
 
 ## FILTROS-PRECIO-01 — rango de precio en el listado
 
@@ -661,4 +678,42 @@ celular.
 
 **Estado.** En `dev`, revisado en simulación de 390px con datos locales;
 falta probar en un celular real.
+
+## FOTOS-ORDEN-01 — reordenar fotos arrastrándolas
+
+**Qué es.** En el administrador de fotos, cambiar el orden arrastrando cada
+foto (escritorio) y con flechas ← → (celular, donde el arrastre nativo del
+navegador no funciona). El orden se usa en la galería del panel y del sitio.
+
+**Ventaja.** Hoy el orden lo define la subida; para cambiarlo hay que borrar y
+volver a subir.
+
+**Viabilidad.** S, **solo panel**: `back-lamelas` ya expone
+`PATCH /v1/properties/:id/images/order` (`images.reorder`). Falta la action en
+`src/actions/images.ts` y la UI en `photo-manager.tsx`. Referencia directa:
+`ubikka/app-dashboard/src/components/properties/photo-manager.tsx` (arrastre
+HTML5 + flechas, sin librerías nuevas, guarda el orden completo de una vez).
+
+**Estado.** Pedido por Cacho el 2026-11-08.
+
+## TEMA-OSCURO-01 — modo claro / oscuro / sistema
+
+**Qué es.** Botón en la barra superior (o en el menú de la cuenta) para elegir
+claro, oscuro o el del sistema; la preferencia queda en el navegador.
+
+**Ventaja.** Uso cómodo de noche y en el celular; el tema de `TEMA-UI-01` ya
+trae la paleta oscura.
+
+**Viabilidad.** S/M.
+- La paleta `.dark` ya está en `globals.css`; falta el selector y aplicar la
+  clase `dark` sin parpadeo al cargar.
+- Cubiko lo resuelve con `next-themes` (`theme-provider.tsx` +
+  `nav/theme-switcher.tsx`). Es una **dependencia nueva**: alternativa sin
+  dependencias = cookie + script inline en `layout.tsx`.
+- Lo que más trabajo da: repasar colores fijos que no siguen el tema (badges de
+  estado en hex, avisos `bg-amber-50`, gráficos de analíticas, botones de
+  WhatsApp, impresión del reporte que debe salir siempre clara).
+
+**Estado.** Pedido por Cacho el 2026-11-08. Falta elegir `next-themes` o la
+opción sin dependencias.
 
