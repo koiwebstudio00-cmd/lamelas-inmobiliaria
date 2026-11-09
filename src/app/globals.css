@@ -65,43 +65,133 @@
   --lead-perdida-fg: #4b524e;
 }
 
-/* Modo oscuro del tema. Hoy no hay selector: se activa poniendo la clase
-   `dark` en <html>. */
-.dark {
-  --background: hsl(180 57.1429% 2.7451%);
-  --foreground: hsl(186 22.7273% 91.3725%);
-  --card: hsl(184 55.5556% 5.2941%);
-  --card-foreground: hsl(186 22.7273% 91.3725%);
-  --popover: hsl(235.7143 24.1379% 11.3725%);
-  --popover-foreground: hsl(240 42.8571% 93.1373%);
-  --primary: hsl(175.0198 100% 26.0563%);
-  --primary-foreground: hsl(0 0% 100%);
-  --primary-hover: hsl(175.0198 100% 30%);
-  --primary-active: hsl(175.0198 100% 21%);
-  --secondary: hsl(182.3077 54.1667% 9.4118%);
-  --secondary-foreground: hsl(182.069 25.6637% 77.8431%);
-  --muted: hsl(184 33.3333% 8.8235%);
-  --muted-foreground: hsl(182.1429 11.7647% 53.3333%);
-  --accent: hsl(176.8538 100% 17.2823%);
-  --accent-foreground: hsl(180 35.3659% 67.8431%);
-  --destructive: hsl(0 92.5134% 63.3333%);
-  --destructive-foreground: hsl(240 42.8571% 98.6275%);
-  --border: hsl(184 27.2727% 10.7843%);
-  --input: hsl(184 27.2727% 10.7843%);
-  --ring: hsl(175.0198 100% 26.0563%);
-  --chart-1: hsl(175.0198 100% 26.0563%);
-  --chart-2: hsl(194.5116 100% 42.1569%);
-  --chart-3: hsl(259.4737 98.2759% 77.2549%);
-  --chart-4: hsl(34.8529 100% 73.3333%);
-  --chart-5: hsl(92.9412 52.5773% 80.9804%);
-  --sidebar: hsl(184.2857 70% 3.9216%);
-  --sidebar-foreground: hsl(186 22.7273% 91.3725%);
-  --sidebar-primary: hsl(175.0198 100% 26.0563%);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(176.8538 100% 17.2823%);
-  --sidebar-accent-foreground: hsl(240 42.8571% 93.1373%);
-  --sidebar-border: hsl(237 18.8679% 20.7843%);
-  --sidebar-ring: hsl(249.1892 100% 78.2353%);
+/* Modo oscuro (TEMA-OSCURO-01). La clase `dark` la pone next-themes en <html>
+   (components/theme-provider.tsx). Va dentro de `@media screen` para que al
+   imprimir (reporte mensual → PDF) siempre salga el tema claro. */
+@media screen {
+  .dark {
+    color-scheme: dark; /* scrollbars, selects nativos y autocompletado */
+
+    --background: hsl(180 57.1429% 2.7451%);
+    --foreground: hsl(186 22.7273% 91.3725%);
+    --card: hsl(184 55.5556% 5.2941%);
+    --card-foreground: hsl(186 22.7273% 91.3725%);
+    --popover: hsl(235.7143 24.1379% 11.3725%);
+    --popover-foreground: hsl(240 42.8571% 93.1373%);
+    --primary: hsl(175.0198 100% 26.0563%);
+    --primary-foreground: hsl(0 0% 100%);
+    --primary-hover: hsl(175.0198 100% 30%);
+    --primary-active: hsl(175.0198 100% 21%);
+    --secondary: hsl(182.3077 54.1667% 9.4118%);
+    --secondary-foreground: hsl(182.069 25.6637% 77.8431%);
+    --muted: hsl(184 33.3333% 8.8235%);
+    --muted-foreground: hsl(182.1429 11.7647% 53.3333%);
+    --accent: hsl(176.8538 100% 17.2823%);
+    --accent-foreground: hsl(180 35.3659% 67.8431%);
+    --destructive: hsl(0 92.5134% 63.3333%);
+    --destructive-foreground: hsl(240 42.8571% 98.6275%);
+    --border: hsl(184 27.2727% 10.7843%);
+    --input: hsl(184 27.2727% 10.7843%);
+    --ring: hsl(175.0198 100% 26.0563%);
+    --chart-1: hsl(175.0198 100% 26.0563%);
+    --chart-2: hsl(194.5116 100% 42.1569%);
+    --chart-3: hsl(259.4737 98.2759% 77.2549%);
+    --chart-4: hsl(34.8529 100% 73.3333%);
+    --chart-5: hsl(92.9412 52.5773% 80.9804%);
+    --sidebar: hsl(184.2857 70% 3.9216%);
+    --sidebar-foreground: hsl(186 22.7273% 91.3725%);
+    --sidebar-primary: hsl(175.0198 100% 26.0563%);
+    --sidebar-primary-foreground: hsl(0 0% 100%);
+    --sidebar-accent: hsl(176.8538 100% 17.2823%);
+    --sidebar-accent-foreground: hsl(240 42.8571% 93.1373%);
+    --sidebar-border: hsl(237 18.8679% 20.7843%);
+    --sidebar-ring: hsl(249.1892 100% 78.2353%);
+
+    /* badges de estado de propiedad y de consulta */
+    --estado-disponible-bg: color-mix(in oklab, oklch(69.6% 0.17 162.48) 22%, transparent);
+    --estado-disponible-fg: oklch(84.5% 0.143 164.978);
+    --estado-reservada-bg: color-mix(in oklab, oklch(76.9% 0.188 70.08) 22%, transparent);
+    --estado-reservada-fg: oklch(87.9% 0.169 91.605);
+    --estado-vendida-bg: color-mix(in oklab, oklch(62.3% 0.214 259.815) 25%, transparent);
+    --estado-vendida-fg: oklch(80.9% 0.105 251.813);
+    --lead-nueva-bg: color-mix(in oklab, oklch(62.3% 0.214 259.815) 25%, transparent);
+    --lead-nueva-fg: oklch(80.9% 0.105 251.813);
+    --lead-contacto-bg: color-mix(in oklab, oklch(76.9% 0.188 70.08) 22%, transparent);
+    --lead-contacto-fg: oklch(87.9% 0.169 91.605);
+    --lead-ganada-bg: color-mix(in oklab, oklch(69.6% 0.17 162.48) 22%, transparent);
+    --lead-ganada-fg: oklch(84.5% 0.143 164.978);
+    --lead-perdida-bg: oklch(30% 0.01 200);
+    --lead-perdida-fg: oklch(80% 0.01 200);
+
+    /* Colores fijos de Tailwind usados en avisos suaves (fondo -50/-100,
+       borde -200, texto -700/-900): en oscuro el fondo pasa a un tinte
+       translúcido y el texto a un tono claro, así no hay que agregar `dark:`
+       en cada componente. Los tonos sólidos (-400 a -600, -950) no cambian. */
+    --color-amber-50: color-mix(in oklab, oklch(76.9% 0.188 70.08) 14%, transparent);
+    --color-amber-100: color-mix(in oklab, oklch(76.9% 0.188 70.08) 22%, transparent);
+    --color-amber-200: color-mix(in oklab, oklch(76.9% 0.188 70.08) 38%, transparent);
+    --color-amber-700: oklch(87.9% 0.169 91.605);
+    --color-amber-800: oklch(87.9% 0.169 91.605);
+    --color-amber-900: oklch(87.9% 0.169 91.605);
+    --color-red-50: color-mix(in oklab, oklch(63.7% 0.237 25.331) 14%, transparent);
+    --color-red-100: color-mix(in oklab, oklch(63.7% 0.237 25.331) 22%, transparent);
+    --color-red-200: color-mix(in oklab, oklch(63.7% 0.237 25.331) 38%, transparent);
+    --color-red-700: oklch(80.8% 0.114 19.571);
+    --color-red-800: oklch(80.8% 0.114 19.571);
+    --color-red-900: oklch(80.8% 0.114 19.571);
+    --color-emerald-50: color-mix(in oklab, oklch(69.6% 0.17 162.48) 14%, transparent);
+    --color-emerald-100: color-mix(in oklab, oklch(69.6% 0.17 162.48) 22%, transparent);
+    --color-emerald-200: color-mix(in oklab, oklch(69.6% 0.17 162.48) 38%, transparent);
+    --color-emerald-700: oklch(84.5% 0.143 164.978);
+    --color-emerald-800: oklch(84.5% 0.143 164.978);
+    --color-emerald-900: oklch(84.5% 0.143 164.978);
+    --color-green-50: color-mix(in oklab, oklch(72.3% 0.219 149.579) 14%, transparent);
+    --color-green-100: color-mix(in oklab, oklch(72.3% 0.219 149.579) 22%, transparent);
+    --color-green-200: color-mix(in oklab, oklch(72.3% 0.219 149.579) 38%, transparent);
+    --color-green-700: oklch(87.1% 0.15 154.449);
+    --color-green-800: oklch(87.1% 0.15 154.449);
+    --color-green-900: oklch(87.1% 0.15 154.449);
+    --color-sky-50: color-mix(in oklab, oklch(68.5% 0.169 237.323) 14%, transparent);
+    --color-sky-100: color-mix(in oklab, oklch(68.5% 0.169 237.323) 22%, transparent);
+    --color-sky-200: color-mix(in oklab, oklch(68.5% 0.169 237.323) 38%, transparent);
+    --color-sky-700: oklch(82.8% 0.111 230.318);
+    --color-sky-800: oklch(82.8% 0.111 230.318);
+    --color-sky-900: oklch(82.8% 0.111 230.318);
+    --color-blue-50: color-mix(in oklab, oklch(62.3% 0.214 259.815) 14%, transparent);
+    --color-blue-100: color-mix(in oklab, oklch(62.3% 0.214 259.815) 22%, transparent);
+    --color-blue-200: color-mix(in oklab, oklch(62.3% 0.214 259.815) 38%, transparent);
+    --color-blue-700: oklch(80.9% 0.105 251.813);
+    --color-blue-800: oklch(80.9% 0.105 251.813);
+    --color-blue-900: oklch(80.9% 0.105 251.813);
+    --color-violet-50: color-mix(in oklab, oklch(60.6% 0.25 292.717) 14%, transparent);
+    --color-violet-100: color-mix(in oklab, oklch(60.6% 0.25 292.717) 22%, transparent);
+    --color-violet-200: color-mix(in oklab, oklch(60.6% 0.25 292.717) 38%, transparent);
+    --color-violet-700: oklch(81.1% 0.111 293.571);
+    --color-violet-800: oklch(81.1% 0.111 293.571);
+    --color-violet-900: oklch(81.1% 0.111 293.571);
+    --color-rose-50: color-mix(in oklab, oklch(64.5% 0.246 16.439) 14%, transparent);
+    --color-rose-100: color-mix(in oklab, oklch(64.5% 0.246 16.439) 22%, transparent);
+    --color-rose-200: color-mix(in oklab, oklch(64.5% 0.246 16.439) 38%, transparent);
+    --color-rose-700: oklch(81% 0.117 11.638);
+    --color-rose-800: oklch(81% 0.117 11.638);
+    --color-rose-900: oklch(81% 0.117 11.638);
+    --color-yellow-50: color-mix(in oklab, oklch(79.5% 0.184 86.047) 14%, transparent);
+    --color-yellow-100: color-mix(in oklab, oklch(79.5% 0.184 86.047) 22%, transparent);
+    --color-yellow-200: color-mix(in oklab, oklch(79.5% 0.184 86.047) 38%, transparent);
+    --color-yellow-700: oklch(90.5% 0.182 98.111);
+    --color-yellow-800: oklch(90.5% 0.182 98.111);
+    --color-yellow-900: oklch(90.5% 0.182 98.111);
+    --color-orange-50: color-mix(in oklab, oklch(70.5% 0.213 47.604) 14%, transparent);
+    --color-orange-100: color-mix(in oklab, oklch(70.5% 0.213 47.604) 22%, transparent);
+    --color-orange-200: color-mix(in oklab, oklch(70.5% 0.213 47.604) 38%, transparent);
+    --color-orange-700: oklch(83.7% 0.128 66.29);
+    --color-orange-800: oklch(83.7% 0.128 66.29);
+    --color-orange-900: oklch(83.7% 0.128 66.29);
+    --color-zinc-100: oklch(27.4% 0.006 286.033);
+    --color-zinc-200: oklch(37% 0.013 285.805);
+    --color-zinc-600: oklch(70.5% 0.015 286.067);
+    --color-zinc-700: oklch(87.1% 0.006 286.286);
+  }
 }
 
 @theme inline {

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { AppNav } from "@/components/nav/app-nav";
 import { BarraInferior } from "@/components/nav/barra-inferior";
+import { SelectorTema } from "@/components/nav/selector-tema";
 import { NotificationsBell } from "@/components/notifications/notifications-bell";
 import { PwaInit } from "@/components/pwa/pwa-init";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -57,7 +58,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             Lamelas &amp; Chaumont
           </Link>
           {/* Campanita a la derecha: avisos internos (reemplazan a los correos). */}
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-1">
+            <SelectorTema />
             <NotificationsBell inicial={notificaciones} />
           </div>
         </header>
