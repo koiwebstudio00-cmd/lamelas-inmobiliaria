@@ -921,9 +921,13 @@ export type Captacion = {
   mensaje: string;
   autor: { id: string; nombre: string };
   responsable: { id: string; nombre: string } | null;
+  /** Fotos de la captación, en orden de subida (máx. 20). */
+  imagenes: CaptacionFoto[];
   created_at: string;
   updated_at: string;
 };
+
+export type CaptacionFoto = { id: string; url: string; orden: number };
 
 // ── Notificaciones al celular (PUSH-PWA-01) ──────────────────────────────────
 

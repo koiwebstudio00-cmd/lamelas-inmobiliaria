@@ -22,7 +22,7 @@ export default async function EditarCaptacionPage({ params }: { params: Promise<
       <CaptacionForm
         vendedores={vendedores}
         responsableInicial={captacion.datos.responsable_id}
-        inicial={{ id: captacion.id, datos: captacion.datos, mensaje: captacion.mensaje }}
+        inicial={{ id: captacion.id, datos: captacion.datos, mensaje: captacion.mensaje, fotos: captacion.imagenes }}
       />
     </div>
   );

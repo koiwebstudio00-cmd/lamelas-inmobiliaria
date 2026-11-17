@@ -74,6 +74,11 @@ export interface PropertyFilters {
   /** id del edificio → solo sus unidades. */
   edificio?: string;
   dormitorios?: string;
+  /** Rango de precio (texto del query string; se ignoran valores no numéricos). */
+  precio_min?: string;
+  precio_max?: string;
+  /** "ARS" | "USD" → solo las publicadas en esa moneda. */
+  moneda?: string;
   /** "true" → solo las que tienen zona vacía o fuera de ZONAS. */
   zona_revisar?: string;
   pagina?: number;
@@ -266,6 +271,7 @@ async function list(path: string, filters: PropertyFilters) {
     ? Number(filters.dormitorios)
     : undefined;
 
+  const numero = (v?: string) => (v && /^\d+(\.\d+)?$/.test(v.trim()) ? Number(v) : undefined);
   const { data, meta } = await apiFetch<ListResponse>(path, {
     query: {
       q: filters.q?.trim(),
@@ -275,6 +281,9 @@ async function list(path: string, filters: PropertyFilters) {
       vendedor: UUID.test(filters.vendedor ?? "") ? filters.vendedor : undefined,
       edificio_id: UUID.test(filters.edificio ?? "") ? filters.edificio : undefined,
       dormitorios,
+      precio_min: numero(filters.precio_min),
+      precio_max: numero(filters.precio_max),
+      moneda: filters.moneda === "ARS" || filters.moneda === "USD" ? filters.moneda : undefined,
       zona_revisar: filters.zona_revisar === "true" ? "true" : undefined,
       page,
       limit: PAGE_SIZE,
@@ -1353,6 +1362,7 @@ type ApiCaptacion = {
   mensaje: string;
   autor: { id: string; nombre: string } | null;
   responsable: { id: string; nombre: string } | null;
+  imagenes?: { id: string; url: string; orden: number }[];
   createdAt: string;
   updatedAt: string;
 };
@@ -1369,6 +1379,7 @@ function toCaptacion(c: ApiCaptacion): Captacion {
     mensaje: c.mensaje,
     autor: { id: c.autor?.id ?? "", nombre: c.autor?.nombre ?? "—" },
     responsable: c.responsable ? { id: c.responsable.id, nombre: c.responsable.nombre } : null,
+    imagenes: (c.imagenes ?? []).map((i) => ({ id: i.id, url: i.url, orden: i.orden })),
     created_at: c.createdAt,
     updated_at: c.updatedAt,
   };

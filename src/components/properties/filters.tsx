@@ -6,7 +6,21 @@ import { Search } from "lucide-react";
 import { FiltrosPlegables } from "@/components/filtros-plegables";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { OPERACIONES, TIPOS, ESTADOS } from "@/lib/types";
+import { OPERACIONES, TIPOS, ESTADOS, MONEDAS } from "@/lib/types";
+
+// Filtros que cuentan como "aplicados" (la búsqueda va aparte).
+const FILTROS = [
+  "operacion",
+  "tipo",
+  "estado",
+  "vendedor",
+  "edificio",
+  "dormitorios",
+  "precio_min",
+  "precio_max",
+  "moneda",
+  "zona_revisar",
+];
 
 export function PropertyFilters({
   vendedores,
@@ -20,7 +34,10 @@ export function PropertyFilters({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [q, setQ] = useState(searchParams.get("q") ?? "");
+  const [precioMin, setPrecioMin] = useState(searchParams.get("precio_min") ?? "");
+  const [precioMax, setPrecioMax] = useState(searchParams.get("precio_max") ?? "");
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debouncePrecio = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function setParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -42,14 +59,32 @@ export function PropertyFilters({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
 
-  const hasFilters =
-    ["q", "operacion", "tipo", "estado", "vendedor", "edificio", "dormitorios", "zona_revisar"].some((k) =>
-      searchParams.get(k)
-    );
+  // Rango de precio con debounce: un solo replace con los dos valores.
+  useEffect(() => {
+    if (debouncePrecio.current) clearTimeout(debouncePrecio.current);
+    debouncePrecio.current = setTimeout(() => {
+      const minActual = searchParams.get("precio_min") ?? "";
+      const maxActual = searchParams.get("precio_max") ?? "";
+      if (minActual === precioMin && maxActual === precioMax) return;
+      const params = new URLSearchParams(searchParams.toString());
+      if (precioMin) params.set("precio_min", precioMin);
+      else params.delete("precio_min");
+      if (precioMax) params.set("precio_max", precioMax);
+      else params.delete("precio_max");
+      params.delete("pagina");
+      router.replace(`${pathname}?${params.toString()}`);
+    }, 400);
+    return () => {
+      if (debouncePrecio.current) clearTimeout(debouncePrecio.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [precioMin, precioMax]);
 
-  const activos = ["operacion", "tipo", "estado", "vendedor", "edificio", "dormitorios", "zona_revisar"].filter(
-    (k) => searchParams.get(k)
-  ).length;
+  const precioInvertido =
+    precioMin !== "" && precioMax !== "" && Number(precioMin) > Number(precioMax);
+
+  const activos = FILTROS.filter((k) => searchParams.get(k)).length;
+  const hasFilters = activos > 0 || Boolean(searchParams.get("q"));
 
   return (
     <FiltrosPlegables
@@ -73,20 +108,64 @@ export function PropertyFilters({
             : "grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5"
       }
       extra={
-          <label className="flex w-fit items-center gap-2 text-sm text-muted-foreground">
-            <input
-              type="checkbox"
-              className="size-4 accent-[var(--primary)]"
-              checked={searchParams.get("zona_revisar") === "true"}
-              onChange={(ev) => setParam("zona_revisar", ev.target.checked ? "true" : "")}
-            />
-            Solo zonas a revisar
-          </label>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm text-muted-foreground">Precio</span>
+              <Input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                value={precioMin}
+                onChange={(e) => setPrecioMin(e.target.value)}
+                placeholder="Mínimo"
+                aria-label="Precio mínimo"
+                className="h-11 w-32 text-base sm:h-9 sm:w-28 sm:text-sm"
+              />
+              <span className="text-muted-foreground">–</span>
+              <Input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                value={precioMax}
+                onChange={(e) => setPrecioMax(e.target.value)}
+                placeholder="Máximo"
+                aria-label="Precio máximo"
+                className="h-11 w-32 text-base sm:h-9 sm:w-28 sm:text-sm"
+              />
+              <Select
+                aria-label="Moneda del precio"
+                value={searchParams.get("moneda") ?? ""}
+                onChange={(e) => setParam("moneda", e.target.value)}
+                className="h-11 w-36 text-base sm:h-9 sm:w-32 sm:text-sm"
+              >
+                <option value="">Cualquier moneda</option>
+                {MONEDAS.map((m) => (
+                  <option key={m.value} value={m.value}>
+                    {m.label}
+                  </option>
+                ))}
+              </Select>
+              {precioInvertido && (
+                <span className="text-xs text-destructive">El mínimo es mayor que el máximo.</span>
+              )}
+            </div>
+            <label className="flex w-fit items-center gap-2 text-sm text-muted-foreground">
+              <input
+                type="checkbox"
+                className="size-4 accent-[var(--primary)]"
+                checked={searchParams.get("zona_revisar") === "true"}
+                onChange={(ev) => setParam("zona_revisar", ev.target.checked ? "true" : "")}
+              />
+              Solo zonas a revisar
+            </label>
+          </div>
       }
       onLimpiar={
         hasFilters
           ? () => {
               setQ("");
+              setPrecioMin("");
+              setPrecioMax("");
               router.replace(pathname);
             }
           : undefined

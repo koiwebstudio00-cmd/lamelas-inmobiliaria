@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import type { PresignedUpload } from "@/actions/images";
 import { ApiError, apiFetch } from "@/lib/api";
+import type { CaptacionFoto } from "@/lib/types";
 import {
   armarMensaje,
   barrioDe,
@@ -112,5 +114,54 @@ export async function eliminarCaptacion(id: string): Promise<string | null> {
     return message(error, "No se pudo eliminar la captación.");
   }
   revalidatePath("/captaciones");
+  return null;
+}
+
+// ── Fotos (round-edits item 2) ────────────────────────────────────────────────
+// Mismo flujo que las de propiedad (presign → PUT a R2 → confirm). Se guardan
+// con la captación; no van en el mensaje del grupo.
+
+/** Pide `count` URLs firmadas para subir fotos a la captación. */
+export async function presignFotosCaptacion(
+  id: string,
+  count: number,
+): Promise<{ uploads?: PresignedUpload[]; error?: string }> {
+  try {
+    const { uploads } = await apiFetch<{ uploads: PresignedUpload[] }>(`/v1/captaciones/${id}/imagenes/presign`, {
+      method: "POST",
+      body: { count },
+    });
+    return { uploads };
+  } catch (error) {
+    return { error: message(error, "No pudimos preparar la subida de fotos.") };
+  }
+}
+
+/** Registra las fotos que ya están en R2 y las devuelve para mostrarlas. */
+export async function confirmFotosCaptacion(
+  id: string,
+  keys: string[],
+): Promise<{ ok: number; fotos?: CaptacionFoto[]; error?: string }> {
+  if (keys.length === 0) return { ok: 0, fotos: [] };
+  try {
+    const { imagenes } = await apiFetch<{ imagenes: CaptacionFoto[] }>(`/v1/captaciones/${id}/imagenes/confirm`, {
+      method: "POST",
+      body: { keys },
+    });
+    revalidatePath(`/captaciones/${id}`);
+    return { ok: imagenes.length, fotos: imagenes };
+  } catch (error) {
+    return { ok: 0, error: message(error, "No pudimos guardar las fotos subidas.") };
+  }
+}
+
+/** Borra la foto (la API borra también el archivo en R2). */
+export async function eliminarFotoCaptacion(fotoId: string, captacionId: string): Promise<string | null> {
+  try {
+    await apiFetch(`/v1/captaciones/imagenes/${fotoId}`, { method: "DELETE" });
+  } catch (error) {
+    return message(error, "No se pudo eliminar la foto.");
+  }
+  revalidatePath(`/captaciones/${captacionId}`);
   return null;
 }
