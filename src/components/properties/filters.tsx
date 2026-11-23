@@ -192,6 +192,7 @@ export function PropertyFilters({
           className="h-11 text-base sm:h-9 sm:text-sm"
         >
           <option value="">Dormitorios</option>
+          <option value="0">Monoambiente</option>
           <option value="1">1 dormitorio</option>
           <option value="2">2 dormitorios</option>
           <option value="3">3 dormitorios</option>
@@ -219,7 +220,7 @@ export function PropertyFilters({
           <option value="">Estado</option>
           {ESTADOS.map((s) => (
             <option key={s.value} value={s.value}>
-              {s.label}
+              {s.value === "borrador" ? "Borradores" : s.label}
             </option>
           ))}
         </Select>

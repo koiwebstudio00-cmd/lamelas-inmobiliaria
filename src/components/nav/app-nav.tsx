@@ -6,7 +6,6 @@ import {
   Building2,
   ChartNoAxesCombined,
   ChevronRight,
-  ClipboardList,
   HeartHandshake,
   Home,
   Inbox,
@@ -87,15 +86,8 @@ const ITEMS: Item[] = [
       { href: "/consultas/nueva", label: "Nueva consulta" },
     ],
   },
-  {
-    label: "Captaciones",
-    icon: ClipboardList,
-    soloAdmin: false,
-    subs: [
-      { href: "/captaciones", label: "Todas las captaciones", incluye: ["/captaciones/"] },
-      { href: "/captaciones/nueva", label: "Nueva captación" },
-    ],
-  },
+  // Captaciones: fuera del menú desde FORM-UNICO-01 (2026-11-23). Se cargan
+  // como propiedades; el historial sigue en /captaciones (solo lectura).
   { href: "/clientes", label: "Clientes", icon: HeartHandshake, soloAdmin: true, subs: [] },
   {
     href: "/analiticas",

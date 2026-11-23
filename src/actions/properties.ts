@@ -3,14 +3,16 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ApiError, apiFetch } from "@/lib/api";
-import { propertySchema, estadoSchema } from "@/lib/validations/property";
+import { propertySchema, estadoSchema, formDataAObjeto } from "@/lib/validations/property";
 
 export type PropertyFormState = {
   errors?: Record<string, string>;
   error?: string;
+  /** Campos que le faltan para publicarse (422 INCOMPLETE de la API). */
+  faltantes?: string[];
   // id de la propiedad creada: el cliente sube las fotos y navega al detalle
   id?: string;
-  // La propiedad se creó pero quedó incompleta (ver createProperty).
+  // Guardada, pero con un aviso para mostrar (ej. quedó como borrador).
   warning?: string;
 };
 
@@ -27,6 +29,10 @@ function fieldErrors(issues: { path: PropertyKey[]; message: string }[]) {
 function apiState(error: unknown, fallback: string): PropertyFormState {
   if (error instanceof ApiError) {
     const errors = error.fieldErrors();
+    // Faltan datos para publicar: lista de campos + el mensaje de la API.
+    if (error.code === "INCOMPLETE") {
+      return { errors, error: error.message, faltantes: Object.keys(errors) };
+    }
     if (Object.keys(errors).length > 0) return { errors };
     return { error: error.message };
   }
@@ -68,67 +74,69 @@ async function resolverEdificio(
   return resto;
 }
 
-/** Los campos que la API acepta en el alta rápida; el resto va por PATCH. */
-const CAMPOS_ALTA = ["titulo", "operacion", "tipo", "precio", "moneda", "estado"] as const;
-
-function altaRapida(data: Omit<PropertyInput, "edificio_nuevo">) {
-  const { titulo, operacion, tipo, precio, moneda, estado } = data;
-  return { titulo, operacion, tipo, precio, moneda, estado };
-}
-
-/** El resto de los campos, sin los vacíos (una propiedad nueva ya viene en null). */
-function detalle(data: Omit<PropertyInput, "edificio_nuevo">) {
-  const alta: readonly string[] = CAMPOS_ALTA;
-  return Object.fromEntries(
-    Object.entries(data).filter(
-      ([key, value]) => !alta.includes(key) && value !== null && value !== undefined
-    )
-  );
+/**
+ * Body de la API a partir del formulario (FORM-UNICO-01):
+ * - "Guardar como borrador" manda `estado: borrador`; "Publicar"/"Guardar
+ *   cambios", el estado elegido (nunca borrador).
+ * - Llaves, visitas y propietario van juntos en `datos_internos`.
+ * - `user_id` solo si vino (el select de responsable es del admin).
+ */
+function cuerpoApi(data: Omit<PropertyInput, "edificio_nuevo">) {
+  const {
+    intent,
+    user_id,
+    llaves,
+    visitas,
+    pide_propietario,
+    propietario_nombre,
+    propietario_telefono,
+    estado,
+    ...campos
+  } = data;
+  return {
+    ...campos,
+    estado: intent === "borrador" ? "borrador" : estado === "borrador" ? "disponible" : estado,
+    datos_internos: { llaves, visitas, pide_propietario, propietario_nombre, propietario_telefono },
+    ...(user_id ? { user_id } : {}),
+  };
 }
 
 /**
- * El alta es en dos pasos porque la API separa el alta rápida (solo lo
- * obligatorio) del resto de los datos. Si el segundo paso falla igual
- * devolvemos el id: la propiedad ya existe y reintentar crearía un duplicado.
- * El formulario avisa que quedó incompleta y se completa desde la edición.
+ * Alta en un solo pedido: la API acepta todo junto y valida la completitud si
+ * no es borrador (422 INCOMPLETE con los campos que faltan). Así no queda una
+ * propiedad a medio cargar si algo falla.
  */
 export async function createProperty(
   _prev: PropertyFormState,
   formData: FormData
 ): Promise<PropertyFormState> {
-  const parsed = propertySchema.safeParse(Object.fromEntries(formData));
+  const parsed = propertySchema.safeParse(formDataAObjeto(formData));
   if (!parsed.success) {
     return { errors: fieldErrors(parsed.error.issues) };
   }
 
   let id: string;
-  let data: Omit<PropertyInput, "edificio_nuevo">;
   try {
-    data = await resolverEdificio(parsed.data);
+    const data = await resolverEdificio(parsed.data);
     const { property } = await apiFetch<{ property: { id: string } }>("/v1/properties", {
       method: "POST",
-      body: altaRapida(data),
+      body: cuerpoApi(data),
     });
     id = property.id;
   } catch (error) {
     return apiState(error, "No pudimos guardar la propiedad. Intentá de nuevo.");
   }
 
-  const resto = detalle(data);
-  let warning: string | undefined;
-  if (Object.keys(resto).length > 0) {
-    try {
-      await apiFetch(`/v1/properties/${id}`, { method: "PATCH", body: resto });
-    } catch {
-      warning =
-        "Guardamos la propiedad, pero algunos datos no se pudieron cargar. Revisalos y guardá de nuevo.";
-    }
-  }
-
   revalidatePath("/propiedades");
   revalidatePath("/mis-propiedades");
   // Sin redirect: el formulario sube las fotos seleccionadas y navega al detalle
-  return { id, warning };
+  return {
+    id,
+    warning:
+      parsed.data.intent === "borrador"
+        ? "Quedó como borrador: no la ven el sitio ni Martina hasta que la publiques."
+        : undefined,
+  };
 }
 
 export async function updateProperty(
@@ -136,7 +144,7 @@ export async function updateProperty(
   _prev: PropertyFormState,
   formData: FormData
 ): Promise<PropertyFormState> {
-  const parsed = propertySchema.safeParse(Object.fromEntries(formData));
+  const parsed = propertySchema.safeParse(formDataAObjeto(formData));
   if (!parsed.success) {
     return { errors: fieldErrors(parsed.error.issues) };
   }
@@ -145,7 +153,7 @@ export async function updateProperty(
     // Mandamos todo, nulls incluidos: así se vacía un campo que se borró.
     // `destacada` no viaja nunca por acá — ni está en propertySchema.
     const data = await resolverEdificio(parsed.data);
-    await apiFetch(`/v1/properties/${id}`, { method: "PATCH", body: data });
+    await apiFetch(`/v1/properties/${id}`, { method: "PATCH", body: cuerpoApi(data) });
   } catch (error) {
     return apiState(error, "No pudimos actualizar la propiedad.");
   }

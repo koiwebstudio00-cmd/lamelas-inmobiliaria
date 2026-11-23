@@ -1,12 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft, Pencil } from "lucide-react";
-import { EliminarCaptacion } from "@/components/captaciones/eliminar-captacion";
+import { ChevronLeft } from "lucide-react";
 import { MensajeAcciones } from "@/components/captaciones/mensaje-acciones";
 import { Button } from "@/components/ui/button";
-import { getCurrentUser } from "@/lib/api";
-import { esAdmin } from "@/lib/permisos";
 import { getCaptacion } from "@/lib/queries";
 import { formatDateTime, imageUrl } from "@/lib/utils";
 
@@ -14,9 +11,9 @@ export const metadata = { title: "Captación — Lamelas & Chaumont" };
 
 export default async function CaptacionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [captacion, me] = await Promise.all([getCaptacion(id), getCurrentUser()]);
+  const captacion = await getCaptacion(id);
   if (!captacion) notFound();
-  const puedeEditar = Boolean(me && (captacion.autor.id === me.id || esAdmin(me.rol)));
+  // Historial de solo lectura (FORM-UNICO-01): sin editar ni borrar.
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
@@ -74,16 +71,6 @@ export default async function CaptacionPage({ params }: { params: Promise<{ id: 
         </section>
       )}
 
-      {puedeEditar && (
-        <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline" size="sm">
-            <Link href={`/captaciones/${captacion.id}/editar`} prefetch={false}>
-              <Pencil /> Editar
-            </Link>
-          </Button>
-          <EliminarCaptacion id={captacion.id} />
-        </div>
-      )}
     </div>
   );
 }

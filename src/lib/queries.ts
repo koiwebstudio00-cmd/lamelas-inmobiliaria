@@ -12,6 +12,7 @@ import { normalizarDatos } from "@/lib/captacion";
 import type { PropertyCardData } from "@/components/properties/property-card";
 import type {
   Captacion,
+  DatosInternos,
   PushEstado,
   AnalyticsLeads,
   AnalyticsOverview,
@@ -135,6 +136,31 @@ interface ApiProperty {
   linkMaps: string | null;
   edificioId: string | null;
   unidad: string | null;
+  // FORM-UNICO-01
+  indiceOtro: string | null;
+  cochera: Property["cochera"];
+  cocheraCubierta: boolean | null;
+  ambientesLista: string[] | null;
+  medidasLote: string | null;
+  comodidades: string[] | null;
+  servicios: string[] | null;
+  aceptaNinos: Property["acepta_ninos"];
+  garantia: Property["garantia"];
+  garantiaDetalle: string | null;
+  deposito: Property["deposito"];
+  depositoDetalle: string | null;
+  disponibilidad: Property["disponibilidad"];
+  disponibleDesde: string | null;
+  /** Solo en la ficha (el listado no lo trae). */
+  datosInternos?: {
+    llaves: DatosInternos["llaves"];
+    visitas: string | null;
+    pidePropietario: string | null;
+    propietarioNombre: string | null;
+    propietarioTelefono: string | null;
+  } | null;
+  /** Lo calcula la API (completitud). Viene en el listado y en la ficha. */
+  faltantes?: string[];
   createdAt: string;
   updatedAt: string;
   images?: ApiImage[];
@@ -169,6 +195,7 @@ function toCard(p: ApiProperty): PropertyCardData {
     vendedor: p.user?.nombre ?? null,
     // En el listado la API manda solo la portada (o nada, si no hay fotos).
     portada: p.images?.[0]?.url ?? null,
+    faltantes: p.faltantes ?? [],
     created_at: p.createdAt,
   };
 }
@@ -214,6 +241,31 @@ function toProperty(p: ApiProperty): Property {
     link_maps: p.linkMaps,
     edificio: p.edificio ? { id: p.edificio.id, nombre: p.edificio.nombre } : null,
     unidad: p.unidad ?? null,
+    indice_otro: p.indiceOtro ?? null,
+    cochera: p.cochera ?? null,
+    cochera_cubierta: p.cocheraCubierta ?? null,
+    ambientes_lista: p.ambientesLista ?? [],
+    medidas_lote: p.medidasLote ?? null,
+    comodidades: p.comodidades ?? [],
+    servicios: p.servicios ?? [],
+    acepta_ninos: p.aceptaNinos ?? null,
+    garantia: p.garantia ?? null,
+    garantia_detalle: p.garantiaDetalle ?? null,
+    deposito: p.deposito ?? null,
+    deposito_detalle: p.depositoDetalle ?? null,
+    disponibilidad: p.disponibilidad ?? null,
+    // La API manda la fecha como ISO (medianoche UTC): el día es lo que importa.
+    disponible_desde: p.disponibleDesde ? p.disponibleDesde.slice(0, 10) : null,
+    datos_internos: p.datosInternos
+      ? {
+          llaves: p.datosInternos.llaves,
+          visitas: p.datosInternos.visitas,
+          pide_propietario: p.datosInternos.pidePropietario,
+          propietario_nombre: p.datosInternos.propietarioNombre,
+          propietario_telefono: p.datosInternos.propietarioTelefono,
+        }
+      : null,
+    faltantes: p.faltantes ?? [],
     created_at: p.createdAt,
     updated_at: p.updatedAt,
   };
@@ -233,11 +285,14 @@ function toImage(i: ApiImage): PropertyImage {
 // --- Filtros ----------------------------------------------------------------
 
 const OPERACIONES = ["venta", "alquiler"] as const;
+// `monoambiente` sigue valiendo como filtro (links viejos): la API lo traduce a
+// departamento con 0 dormitorios.
 const TIPOS = [
   "monoambiente",
   "departamento",
   "casa",
   "duplex",
+  "quinta",
   "local_comercial",
   "oficina",
   "galpon",
@@ -252,6 +307,8 @@ const ESTADOS = [
   "pausado",
   "vendida",
   "alquilada",
+  "privado",
+  "borrador",
 ] as const;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -625,10 +682,10 @@ function analyticsQuery(filters: AnalyticsFilters) {
     operacion: oneOf(["venta", "alquiler", "ambos"] as const, filters.operacion),
     tipo: oneOf(
       [
-        "monoambiente",
         "departamento",
         "casa",
         "duplex",
+        "quinta",
         "local_comercial",
         "oficina",
         "galpon",
