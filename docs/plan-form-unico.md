@@ -1,6 +1,15 @@
 # Plan de implementación — Formulario único de propiedades (FORM-UNICO-01)
 
-Fecha: 2026-11-23. Estado: **plan aprobado por Cacho, sin implementar.**
+Fecha: 2026-11-23. Estado: **fases 1 a 6 implementadas en `dev` (2026-11-23), sin deploy.** Falta la fase 7 (prueba de Cacho, guía de deploy y aplicar en n8n).
+
+Decisiones tomadas durante la implementación (2026-11-23):
+- Tipo nuevo `quinta`. Índice suma `otro` (con `indice_otro`) y `a_convenir`, además de `casa_propia`.
+- Columnas de lista cerrada como enums de Postgres. Datos del propietario: nombre y teléfono.
+- La policy `prop_insert` se cambió en la fase 1 para que el admin cargue a nombre de otro; `prop_update` también impide que un vendedor pase su propiedad a otro.
+- "Pasar a otro estado exige completitud" = solo al crear publicada o salir de borrador. Entre estados publicados rige la regla de edición (solo frena un faltante nuevo); el cierre de una consulta no saca de borrador a una incompleta.
+- En venta no se piden las condiciones de alquiler (plazo, índice, ajuste, garantía, depósito, expensas). Sí las características, incluidas mascotas, niños y amoblado en viviendas (pendiente de revisar).
+- La RLS oculta los borradores a `agent` y también a `public` (export y sitio).
+- Martina: una unidad no disponible trae igual las otras unidades de su edificio, y `buscar_similares` no muestra la diferencia de precio con una no disponible.
 Ficha de la feature y decisiones: `docs/features.md` → FORM-UNICO-01.
 
 Repos: `back-lamelas` (API), `lamelas` (panel), `lamelas-web` (sitio), `lamelas-agent` (Martina).

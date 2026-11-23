@@ -59,7 +59,7 @@ pasó a `@layer base` y las clases de borde de color vuelven a aplicarse.
 | NOTIF-TIEMPO-REAL-01 | Campanita en tiempo real (SSE) | M | propuesto |
 | AUTH-REFRESH-RACE-01 | Sesión que se cierra si dos pedidos renuevan a la vez | S | propuesto — depende del backend |
 | PIPELINE-KANBAN-01 | Vista de pipeline tipo kanban para las consultas | M | propuesto 2026-11-19 — falta decidir columnas |
-| FORM-UNICO-01 | Un solo formulario para cargar propiedades y captaciones | L | propuesto 2026-11-19 — falta decidir base y alcance |
+| FORM-UNICO-01 | Un solo formulario para cargar propiedades y captaciones | L | en `dev` 2026-11-23 (fases 1–6) — falta prueba de Cacho, deploy y n8n |
 
 ---
 
@@ -751,3 +751,5 @@ características, sin contrato, depósito ni garantías. "Ambas" muestra los dos
 condiciones de alquiler.
 
 **Plan de implementación ordenado:** `docs/plan-form-unico.md`.
+
+**Estado (2026-11-23).** Fases 1 a 6 implementadas en `dev` de `back-lamelas`, `lamelas`, `lamelas-web` y `lamelas-agent`, sin push ni deploy. Decisiones tomadas durante la implementación al principio de `docs/plan-form-unico.md`.
