@@ -28,7 +28,7 @@ export function MensajeAcciones({ mensaje }: { mensaje: string }) {
         </a>
       </Button>
       <Button type="button" variant="outline" onClick={copiar}>
-        {copiado ? <Check className="size-4" /> : <Copy className="size-4" />} {copiado ? "Copiado" : "Copiar texto"}
+        {copiado ? <Check className="size-4" /> : <Copy className="size-4" />} {copiado ? "Copiado" : "Copiar mensaje"}
       </Button>
     </div>
   );

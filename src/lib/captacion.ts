@@ -258,6 +258,9 @@ export function aplica(tipo: string) {
 
 // ── Validación por paso ─────────────────────────────────────────────────────
 
+/** Fotos por captación (round-edits item 2, confirmado el 2026-11-16). Lo controla también la API. */
+export const MAX_FOTOS_CAPTACION = 20;
+
 export const PASOS = [
   { titulo: "Propiedad", subtitulo: "Tipo y dirección exacta." },
   { titulo: "Características", subtitulo: "Marcá todo lo que tiene. Lo que no marcás, el cliente lo pregunta después." },

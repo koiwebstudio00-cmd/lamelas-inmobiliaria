@@ -1,6 +1,6 @@
 "use client";
 
-import { confirmPhotos, presignPhotos } from "@/actions/images";
+import { confirmPhotos, presignPhotos, type PresignedUpload } from "@/actions/images";
 import { resizeImage } from "@/lib/resize-image";
 
 /**
@@ -10,9 +10,12 @@ import { resizeImage } from "@/lib/resize-image";
  * 2. El navegador manda cada archivo directo a R2. Es el único lugar donde el
  *    front habla con algo que no sea Next: R2 no usa cookies, así que no
  *    necesita el intermediario.
- * 3. Confirmamos las que llegaron. La API asigna orden y portada.
+ * 3. Confirmamos las que llegaron. La API asigna el orden (y la portada, en
+ *    propiedades).
  *
  * Si una foto falla, las demás siguen: se confirman solo las subidas.
+ * Lo usan las propiedades y las captaciones; cambia solo a qué endpoint se
+ * pide la URL y dónde se confirma.
  */
 
 /** Sin credenciales de R2 el backend devuelve una URL de mentira (modo dev). */
@@ -20,13 +23,16 @@ function isStub(url: string): boolean {
   return url.includes("/dev-r2-upload/");
 }
 
-export async function uploadPropertyPhotos(
-  propertyId: string,
-  files: File[]
-): Promise<{ ok: number; failed: number; error?: string }> {
+type Confirmacion = { ok: number; error?: string };
+
+export async function uploadPhotos<C extends Confirmacion>(
+  files: File[],
+  presign: (count: number) => Promise<{ uploads?: PresignedUpload[]; error?: string }>,
+  confirm: (keys: string[]) => Promise<C>
+): Promise<{ ok: number; failed: number; error?: string; confirmed?: C }> {
   if (files.length === 0) return { ok: 0, failed: 0 };
 
-  const { uploads, error } = await presignPhotos(propertyId, files.length);
+  const { uploads, error } = await presign(files.length);
   if (!uploads) return { ok: 0, failed: files.length, error };
 
   const subidas: string[] = [];
@@ -55,9 +61,21 @@ export async function uploadPropertyPhotos(
     }
   }
 
-  const confirmed = await confirmPhotos(propertyId, subidas);
+  if (subidas.length === 0) return { ok: 0, failed };
+  const confirmed = await confirm(subidas);
   if (confirmed.error) {
     return { ok: 0, failed: files.length, error: confirmed.error };
   }
-  return { ok: confirmed.ok, failed };
+  return { ok: confirmed.ok, failed, confirmed };
+}
+
+export function uploadPropertyPhotos(
+  propertyId: string,
+  files: File[]
+): Promise<{ ok: number; failed: number; error?: string }> {
+  return uploadPhotos(
+    files,
+    (count) => presignPhotos(propertyId, count),
+    (keys) => confirmPhotos(propertyId, keys)
+  );
 }

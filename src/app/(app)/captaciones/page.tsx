@@ -1,9 +1,8 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { ClipboardList, MapPin, Plus, UserRound } from "lucide-react";
+import { ClipboardList, MapPin, UserRound } from "lucide-react";
 import { CaptacionesFiltros } from "@/components/captaciones/captaciones-filtros";
 import { Pagination } from "@/components/pagination";
-import { Button } from "@/components/ui/button";
 import { getCaptaciones } from "@/lib/queries";
 import { formatDateTime } from "@/lib/utils";
 
@@ -26,14 +25,13 @@ export default async function CaptacionesPage({ searchParams }: { searchParams: 
         <div>
           <h1 className="text-2xl font-semibold">Captaciones</h1>
           <p className="text-sm text-muted-foreground">
-            Alquileres para captar: cargalos acá y mandá el mensaje al grupo de WhatsApp.
+            Historial de solo lectura. Las propiedades nuevas se cargan en{" "}
+            <Link href="/propiedades/nueva" prefetch={false} className="text-primary underline underline-offset-2">
+              Nueva captación
+            </Link>
+            , que ahora arma el mismo mensaje para el grupo.
           </p>
         </div>
-        <Button asChild>
-          <Link href="/captaciones/nueva" prefetch={false}>
-            <Plus /> Nueva captación
-          </Link>
-        </Button>
       </div>
 
       <Suspense>

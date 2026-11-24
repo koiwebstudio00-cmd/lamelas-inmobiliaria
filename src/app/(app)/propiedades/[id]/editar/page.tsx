@@ -2,8 +2,9 @@ import { notFound, redirect } from "next/navigation";
 import { updateProperty } from "@/actions/properties";
 import { PropertyForm } from "@/components/properties/property-form";
 import { PhotoManager } from "@/components/properties/photo-manager";
+import { MensajeGrupo } from "@/components/properties/mensaje-grupo";
 import { getCurrentUser } from "@/lib/api";
-import { getEdificios, getProperty } from "@/lib/queries";
+import { getEdificios, getProperty, getVendedores } from "@/lib/queries";
 
 export const metadata = { title: "Editar propiedad — Lamelas & Chaumont" };
 
@@ -21,28 +22,37 @@ export default async function EditarPropiedadPage({
 
   if (!detail) notFound();
 
-  const { property, images } = detail;
+  const { property, images, vendedor } = detail;
   // El dueño edita lo suyo; el admin, cualquier propiedad del tenant (la RLS ya
   // lo permite). Solo se redirige a un vendedor que abre una propiedad ajena.
   const esAdmin = me?.rol === "admin" || me?.rol === "super_admin";
   if (property.user_id !== me?.id && !esAdmin) redirect(`/propiedades/${id}`);
 
   const action = updateProperty.bind(null, id);
+  const vendedores = esAdmin ? await getVendedores() : [];
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
+    <div className="mx-auto max-w-5xl space-y-4">
       <h1 className="text-2xl font-semibold">Editar propiedad</h1>
       <div className="rounded-xl border bg-background p-4">
         <PhotoManager propertyId={property.id} images={images} />
       </div>
-      <div className="rounded-xl border bg-background p-4 sm:p-6">
+      {/* Sin tarjeta envolvente: cada sección del formulario es su propia tarjeta. */}
+      <div>
         <PropertyForm
           action={action}
           property={property}
           edificios={edificios}
-          submitLabel="Guardar cambios"
+          esAdmin={esAdmin}
+          vendedores={vendedores}
+          usuarioId={me?.id}
         />
       </div>
+      <MensajeGrupo
+        property={property}
+        responsable={vendedor}
+        aviso="Se arma con lo último que guardaste: si cambiaste algo arriba, guardá primero."
+      />
     </div>
   );
 }

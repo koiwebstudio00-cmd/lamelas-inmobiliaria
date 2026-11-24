@@ -2,8 +2,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { Building, ImageOff, Star } from "lucide-react";
 import { EstadoBadge } from "@/components/ui/badge";
+import { EstadoCompletitud, FaltanDatosBadge } from "@/components/properties/estado-completitud";
 import { formatPrice, imageUrl } from "@/lib/utils";
-import type { EstadoPropiedad, Moneda, Operacion, TipoPropiedad } from "@/lib/types";
+import { tipoConDormitorios, type EstadoPropiedad, type Moneda, type Operacion, type TipoPropiedad } from "@/lib/types";
 
 export interface PropertyCardData {
   id: string;
@@ -18,11 +19,15 @@ export interface PropertyCardData {
   estado: EstadoPropiedad;
   destacada: boolean;
   zona: string | null;
+  /** Para mostrar "Monoambiente" en los departamentos con 0 dormitorios. */
+  dormitorios: number | null;
   /** Nombre del edificio y unidad ("Torre Alem · 3° B"), si pertenece a uno. */
   edificio: string | null;
   unidad: string | null;
   vendedor: string | null;
   portada: string | null;
+  /** Lo que le falta para publicarse (FORM-UNICO-01). */
+  faltantes: string[];
   created_at?: string;
 }
 
@@ -95,10 +100,18 @@ export function PropertyCard({
             <ImageOff className="size-8" />
           </span>
         )}
-        <EstadoBadge
-          estado={property.estado}
-          className="absolute left-1.5 top-1.5 px-1.5 text-[10px] sm:left-2 sm:top-2 sm:px-2 sm:text-xs"
-        />
+        {property.estado === "borrador" ? (
+          <EstadoCompletitud
+            estado="borrador"
+            faltantes={property.faltantes}
+            className="absolute left-1.5 top-1.5 px-1.5 text-[10px] sm:left-2 sm:top-2 sm:px-2 sm:text-xs"
+          />
+        ) : (
+          <EstadoBadge
+            estado={property.estado}
+            className="absolute left-1.5 top-1.5 px-1.5 text-[10px] sm:left-2 sm:top-2 sm:px-2 sm:text-xs"
+          />
+        )}
         {property.destacada && (
           <span className="absolute bottom-1.5 left-1.5 inline-flex items-center gap-1 rounded-md bg-amber-400 px-1.5 py-0.5 text-[11px] font-semibold text-amber-950 sm:bottom-auto sm:left-auto sm:right-2 sm:top-2 sm:px-2">
             <Star className="size-3 fill-current" />
@@ -108,7 +121,7 @@ export function PropertyCard({
       </Link>
       <div className="flex min-w-0 flex-1 flex-col gap-1 p-3 sm:p-4">
         <p className="text-xs uppercase text-muted-foreground">
-          {OPERACION_LABEL[property.operacion]} · {property.tipo}
+          {OPERACION_LABEL[property.operacion]} · {tipoConDormitorios(property.tipo, property.dormitorios)}
           {property.zona ? ` · ${property.zona}` : ""}
         </p>
         <Link
@@ -144,6 +157,9 @@ export function PropertyCard({
         </div>
         {property.vendedor && (
           <p className="text-sm text-muted-foreground">{property.vendedor}</p>
+        )}
+        {property.estado !== "borrador" && property.faltantes.length > 0 && (
+          <FaltanDatosBadge className="self-start" />
         )}
         {actions && <div className="mt-2 flex items-center gap-2">{actions}</div>}
       </div>

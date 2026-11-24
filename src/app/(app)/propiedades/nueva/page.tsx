@@ -1,8 +1,9 @@
 import { createProperty } from "@/actions/properties";
 import { PropertyForm } from "@/components/properties/property-form";
-import { getEdificios, getProperty } from "@/lib/queries";
+import { getCurrentUser } from "@/lib/api";
+import { getEdificios, getProperty, getVendedores } from "@/lib/queries";
 
-export const metadata = { title: "Nueva propiedad — Lamelas & Chaumont" };
+export const metadata = { title: "Nueva captación — Lamelas & Chaumont" };
 
 type SearchParams = Promise<Record<string, string | undefined>>;
 
@@ -14,18 +15,29 @@ export default async function NuevaPropiedadPage({
   // `?desde=<id>`: alta de otra unidad a partir de una propiedad existente
   // (misma torre, mismas características). Se copian los datos, no las fotos.
   const { desde } = await searchParams;
-  const [edificios, origen] = await Promise.all([
+  const [edificios, origen, me] = await Promise.all([
     getEdificios(),
     desde ? getProperty(desde) : Promise.resolve(null),
+    getCurrentUser(),
   ]);
-  // Lo que distingue a cada unidad arranca vacío; el estado, disponible.
+  // El admin puede cargar a nombre de otro vendedor (FORM-UNICO-01).
+  const esAdmin = me?.rol === "admin" || me?.rol === "super_admin";
+  const vendedores = esAdmin ? await getVendedores() : [];
+  // Lo que distingue a cada unidad arranca vacío; el estado, disponible. Los
+  // datos internos (llaves, propietario) no se copian: son de cada unidad.
   const plantilla = origen
-    ? { ...origen.property, unidad: null, estado: "disponible" as const }
+    ? {
+        ...origen.property,
+        unidad: null,
+        estado: "disponible" as const,
+        datos_internos: null,
+        faltantes: [],
+      }
     : undefined;
 
   return (
-    <div className="mx-auto max-w-4xl space-y-4">
-      <h1 className="text-2xl font-semibold">Nueva propiedad</h1>
+    <div className="mx-auto max-w-5xl space-y-4">
+      <h1 className="text-2xl font-semibold">Nueva captación</h1>
       {plantilla ? (
         <p className="border border-primary/30 bg-primary/5 p-3 text-sm">
           Copiamos los datos de <strong>{origen!.property.titulo}</strong>
@@ -35,18 +47,21 @@ export default async function NuevaPropiedadPage({
         </p>
       ) : (
         <p className="text-sm text-muted-foreground">
-          Solo título, operación, tipo y precio son obligatorios. Las fotos las
-          podés agregar acá mismo o después desde el detalle.
+          Completá lo marcado con <span className="text-destructive">*</span> para publicarla. Si te
+          falta algo, guardala como borrador y terminala después.
         </p>
       )}
-      <div className="rounded-xl border bg-background p-4 sm:p-6">
+      {/* Sin tarjeta envolvente: cada sección del formulario es su propia tarjeta. */}
+      <div>
         <PropertyForm
           // `key`: al pasar de una plantilla a otra el form se rearma entero.
           key={desde ?? "nueva"}
           action={createProperty}
           plantilla={plantilla}
           edificios={edificios}
-          submitLabel="Crear propiedad"
+          esAdmin={esAdmin}
+          vendedores={vendedores}
+          usuarioId={me?.id}
         />
       </div>
     </div>

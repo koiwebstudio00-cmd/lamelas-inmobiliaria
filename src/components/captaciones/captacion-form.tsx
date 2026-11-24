@@ -5,7 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, ChevronLeft, ChevronRight, Copy, Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
-import { guardarCaptacion, guardarMensajeCaptacion } from "@/actions/captaciones";
+import {
+  confirmFotosCaptacion,
+  guardarCaptacion,
+  guardarMensajeCaptacion,
+  presignFotosCaptacion,
+} from "@/actions/captaciones";
+import { CaptacionFotos } from "@/components/captaciones/captacion-fotos";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,6 +44,8 @@ import {
   type CaptacionDatos,
   type Errores,
 } from "@/lib/captacion";
+import type { CaptacionFoto } from "@/lib/types";
+import { uploadPhotos } from "@/lib/upload-photos";
 import { cn } from "@/lib/utils";
 
 type Vendedor = { id: string; nombre: string };
@@ -54,7 +62,7 @@ export function CaptacionForm({
 }: {
   vendedores: Vendedor[];
   responsableInicial: string;
-  inicial?: { id: string; datos: CaptacionDatos; mensaje: string };
+  inicial?: { id: string; datos: CaptacionDatos; mensaje: string; fotos: CaptacionFoto[] };
 }) {
   const router = useRouter();
   const [datos, setDatos] = useState<CaptacionDatos>(
@@ -66,6 +74,10 @@ export function CaptacionForm({
   const [mensaje, setMensaje] = useState("");
   const [mensajeGuardado, setMensajeGuardado] = useState("");
   const [copiado, setCopiado] = useState(false);
+  // Fotos ya guardadas y las elegidas que se suben al guardar (round-edits item 2).
+  const [fotos, setFotos] = useState<CaptacionFoto[]>(inicial?.fotos ?? []);
+  const [pendientes, setPendientes] = useState<File[]>([]);
+  const [subiendoFotos, setSubiendoFotos] = useState(false);
   const [pending, startTransition] = useTransition();
   const arriba = useRef<HTMLDivElement>(null);
 
@@ -103,8 +115,32 @@ export function CaptacionForm({
       setId(res.id);
       setMensaje(res.mensaje);
       setMensajeGuardado(res.mensaje);
+      await subirPendientes(res.id);
       irA(PASOS.length);
     });
+  };
+
+  // Las fotos se suben cuando la captación ya existe (hace falta su id). Si
+  // alguna falla, la captación igual queda guardada: se puede reintentar desde
+  // "Corregir datos".
+  const subirPendientes = async (captacionId: string) => {
+    if (pendientes.length === 0) return;
+    setSubiendoFotos(true);
+    const { failed, error, confirmed } = await uploadPhotos(
+      pendientes,
+      (count) => presignFotosCaptacion(captacionId, count),
+      (keys) => confirmFotosCaptacion(captacionId, keys),
+    );
+    setSubiendoFotos(false);
+    if (error) {
+      toast.error(`${error} La captación quedó guardada; podés reintentar las fotos desde “Corregir datos”.`);
+      return;
+    }
+    setFotos((f) => [...f, ...(confirmed?.fotos ?? [])]);
+    setPendientes([]);
+    if (failed > 0) {
+      toast.warning(`${failed} foto(s) no se pudieron subir. Podés agregarlas de nuevo desde “Corregir datos”.`);
+    }
   };
 
   // Si retocó el texto, se guarda antes de mandarlo para que el historial
@@ -136,6 +172,8 @@ export function CaptacionForm({
     setId(null);
     setMensaje("");
     setMensajeGuardado("");
+    setFotos([]);
+    setPendientes([]);
     setErrores({});
     if (inicial) router.push("/captaciones/nueva");
     else irA(0);
@@ -382,6 +420,16 @@ export function CaptacionForm({
           <Campo label="Observaciones" opcional>
             <Textarea value={datos.observaciones} onChange={(e) => set("observaciones", e.target.value)} rows={3} />
           </Campo>
+          <Campo label="Fotos" opcional>
+            <CaptacionFotos
+              captacionId={id}
+              fotos={fotos}
+              onFotosChange={setFotos}
+              pendientes={pendientes}
+              onPendientesChange={setPendientes}
+              bloqueado={pending}
+            />
+          </Campo>
         </Seccion>
       )}
 
@@ -391,6 +439,12 @@ export function CaptacionForm({
             Revisalo, tocá “Abrir WhatsApp” y elegí el grupo. Podés editarlo antes de enviar. Si WhatsApp no se abre solo,
             usá “Copiar texto” y pegalo en el grupo.
           </p>
+          {fotos.length > 0 && (
+            <p className="text-xs text-muted-foreground">
+              {fotos.length === 1 ? "1 foto guardada" : `${fotos.length} fotos guardadas`} con la captación (no van en el
+              mensaje).
+            </p>
+          )}
           <Textarea
             aria-label="Mensaje para el grupo"
             value={mensaje}
@@ -434,7 +488,9 @@ export function CaptacionForm({
           )}
           <Button type="button" className="flex-1 sm:flex-none" onClick={siguiente} disabled={pending}>
             {pending ? (
-              <Loader2 className="size-4 animate-spin" />
+              <>
+                <Loader2 className="size-4 animate-spin" /> {subiendoFotos ? "Subiendo fotos…" : null}
+              </>
             ) : paso === PASOS.length - 1 ? (
               <>Generar mensaje</>
             ) : (

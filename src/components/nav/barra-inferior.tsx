@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ComponentType, type SVGProps } from "react";
-import { Building2, ClipboardList, Home, Inbox, Menu, Plus } from "lucide-react";
+import { Building2, Home, Inbox, Menu, Plus } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -50,8 +50,8 @@ const IZQUIERDA: Destino[] = [
 const ACCIONES = [
   {
     href: "/propiedades/nueva",
-    label: "Nueva propiedad",
-    detalle: "Cargá una propiedad con fotos",
+    label: "Nueva captación",
+    detalle: "Cargala con fotos y armá el mensaje para el grupo",
     icon: Building2,
   },
   {
@@ -59,12 +59,6 @@ const ACCIONES = [
     label: "Nueva consulta",
     detalle: "Registrá a alguien que te contactó",
     icon: Inbox,
-  },
-  {
-    href: "/captaciones/nueva",
-    label: "Nueva captación",
-    detalle: "Armá el mensaje para el grupo de WhatsApp",
-    icon: ClipboardList,
   },
 ];
 

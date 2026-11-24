@@ -107,6 +107,7 @@ export const PROPERTY_STATE_LABELS: Record<string, string> = {
   vendida: "Vendidas",
   alquilada: "Alquiladas",
   privado: "Privadas",
+  borrador: "Borradores",
 };
 
 export const TYPE_LABELS: Record<string, string> = {
@@ -114,11 +115,12 @@ export const TYPE_LABELS: Record<string, string> = {
   departamento: "Departamento",
   casa: "Casa",
   duplex: "Dúplex",
+  quinta: "Quinta / Country",
   local_comercial: "Local comercial",
   oficina: "Oficina",
-  galpon: "Galpón",
-  estacionamiento: "Estacionamiento",
-  terreno: "Terreno",
+  galpon: "Galpón / Depósito",
+  estacionamiento: "Estacionamiento / Cochera",
+  terreno: "Terreno / Lote",
   otro: "Otro",
 };
 

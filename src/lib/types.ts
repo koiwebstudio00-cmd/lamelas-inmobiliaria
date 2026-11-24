@@ -3,11 +3,14 @@
 // y ningún componente conoce el formato de la API.
 
 export type Operacion = "venta" | "alquiler" | "ambos";
+// `monoambiente` quedó en el tipo solo por datos viejos: ya no se ofrece
+// (FORM-UNICO-01). Un monoambiente es un departamento con 0 dormitorios.
 export type TipoPropiedad =
   | "monoambiente"
   | "departamento"
   | "casa"
   | "duplex"
+  | "quinta"
   | "local_comercial"
   | "oficina"
   | "galpon"
@@ -22,15 +25,38 @@ export type EstadoPropiedad =
   | "pausado"
   | "vendida"
   | "alquilada"
-  | "privado";
+  | "privado"
+  | "borrador";
 
 // Campos de alquiler (enums de la API). "otro" habilita el texto acompañante.
 export type DestinoAlquiler = "vivienda" | "comercial" | "profesional" | "otro";
-export type PlazoContrato = "meses_12" | "meses_18" | "meses_24" | "meses_36" | "otro";
-export type AjusteAlquiler = "trimestral" | "cuatrimestral" | "otro";
-export type IndiceAjuste = "icl" | "ipc" | "fijo";
-export type MascotasAlquiler = "se_permiten" | "no_se_permiten" | "sin_especificar";
-export type AmobladoAlquiler = "amoblado" | "sin_amoblar" | "sin_especificar";
+export type PlazoContrato =
+  | "meses_12"
+  | "meses_18"
+  | "meses_24"
+  | "meses_36"
+  | "otro"
+  | "a_convenir";
+export type AjusteAlquiler = "trimestral" | "cuatrimestral" | "semestral" | "anual" | "otro";
+export type IndiceAjuste = "icl" | "ipc" | "fijo" | "casa_propia" | "otro" | "a_convenir";
+export type MascotasAlquiler = "se_permiten" | "no_se_permiten" | "sin_especificar" | "a_convenir";
+export type AmobladoAlquiler = "amoblado" | "sin_amoblar" | "sin_especificar" | "semiamoblado";
+
+// Campos de la captación (FORM-UNICO-01).
+export type Cochera = "no_tiene" | "un_auto" | "dos_autos" | "tres_o_mas";
+export type SiNoConvenir = "si" | "no" | "a_convenir";
+export type Garantia = "recibo_sueldo" | "especial";
+export type Deposito = "sin_deposito" | "un_mes" | "dos_meses" | "dolares" | "otro";
+export type Disponibilidad = "inmediata" | "mostrar_desde" | "se_desocupa" | "a_convenir";
+export type Llaves = "oficina" | "propietario" | "inquilino" | "encargado" | "sin_llaves";
+
+/** Datos internos: solo el equipo los ve; nunca salen al sitio ni a Martina. */
+export type DatosInternos = {
+  llaves: Llaves | null;
+  visitas: string | null;
+  /** Detalle de la garantía especial: qué pide el propietario. */
+  garantia_detalle: string | null;
+};
 
 export type Rol = "super_admin" | "admin" | "agente";
 
@@ -278,6 +304,24 @@ export type Property = {
   edificio: { id: string; nombre: string } | null;
   /** Cómo se distingue la unidad dentro del edificio ("3° B"). */
   unidad: string | null;
+  // Campos de la captación (FORM-UNICO-01)
+  indice_otro: string | null;
+  cochera: Cochera | null;
+  cochera_cubierta: boolean | null;
+  ambientes_lista: string[];
+  medidas_lote: string | null;
+  comodidades: string[];
+  servicios: string[];
+  acepta_ninos: SiNoConvenir | null;
+  garantia: Garantia | null;
+  deposito: Deposito | null;
+  deposito_detalle: string | null;
+  disponibilidad: Disponibilidad | null;
+  /** AAAA-MM-DD */
+  disponible_desde: string | null;
+  datos_internos: DatosInternos | null;
+  /** Lo que le falta para publicarse (lo calcula la API). Vacío si está completa. */
+  faltantes: string[];
   created_at: string;
   updated_at: string;
 }
@@ -298,18 +342,34 @@ export const OPERACIONES: { value: Operacion; label: string }[] = [
   { value: "ambos", label: "Venta y alquiler" },
 ];
 
+// Los que se ofrecen al cargar y filtrar. Sin monoambiente (FORM-UNICO-01).
 export const TIPOS: { value: TipoPropiedad; label: string }[] = [
-  { value: "monoambiente", label: "Monoambiente" },
   { value: "departamento", label: "Departamento" },
   { value: "casa", label: "Casa" },
   { value: "duplex", label: "Dúplex" },
+  { value: "quinta", label: "Quinta / Country" },
   { value: "local_comercial", label: "Local comercial" },
   { value: "oficina", label: "Oficina" },
-  { value: "galpon", label: "Galpón" },
-  { value: "estacionamiento", label: "Estacionamiento" },
-  { value: "terreno", label: "Terreno" },
+  { value: "galpon", label: "Galpón / Depósito" },
+  { value: "estacionamiento", label: "Estacionamiento / Cochera" },
+  { value: "terreno", label: "Terreno / Lote" },
   { value: "otro", label: "Otro" },
 ];
+
+/** Etiqueta de cualquier tipo, incluido el viejo `monoambiente`. */
+export function tipoLabel(tipo: TipoPropiedad): string {
+  if (tipo === "monoambiente") return "Monoambiente";
+  return TIPOS.find((t) => t.value === tipo)?.label ?? tipo;
+}
+
+/**
+ * Tipo para listados: un departamento con 0 dormitorios se muestra como
+ * "Departamento · Monoambiente" (FORM-UNICO-01: monoambiente ya no es un tipo).
+ */
+export function tipoConDormitorios(tipo: TipoPropiedad, dormitorios: number | null | undefined): string {
+  if (tipo === "departamento" && dormitorios === 0) return "Departamento · Monoambiente";
+  return tipoLabel(tipo);
+}
 
 export const MONEDAS: { value: Moneda; label: string }[] = [
   { value: "ARS", label: "ARS" },
@@ -324,7 +384,11 @@ export const ESTADOS: { value: EstadoPropiedad; label: string }[] = [
   { value: "vendida", label: "Vendida" },
   { value: "alquilada", label: "Alquilada" },
   { value: "privado", label: "Privado (no se publica)" },
+  { value: "borrador", label: "Borrador" },
 ];
+
+/** Estados que se eligen al publicar (sin borrador: para eso está su botón). */
+export const ESTADOS_PUBLICADOS = ESTADOS.filter((e) => e.value !== "borrador");
 
 /**
  * Valor centinela del `<select>` de zona para habilitar el input libre. No se
@@ -407,11 +471,14 @@ export const PLAZOS: { value: PlazoContrato; label: string }[] = [
   { value: "meses_24", label: "24 meses" },
   { value: "meses_36", label: "36 meses" },
   { value: "otro", label: "Otro" },
+  { value: "a_convenir", label: "A convenir" },
 ];
 
 export const AJUSTES: { value: AjusteAlquiler; label: string }[] = [
   { value: "trimestral", label: "Trimestral" },
   { value: "cuatrimestral", label: "Cuatrimestral" },
+  { value: "semestral", label: "Semestral" },
+  { value: "anual", label: "Anual" },
   { value: "otro", label: "Otro" },
 ];
 
@@ -419,19 +486,118 @@ export const INDICES: { value: IndiceAjuste; label: string }[] = [
   { value: "icl", label: "ICL" },
   { value: "ipc", label: "IPC" },
   { value: "fijo", label: "Fijo (%)" },
+  { value: "casa_propia", label: "Casa Propia" },
+  { value: "otro", label: "Otro" },
+  { value: "a_convenir", label: "A convenir con el propietario" },
 ];
 
 export const MASCOTAS: { value: MascotasAlquiler; label: string }[] = [
   { value: "se_permiten", label: "Se permiten" },
   { value: "no_se_permiten", label: "No se permiten" },
+  { value: "a_convenir", label: "A convenir" },
   { value: "sin_especificar", label: "Sin especificar" },
 ];
 
 export const AMOBLADO_OPCIONES: { value: AmobladoAlquiler; label: string }[] = [
   { value: "amoblado", label: "Amoblado" },
   { value: "sin_amoblar", label: "Sin amoblar" },
+  { value: "semiamoblado", label: "Semiamoblado" },
   { value: "sin_especificar", label: "Sin especificar" },
 ];
+
+// ── Campos de la captación (FORM-UNICO-01) ───────────────────────────────────
+// Mismas listas que tenía la captación (src/lib/captacion.ts), con los valores
+// canónicos de la API.
+export const DORMITORIOS_OPCIONES = [
+  { value: "0", label: "Monoambiente" },
+  { value: "1", label: "1" },
+  { value: "2", label: "2" },
+  { value: "3", label: "3" },
+  { value: "4", label: "4 o más" },
+] as const;
+
+export const COCHERA_OPCIONES: { value: Cochera; label: string }[] = [
+  { value: "no_tiene", label: "No tiene" },
+  { value: "un_auto", label: "1 auto" },
+  { value: "dos_autos", label: "2 autos" },
+  { value: "tres_o_mas", label: "3 o más" },
+];
+
+export const SI_NO_CONVENIR: { value: SiNoConvenir; label: string }[] = [
+  { value: "si", label: "Sí" },
+  { value: "no", label: "No" },
+  { value: "a_convenir", label: "A convenir" },
+];
+
+export const GARANTIAS: { value: Garantia; label: string }[] = [
+  { value: "recibo_sueldo", label: "Solicitante y garante con recibo de sueldo" },
+  { value: "especial", label: "Especial (detallar)" },
+];
+
+export const DEPOSITOS: { value: Deposito; label: string }[] = [
+  { value: "sin_deposito", label: "Sin depósito" },
+  { value: "un_mes", label: "1 mes" },
+  { value: "dos_meses", label: "2 meses" },
+  { value: "dolares", label: "En dólares (indicar monto)" },
+  { value: "otro", label: "Otro (detallar)" },
+];
+
+export const DISPONIBILIDADES: { value: Disponibilidad; label: string }[] = [
+  { value: "inmediata", label: "Disponible, ingreso inmediato" },
+  { value: "mostrar_desde", label: "Se puede mostrar a partir del…" },
+  { value: "se_desocupa", label: "Alquilado, se desocupa el…" },
+  { value: "a_convenir", label: "A convenir con el propietario" },
+];
+
+export const LLAVES_OPCIONES: { value: Llaves; label: string }[] = [
+  { value: "oficina", label: "En la oficina" },
+  { value: "propietario", label: "Con el propietario" },
+  { value: "inquilino", label: "Con el inquilino" },
+  { value: "encargado", label: "Con el encargado" },
+  { value: "sin_llaves", label: "Sin llaves aún" },
+];
+
+export const AMBIENTES_LISTA = [
+  "Cocina",
+  "Kitchenette",
+  "Comedor",
+  "Comedor diario",
+  "Living",
+  "Living-comedor",
+  "Toilet",
+  "Lavadero",
+  "Escritorio",
+  "Dep. de servicio",
+  "Vestidor",
+  "Placards",
+  "Altillo",
+  "Sótano",
+  "Baulera",
+] as const;
+
+export const COMODIDADES = [
+  "Balcón",
+  "Terraza",
+  "Patio",
+  "Jardín",
+  "Galería",
+  "Quincho",
+  "Parrilla",
+  "Pileta",
+  "Ascensor",
+  "Seguridad 24 h",
+  "Portero",
+] as const;
+
+export const SERVICIOS = [
+  "Agua corriente",
+  "Energía eléctrica",
+  "Cloacas",
+  "Internet",
+  "Gas natural",
+  "Gas envasado",
+  "Todo eléctrico",
+] as const;
 
 // ── CRM: consultas que entran por el sitio público o se cargan a mano ────────
 
@@ -921,9 +1087,13 @@ export type Captacion = {
   mensaje: string;
   autor: { id: string; nombre: string };
   responsable: { id: string; nombre: string } | null;
+  /** Fotos de la captación, en orden de subida (máx. 20). */
+  imagenes: CaptacionFoto[];
   created_at: string;
   updated_at: string;
 };
+
+export type CaptacionFoto = { id: string; url: string; orden: number };
 
 // ── Notificaciones al celular (PUSH-PWA-01) ──────────────────────────────────
 

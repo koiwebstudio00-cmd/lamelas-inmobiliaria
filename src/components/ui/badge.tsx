@@ -36,6 +36,7 @@ const ESTADO_STYLES: Record<EstadoPropiedad, string> = {
   vendida: "bg-[var(--estado-vendida-bg)] text-[var(--estado-vendida-fg)]",
   alquilada: "bg-[var(--estado-vendida-bg)] text-[var(--estado-vendida-fg)]",
   privado: "bg-foreground text-background",
+  borrador: "border border-dashed border-amber-500 bg-amber-50 text-amber-900",
 };
 
 const ESTADO_LABELS: Record<EstadoPropiedad, string> = {
@@ -46,9 +47,19 @@ const ESTADO_LABELS: Record<EstadoPropiedad, string> = {
   vendida: "Vendida",
   alquilada: "Alquilada",
   privado: "Privado",
+  borrador: "Borrador",
 };
 
-function EstadoBadge({ estado, className }: { estado: EstadoPropiedad; className?: string }) {
+function EstadoBadge({
+  estado,
+  className,
+  children,
+}: {
+  estado: EstadoPropiedad;
+  className?: string;
+  /** Texto en lugar de la etiqueta del estado (ej. "Borrador · faltan 3 datos"). */
+  children?: React.ReactNode;
+}) {
   return (
     <div
       className={cn(
@@ -57,7 +68,7 @@ function EstadoBadge({ estado, className }: { estado: EstadoPropiedad; className
         className
       )}
     >
-      {ESTADO_LABELS[estado]}
+      {children ?? ESTADO_LABELS[estado]}
     </div>
   );
 }

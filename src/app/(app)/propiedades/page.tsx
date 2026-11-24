@@ -1,5 +1,7 @@
 import { Suspense } from "react";
-import { SearchX } from "lucide-react";
+import Link from "next/link";
+import { ClipboardList, SearchX } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { PropertyCard } from "@/components/properties/property-card";
 import { PropertyTable } from "@/components/properties/property-table";
 import { PropertyFilters } from "@/components/properties/filters";
@@ -27,6 +29,9 @@ export default async function PropiedadesPage({
       vendedor: params.vendedor,
       edificio: params.edificio,
       dormitorios: params.dormitorios,
+      precio_min: params.precio_min,
+      precio_max: params.precio_max,
+      moneda: params.moneda,
       zona_revisar: params.zona_revisar,
       pagina: params.pagina ? Number(params.pagina) : 1,
     }),
@@ -55,7 +60,18 @@ export default async function PropiedadesPage({
               : `Todo lo que tiene cargado la inmobiliaria. ${count} en total.`}
           </p>
         </div>
-        <VistaToggle vista={vista} />
+        <div className="flex items-center gap-2">
+          {/* Atajo al filtro "Borradores" (FORM-UNICO-01): lo que quedó a medio cargar. */}
+          <Button asChild variant={params.estado === "borrador" ? "default" : "outline"} size="sm">
+            <Link
+              href={params.estado === "borrador" ? "/propiedades" : "/propiedades?estado=borrador"}
+              prefetch={false}
+            >
+              <ClipboardList /> Borradores
+            </Link>
+          </Button>
+          <VistaToggle vista={vista} />
+        </div>
       </div>
 
       <Suspense>

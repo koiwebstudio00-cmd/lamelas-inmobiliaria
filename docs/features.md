@@ -58,6 +58,8 @@ pasó a `@layer base` y las clases de borde de color vuelven a aplicarse.
 | MAIL-FALLBACK-01 | Proveedor y cupo de correos en Configuración | S | pendiente — depende del backend |
 | NOTIF-TIEMPO-REAL-01 | Campanita en tiempo real (SSE) | M | propuesto |
 | AUTH-REFRESH-RACE-01 | Sesión que se cierra si dos pedidos renuevan a la vez | S | propuesto — depende del backend |
+| PIPELINE-KANBAN-01 | Vista de pipeline tipo kanban para las consultas | M | propuesto 2026-11-19 — falta decidir columnas |
+| FORM-UNICO-01 | Un solo formulario para cargar propiedades y captaciones | L | en `dev` 2026-11-23 (fases 1–6) — falta prueba de Cacho, deploy y n8n |
 
 ---
 
@@ -457,3 +459,423 @@ panel no hay nada que cambiar si se hace allá.
 
 **Estado.** Propuesto el 2026-10-05.
 
+## PIPELINE-KANBAN-01 — vista de pipeline tipo kanban
+
+**Qué es.** Las consultas en columnas por etapa, para ver el embudo de un vistazo y
+mover una consulta de etapa arrastrándola.
+
+**Base actual (verificada 2026-11-19).** `Lead.estado` tiene cuatro valores: `nueva`,
+`en_contacto`, `ganada` y `perdida`. Las etapas intermedias (visita agendada, visita
+realizada, en negociación) existen solo como resultados de avance (`LeadAvance.resultado`),
+no como estado. La clasificación (`potencial` / `fantasma`) no es una etapa: conviene
+mostrarla como badge en la tarjeta.
+
+**Decisiones pendientes.**
+1. ¿Las columnas son los cuatro estados o se suman etapas? Si se suman: migración del enum
+   y reglas de transición. Si no: las etapas intermedias se derivan del último avance.
+2. Arrastrar a `ganada` abre el diálogo de cierre (venta o alquiler + propiedad), igual que
+   el selector actual. Arrastrar a `perdida` es directo.
+3. Orden dentro de cada columna: por `ultima_actividad_at` (ya en `dev`, ver `back-lamelas`
+   → `leads-orden`).
+4. Mobile: se mantiene la vista de tarjetas. El kanban queda para escritorio, con scroll
+   horizontal.
+5. Arrastre: el CLAUDE.md dice que shadcn/ui es la única librería de componentes. Hay que
+   decidir si se usa lo que ya está en el proyecto (revisar cómo se hizo el reordenado de
+   fotos) o si se agrega una dependencia.
+
+**Viabilidad.** M. El listado ya existe (`GET /v1/leads` con filtros). Mover una tarjeta es
+un `PATCH /v1/leads/:id` con las mismas reglas de hoy. En el panel es una vista nueva en
+`/consultas`, que reutiliza el toggle de vista.
+
+**Estado.** Propuesto el 2026-11-19 por Cacho. Sin implementar.
+
+## FORM-UNICO-01 — un solo formulario para cargar propiedades
+
+**Qué es.** Hoy hay dos formularios: "Nueva propiedad" (página larga, datos tipados) y la
+captación (asistente de cuatro pasos, datos en `datos` jsonb). El pedido es que los
+vendedores carguen propiedades nuevas con un solo formulario.
+
+**Diferencias verificadas (2026-11-19).** Ver `round-edits.md` → sección 5. Puntos que
+cambian la decisión:
+- **Obligatorios.** El CLAUDE.md (regla 5) dice que una propiedad solo tiene cuatro
+  obligatorios: título, operación, tipo y precio. La captación tiene unos treinta. La
+  fusión no puede sumar obligatorios: los campos de captación que no sean de esos cuatro
+  quedan opcionales.
+- **Listas distintas.** Tipo (Quinta / Country, Monoambiente), zona (`ZONAS` frente a
+  localidad + barrio) y plazo, índice, amoblado y mascotas tienen opciones que no coinciden.
+- **Solo en captación.** Responsable, llaves, visitas, garantías, depósito, servicios,
+  acepta niños, publicación en redes.
+- **Solo en propiedad.** Título, descripción, notas internas, mapa, edificio y unidad.
+
+**Opciones.**
+- **A. Base en "Nueva propiedad".** Los datos quedan en columnas tipadas y los campos de
+  captación se suman como opcionales. La captación deja de ser un formulario aparte y pasa
+  a ser una propiedad con una marca de "para captar".
+- **B. Base en el asistente de cuatro pasos.** Es más cómodo en celular, y escribe en las
+  columnas tipadas de propiedad, con una capa de mapeo para las listas.
+- **C. Dos entidades con un mismo componente en modo "captación" o "propiedad".** Es lo de
+  menor riesgo, pero quedan dos fuentes de verdad.
+
+**Decisión (2026-11-19).** Base: el formulario de captación (asistente de pasos). Se le suman
+los campos y opciones de "Nueva propiedad". Guarda en el modelo de propiedades.
+
+**Qué se suma a la captación (verificado contra `property-form` y el modelo `Property`):**
+- Operación venta / alquiler / ambos, con precio de venta y moneda (hoy solo alquiler).
+- Título, descripción y estado comercial (`disponible`, `reservado`, `vendida`, etc.).
+- Dirección, punto de referencia, pin en el mapa (`lat`, `lng`) y link de Maps.
+- Edificio y unidad (sección opcional).
+- Portada y reordenado de fotos (la captación no los tiene todavía).
+- Notas internas.
+- Destacada (solo admin, con tope por vendedor).
+
+**Qué queda de la captación y necesita lugar en el modelo:** llaves, visitas, servicios,
+acepta niños, garantía, depósito, disponibilidad, publicación en redes, medidas del lote y
+"qué pide el propietario". Opción: una columna jsonb para los datos de captación, y columnas
+tipadas solo para los que se filtran (mascotas, amoblado, cochera).
+
+**Punto que cambia la regla.** El CLAUDE.md fija cuatro obligatorios. La captación tiene
+unos treinta. Hay que decidir si los obligatorios de captación se validan solo al generar el
+mensaje del grupo, y no al guardar.
+
+**Decisiones abiertas.**
+1. ¿La captación sigue siendo una entidad aparte o pasa a ser una propiedad con marca?
+2. ¿Se unifican las listas de tipo y zona, o se usa una tabla de traducción? Depende de
+   `ZONA-SELECT-02`.
+3. Los campos de captación sin columna: ¿se crean columnas nuevas o van a `notas` y
+   `requisitos`?
+4. Las captaciones existentes (`datos` jsonb): ¿se migran o quedan como están?
+
+**Viabilidad.** L. Lleva migración de datos, unificar listas, endpoints y tests.
+
+**Estado.** Propuesto el 2026-11-19 por Cacho. Sin implementar: falta autorización y decidir
+las opciones.
+
+**Respuestas de Cacho (2026-11-19).**
+1. Los obligatorios del formulario de captación no cambian por ahora. Pendiente: definir si
+   al guardar se valida solo lo mínimo (título, operación, tipo, precio) y los obligatorios
+   de captación se exigen al publicar. Eso resuelve el choque con la regla de cuatro
+   obligatorios del CLAUDE.md.
+2. Captaciones existentes: quedan en el historial.
+3. Al guardar, opción de **borrador** o **publicar propiedad**. Propuesta: estado `borrador`
+   en `EstadoComercial` (migración). El agente filtra por defecto `disponible` y `privado`,
+   así que no lo ve. El sitio público filtra `disponible`, pero `GET /v1/export/properties`
+   sin filtro devuelve todo: hay que excluir borradores por defecto.
+4. Impacto en el agente, según lo que se agregue: si se unifican las listas de tipo, zona
+   o estado, hay que actualizar `back-lamelas/src/lib/property-opciones.ts` y las
+   descripciones de las herramientas de Martina en `lamelas-agent`. Las propiedades creadas
+   desde captación van a ser visibles para Martina al publicarse, así que hay que revisar
+   que no expongan datos internos (qué pide el propietario, notas).
+
+### Campos finales del formulario unificado (propuesta, 2026-11-19)
+
+Base: el asistente de captación. Se suman los campos de "Nueva propiedad". "Origen"
+indica de dónde viene el campo. "Destino" es la columna de `properties` o el lugar
+donde se guarda. Donde "Destino" dice `datos`, va al jsonb de la captación, sin
+columna nueva.
+
+**Paso 1 — Ubicación e identificación**
+
+| Campo | Origen | Destino | Obligatorio (propuesta) |
+|---|---|---|---|
+| Operación (venta / alquiler / ambas) | Propiedad (nuevo en captación) | `operacion` | Sí |
+| Título | Propiedad (nuevo en captación) | `titulo` | Sí |
+| Tipo de inmueble | Ambos (listas a unir) | `tipo` | Sí |
+| Precio y moneda | Ambos | `precio`, `moneda`; alquiler en `precio_alquiler`, `moneda_alquiler` | Sí (precio) |
+| Responsable | Captación | `user_id` | Sí |
+| Calle y altura | Captación | `direccion` | No (al publicar) |
+| Piso y departamento | Captación | `unidad`, si hay edificio; si no, complementa `direccion` | No |
+| Localidad | Captación | `ciudad` | No (al publicar) |
+| Barrio | Captación | `zona` (lista pendiente, ver ZONA-SELECT-02) | No (al publicar) |
+| Punto de referencia | Ambos | `punto_referencia` | No |
+| Edificio (existente o nombre nuevo) | Propiedad | `edificio_id` | No |
+| Pin en el mapa y link de Maps | Propiedad (nuevo en captación) | `lat`, `lng`, `link_maps` | No |
+
+**Paso 2 — Características**
+
+| Campo | Origen | Destino | Notas |
+|---|---|---|---|
+| Dormitorios | Ambos | `dormitorios` | |
+| Baños | Ambos | `banios` | |
+| Ambientes | Ambos (formato distinto) | `ambientes` (número) | Captación usa casillas (Cocina, Living…). Definir si se mantienen. |
+| m² cubiertos | Ambos | `sup_cubierta` | |
+| m² de terreno | Ambos | `sup_total` | |
+| Medidas del lote (frente x fondo) | Captación | `datos` | |
+| Cochera (no tiene, 1, 2, 3 o más) y si es cubierta | Captación | Campo nuevo | Propiedad no tiene cochera. |
+| Comodidades | Captación | `datos` | |
+| Servicios | Captación | `datos` | |
+| Amoblado | Ambos (valores distintos) | `amoblado` | Mapear Sí / No / Semiamoblado a Amoblado / Sin amoblar / Sin especificar. |
+| Mascotas | Ambos (valores distintos) | `mascotas` | Mapear Sí / No / A convenir a Se permiten / No se permiten / Sin especificar. |
+| Acepta niños | Captación | `datos` | |
+| Estado comercial | Propiedad (nuevo en captación) | `estado` | Por defecto `disponible`. Ver borrador en FORM-UNICO-01. |
+| Destacada | Propiedad | `destacada` | Solo admin. |
+
+**Paso 3 — Condiciones**
+
+| Campo | Origen | Destino | Notas |
+|---|---|---|---|
+| Expensas | Ambos | `expensas` | Captación en pesos, propiedad como texto. |
+| Plazo del contrato | Ambos | `plazo_contrato`, `plazo_otro` | Captación: 12, 24, 36, Otro, A convenir. Propiedad: 12, 18, 24, 36, Otro. Falta 18 en captación. |
+| Índice de actualización | Ambos | `indice_ajuste`, `indice_fijo_pct`, `ajuste_otro` | Captación: ICL, IPC, Casa Propia, Otro. Propiedad: ICL, IPC, Fijo (%). |
+| Frecuencia de actualización | Captación | `ajuste` | Captación: Trimestral, Cuatrimestral, Semestral, Anual, Otro. Propiedad: Trimestral, Cuatrimestral, Otro. |
+| Destino | Propiedad (nuevo en captación) | `destino` | Por defecto Vivienda. |
+| Garantía que pide el propietario | Captación | `requisitos` (texto) | Opciones: recibo de sueldo con garante, o especial. |
+| Depósito | Captación | `datos` | |
+| Disponibilidad y fecha | Captación | `datos` | |
+
+**Paso 4 — Llaves, visitas y publicación**
+
+| Campo | Origen | Destino | Notas |
+|---|---|---|---|
+| Llaves | Captación | `datos` | |
+| Cómo se coordinan las visitas | Captación | `datos` | |
+| Publicación en redes | Captación | Estado `privado` si es "No publicar, solo ofrecer" | Decisión pendiente, ver preguntas. |
+| Observaciones | Captación | `notas` | Interno. |
+| Qué pide el propietario | Captación | `datos` | Interno: no debe salir en las respuestas de Martina. |
+
+**Paso 5 — Fotos, descripción y guardado (nuevo)**
+
+| Campo | Origen | Destino | Notas |
+|---|---|---|---|
+| Descripción pública | Propiedad (nuevo en captación) | `descripcion` | Puede venir del mejorador con IA (PROP-IA-TEXTO-01). |
+| Fotos (hasta 20, portada y orden) | Ambos | `property_images` | La captación no tiene portada ni reordenado: reutilizar el `photo-manager`. |
+| Acciones | Nuevo | Guardar borrador / Publicar propiedad | Publicar valida los obligatorios de captación. |
+| Mensaje para el grupo | Captación | Se genera a partir de los datos | Sin cambios. |
+
+**Preguntas abiertas para Cacho:**
+1. Ambientes: ¿se mantienen las casillas o pasa a número?
+2. "No publicar, solo ofrecer": ¿se guarda como estado `privado`?
+3. Plazos, índices y frecuencias: ¿se agregan los valores que faltan o se usa el campo "Otro"?
+4. Cochera: ¿campo nuevo en propiedad?
+5. Depósito, llaves, disponibilidad, visitas, comodidades, servicios y acepta niños: ¿columnas nuevas o quedan en `datos`?
+
+### Decisiones de Cacho (2026-11-23) — reemplazan la propuesta anterior
+
+**Enfoque final.** Se completa el formulario de "Nueva propiedad" con lo que falta de la
+captación. Después de implementarlo, el formulario de captación se oculta (sale del menú y
+de la barra inferior) y las captaciones existentes quedan como historial de solo lectura.
+
+**Tipos de inmueble (unión de las dos listas).**
+
+| Valor | Etiqueta | Viene de | Cambio |
+|---|---|---|---|
+| `monoambiente` | Monoambiente | Propiedad | Ninguno |
+| `departamento` | Departamento | Ambos | Ninguno |
+| `casa` | Casa | Ambos | Ninguno |
+| `duplex` | Dúplex | Ambos | Ninguno |
+| `quinta` (nombre a confirmar) | Quinta / Country | Captación | **Valor nuevo en el enum (migración)** |
+| `local_comercial` | Local comercial | Ambos | Ninguno |
+| `oficina` | Oficina | Ambos | Ninguno |
+| `galpon` | Galpón / Depósito | Ambos | Solo etiqueta |
+| `estacionamiento` | Estacionamiento / Cochera | Ambos | Solo etiqueta |
+| `terreno` | Terreno / Lote | Ambos | Solo etiqueta |
+| `otro` | Otro | Propiedad | Ninguno |
+
+Las reglas por tipo de la captación (`aplica()` en `src/lib/captacion.ts`) hay que
+extenderlas a `monoambiente` (como departamento, con dormitorios en 0) y a `otro`
+(mínimo: sin campos condicionales obligatorios). Quinta / Country entra como vivienda con
+terreno. Un valor nuevo de `tipo` toca: el enum en `back-lamelas` (`property-opciones.ts` +
+migración), `lamelas/src/lib/types.ts`, el modelo de `lamelas-web` (y su CLAUDE.md, que lista
+los tipos) y las descripciones de las herramientas de Martina en `lamelas-agent`.
+
+**Campos.**
+- **Unidad / piso y departamento:** sin cambios. El campo `unidad` de propiedad ya cubre
+  piso y departamento: con edificio se elige el edificio, y sin nombre se usa "-" con la
+  unidad habilitada.
+- **Localidad y barrio:** son `ciudad` y `zona`. Quedan obligatorios para publicar. Las
+  listas siguen pendientes (ZONA-SELECT-02 y la lista de barrios por localidad).
+- **Características nuevas:** ambientes como casillas (se mantiene además el número),
+  cochera y si es cubierta, medidas del lote, comodidades, servicios y acepta niños.
+  Amoblado suma "Semiamoblado"; mascotas suma "A convenir".
+- **Condiciones:** "Cada cuánto se actualiza" se unifica con `ajuste` (se suman Semestral y
+  Anual). Índice suma Casa Propia. Plazo suma "A convenir". Campos nuevos: garantía (con
+  detalle si es especial), depósito y disponibilidad con fecha.
+- **Llaves y visitas:** llaves, coordinación de visitas, qué pide el propietario y
+  publicación en redes. "No publicar, solo ofrecer" se guarda como estado `privado`.
+- **Responsable:** el admin puede cargar una propiedad a nombre de otro vendedor.
+
+**Obligatorios y estados.**
+- Para **publicar** se exigen los obligatorios de la captación (con sus reglas por tipo).
+  La validación vive también en la API: ningún camino (selector de estado incluido) puede
+  pasar una propiedad incompleta a `disponible`.
+- Para **guardar como borrador** alcanza con título, operación, tipo y precio.
+- Estado nuevo `borrador` (migración). No lo ve Martina (busca `disponible` y `privado`) y
+  `/v1/export` lo excluye siempre, aunque no se pida filtro de estado.
+- Botones en el formulario: **Publicar / Guardar cambios** y **Guardar como borrador**.
+- **Editar una propiedad publicada:** si falta un obligatorio, "Guardar cambios" se bloquea
+  y se indica qué falta; queda la opción de guardarla como borrador.
+- **Badge "Borrador · faltan N datos"** en listado y ficha, con la lista de campos.
+- **Propiedades ya cargadas:** siguen publicadas. Si les faltan obligatorios, muestran un
+  badge "Faltan datos", pero no cambian de estado.
+- Hay que actualizar la regla de obligatorios en los CLAUDE.md de `lamelas` (regla 5) y
+  `back-lamelas` (regla 9), y revisar el de `lamelas-web` (el sitio sigue tolerando nulos).
+
+**Datos sensibles (no los ven Martina ni el sitio).** Qué pide el propietario (texto), notas
+y observaciones, llaves, coordinación de visitas y cualquier dato del propietario. Se
+guardan en una tabla aparte con RLS que niega los contextos `agent`, `export` y `public`,
+con test anti-fuga. Sí son visibles: características, condiciones comerciales (precio,
+expensas, plazo, índice, ajuste, garantía, depósito) y disponibilidad. Falta revisar qué
+columnas lee hoy el agente en `agent/repo.ts`.
+
+**Mensaje para el grupo.** Se genera desde los datos de la propiedad, con un botón
+"Copiar mensaje" en la pantalla de edición. Hay que adaptar `armarMensaje`.
+
+**Pendiente:** formato del mensaje para venta y para "ambas" (hoy empieza con "ALQUILER").
+
+**Dormitorios (2026-11-23).** En el formulario, select con: Monoambiente, 1, 2, 3, 4.
+Propuesta de guardado: Monoambiente = `dormitorios` 0. Pendiente de confirmar: si "4"
+significa "4 o más" (como el filtro actual) y si se mantiene el tipo `monoambiente` o se
+reemplaza por tipo Departamento + dormitorios Monoambiente.
+
+**Monoambiente (decisión 2026-11-23).** Deja de ser un tipo de inmueble. Un monoambiente es
+un Departamento con `dormitorios = 0`. El select de dormitorios queda: Monoambiente (0), 1, 2,
+3, 4 o más. La tabla de tipos de arriba pierde la fila `monoambiente`.
+
+Lo que implica (verificado en el código el 2026-11-23):
+- **Datos:** migración que pase `tipo = monoambiente` a `departamento` con `dormitorios = 0`.
+  Si alguna tiene dormitorios mayor que 0, listarla para revisión manual en vez de pisarla.
+- **Enum:** Postgres no permite quitar un valor de un enum sin recrear el tipo. Opción simple:
+  dejar el valor en la base y dejar de ofrecerlo en el formulario, la API y los filtros.
+- **Búsqueda natural** (`back-lamelas/src/lib/search.ts`): "monoambiente" o "mono" tiene que
+  traducirse a departamento + dormitorios 0.
+- **Agente:** `agent/property-search.ts` y `agent/repo.ts` (equivalencias de tipo), y en
+  `lamelas-agent/agent-contract`: `tools.json`, `system-prompt.md`, `resumen.schema.json` y
+  sus tests. Martina debe entender "monoambiente" como departamento sin dormitorios.
+- **Analíticas:** `analytics/routes.ts` y `analytics/repo.ts` listan el tipo.
+- **Sitio público** (`lamelas-web/src/types.ts`): quitar el tipo, sumar Monoambiente al
+  filtro de dormitorios y mantener la traducción para links viejos con `tipo=monoambiente`.
+- **Filtros:** el filtro de dormitorios del panel y de la web suma la opción Monoambiente (0).
+
+
+**Mensaje para venta (2026-11-23).** Primera opción: `*VENTA · TIPO*` con precio y
+características, sin contrato, depósito ni garantías. "Ambas" muestra los dos precios y las
+condiciones de alquiler.
+
+**Plan de implementación ordenado:** `docs/plan-form-unico.md`.
+
+**Estado (2026-11-23).** Fases 1 a 6 implementadas en `dev` de `back-lamelas`, `lamelas`, `lamelas-web` y `lamelas-agent`, sin push ni deploy. Decisiones tomadas durante la implementación al principio de `docs/plan-form-unico.md`.
+
+## CARACT-CHIPS-01 — características como badges con íconos
+
+**Qué es.** En el formulario de propiedad, las casillas de Ambientes, Comodidades y
+Servicios (`Casillas` en `src/components/properties/property-form.tsx`) pasan a ser badges
+seleccionables con ícono, como los chips del formulario de captación (`Chips` en
+`captacion-form.tsx`), con los tokens del tema.
+
+**Cómo (propuesta).**
+- **Sin cambiar cómo se envía el formulario.** El form arma los datos con `FormData`
+  (`formDataAObjeto`), así que se mantiene el `<input type="checkbox" name=… value=…>` real,
+  oculto con `sr-only`, dentro de un `<label>` con estilo de badge. El estilo marcado sale de
+  `has-[:checked]:` de Tailwind: sin estado de React y sin tocar la validación ni el
+  `input` hidden de "presente".
+- **Estilo (tokens del tema, funciona en modo oscuro):**
+  - Sin marcar: `border bg-background text-foreground hover:bg-muted`.
+  - Marcado: `has-[:checked]:border-primary has-[:checked]:bg-primary
+    has-[:checked]:text-primary-foreground` (igual que los chips de captación).
+  - Foco: `has-[:focus-visible]:ring-2 ring-ring` para navegar con teclado.
+  - Error: `border-destructive` en el grupo cuando falta un obligatorio.
+  - Radio: el del tema (`rounded-md`, sale de `--radius`).
+  - Táctil: `min-h-11` en celular y `sm:min-h-9`, texto 16px en táctil (regla de
+    `globals.css`). Disposición `flex flex-wrap gap-1.5`.
+  - Micro-interacción: la de `data-slot` de botones si aplica; respeta
+    `prefers-reduced-motion`.
+- **Ícono + texto siempre.** El ícono es decorativo (`aria-hidden`); el texto sigue siendo
+  la etiqueta. Al marcar se mantiene el ícono (no se reemplaza por el check).
+- **Mapa de íconos** en un archivo propio (por ejemplo `src/lib/iconos-caracteristicas.ts`),
+  por etiqueta, con ícono de respaldo (`Circle`) si aparece una opción sin ícono. Solo
+  `lucide-react` (regla 7). Todos verificados en la versión instalada (0.545.0):
+
+| Ambientes | Ícono | Comodidades | Ícono | Servicios | Ícono |
+|---|---|---|---|---|---|
+| Cocina | `CookingPot` | Balcón | `PanelTop` | Agua corriente | `Droplets` |
+| Kitchenette | `Microwave` | Terraza | `Sun` | Energía eléctrica | `Zap` |
+| Comedor | `Utensils` | Patio | `Fence` | Cloacas | `Droplet` |
+| Comedor diario | `UtensilsCrossed` | Jardín | `Flower2` | Internet | `Wifi` |
+| Living | `Sofa` | Galería | `Columns3` | Gas natural | `Flame` |
+| Living-comedor | `Armchair` | Quincho | `Tent` | Gas envasado | `Cylinder` |
+| Toilet | `Toilet` | Parrilla | `Beef` | Todo eléctrico | `PlugZap` |
+| Lavadero | `WashingMachine` | Pileta | `Waves` | | |
+| Escritorio | `Monitor` | Ascensor | `ArrowUpDown` | | |
+| Dep. de servicio | `BedSingle` | Seguridad 24 h | `ShieldCheck` | | |
+| Vestidor | `Shirt` | Portero | `ConciergeBell` | | |
+| Placards | `DoorClosed` | | | | |
+| Altillo | `ArrowUpToLine` | | | | |
+| Sótano | `ArrowDownToLine` | | | | |
+| Baulera | `Archive` | | | | |
+
+- **Ficha de la propiedad (opcional, mismo componente en solo lectura):** mostrar las
+  características marcadas como `Badge variant="secondary"` con el mismo ícono, para que la
+  ficha y el formulario se vean iguales.
+- **Captación:** queda como está (oculta, historial). Opcional: que `Chips` use el mismo mapa.
+- **Fuera de alcance:** el sitio público (`lamelas-web` mantiene su propia marca).
+
+**Verificación.** Marcar y desmarcar en escritorio, celular y con teclado; guardar y
+reabrir la edición (las marcadas vuelven seleccionadas); error de obligatorio visible;
+modo claro y oscuro.
+
+**Viabilidad.** S. Solo panel, sin backend ni migraciones.
+
+**Estado.** Implementado en `dev` el 2026-11-23, sin commit: badges con ícono en el formulario (`Casillas` + `src/lib/iconos-caracteristicas.ts`). La ficha en solo lectura no se tocó. Falta verificación manual de Cacho.
+
+
+## FORM-UI-01 — formulario de propiedad más ordenado (2026-11-23)
+
+**Qué es.** Rediseño del layout de "Nueva propiedad" / "Editar propiedad" para que la carga no
+abrume, sin cambiar campos, nombres ni validación.
+
+- Seis secciones plegables (Edificio pasó a Ubicación; Descripción y Fotos juntas). Cada una
+  muestra en el encabezado su estado en vivo: "Faltan N", "Completa", "Opcional" o "No aplica"
+  (misma cuenta de completitud que la API, más título y precio).
+- Alta: arranca abierta solo la primera y se avanza con "Seguir con…". Edición: todas cerradas,
+  con el estado a la vista.
+- Escritorio: columna fija a la derecha con el avance por sección (lleva a cada una), responsable,
+  estado al publicar y los botones. Celular: una columna y barra inferior con "Faltan N datos para
+  publicar" (lleva al primero) y los botones.
+- Operación como selector de tres botones; campos agrupados en pares en dos columnas (una en el
+  celular); subgrupos en Características (Tamaño, Qué tiene, Para vivir) y en Condiciones de
+  alquiler (Contrato, Actualización del precio, Garantía y depósito).
+- El mapa y el link de Google Maps se ven siempre en Ubicación, sin marca de opcional (no son
+  obligatorios, pero conviene cargarlos). El mapa se recalcula al abrir la sección
+  (`ResizeObserver` en `property-map.tsx`).
+
+**Estado.** En `dev`, sin commit. Falta verificación visual de Cacho en escritorio y celular.
+
+## QA-CATALOGO-2026-11-24 — hallazgos de la QA del catálogo
+
+Reporte de QA (Codex) del 2026-11-24 sobre panel, API y sitio en `dev`.
+
+- **Corregido (sin commit):**
+  - Dormitorios "Monoambiente" (0) sin tipo elegido traía casas, terrenos y locales. Ahora agrega
+    `tipo = departamento` en `/v1/properties` y `/v1/export/properties` (con un tipo elegido se
+    respeta). Test en `back-lamelas/test/form-unico.test.ts`.
+  - La tarjeta y la tabla del panel muestran "Departamento · Monoambiente" (`tipoConDormitorios`).
+  - La ficha pública de una propiedad que no existe o no está disponible agrega
+    `<meta name="robots" content="noindex">` (`useSeo({ noindex })`). Un error de red no la marca.
+- **Pendiente (decidido dejarlo para después):** caché del export. `back-lamelas/src/modules/export/routes.ts`
+  manda `public, s-maxage=60, stale-while-revalidate=300` sin `max-age`, también en los 404, y el
+  sitio hace `fetch` con la caché por defecto: Chrome sirvió desde disco una ficha ya pasada a
+  borrador. Propuesta: `max-age=0, must-revalidate` (con el ETag revalida con 304), `no-store` en
+  errores y `cache: "no-cache"` en `lamelas-web/src/lib/api.ts`. No hay CDN adelante de la API.
+- **Datos a revisar (no tocado):** hay propiedades que no son departamentos con `dormitorios = 0`
+  (8 en la copia local); deberían tener dormitorios vacío.
+
+## FICHA-WEB-01 y ajustes de nombre (2026-11-24)
+
+- **"Nueva captación":** el alta de propiedad se llama así en el menú, la barra inferior, el inicio
+  y la página (la ruta sigue siendo `/propiedades/nueva`). El formulario viejo de captación sigue oculto.
+- **Precios con símbolo:** `$ 120.000` en pesos y `USD 85.000` en dólares, en el panel
+  (`formatPrice` de `src/lib/utils.ts`) y en el sitio (`lamelas-web/src/lib/properties.ts`).
+- **Ficha pública (`lamelas-web`):**
+  - Ambientes, comodidades y servicios con el mismo ícono que en el formulario
+    (`src/lib/iconos-caracteristicas.ts`, copia del mapa del panel: si cambia una lista, cambiar las dos).
+  - Condiciones de alquiler en tres bloques: **Contrato** (duración, actualización "trimestral, por
+    IPC", destino), **Para ingresar** (garantía, depósito, expensas) y **Convivencia** (mascotas,
+    niños, amoblado). Expensas numéricas se muestran como "$ 45.000 por mes" y 0 como "Sin expensas";
+    el depósito en dólares, como "USD 500".
+
+- **Orden de la ficha (2026-11-24):** fotos, descripción, características (datos, ambientes,
+  comodidades y servicios en una sola tarjeta), condiciones de alquiler (bloques uno debajo del
+  otro, datos en dos columnas desde tablet), requisitos y mapa.
+- **Ingreso inmediato destacado:** solo cuando la disponibilidad es "Ingreso inmediato", aparece
+  un distintivo junto al precio. Las otras disponibilidades siguen dentro de Características.
+
+**Estado.** En `dev`, sin commit. Falta verificación visual.

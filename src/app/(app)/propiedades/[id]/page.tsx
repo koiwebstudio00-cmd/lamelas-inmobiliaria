@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Pencil, MapPin, BedDouble, Bath, Ruler, LayoutGrid, ClipboardList, KeyRound, StickyNote, ArrowLeft, Building, CopyPlus } from "lucide-react";
+import { Pencil, MapPin, BedDouble, Bath, Ruler, LayoutGrid, ClipboardList, KeyRound, StickyNote, ArrowLeft, Building, CopyPlus, Car, AlertTriangle, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EstadoBadge } from "@/components/ui/badge";
+import { EstadoCompletitud } from "@/components/properties/estado-completitud";
+import { MensajeGrupo } from "@/components/properties/mensaje-grupo";
+import { etiquetaCampo, reglasPorTipo } from "@/lib/completitud";
 import { EstadoSelect } from "@/components/properties/estado-select";
 import { DestacarButton } from "@/components/properties/destacar-button";
 import { DeletePropertyButton } from "@/components/properties/delete-property-button";
@@ -14,13 +17,19 @@ import { getCurrentUser } from "@/lib/api";
 import { getOtrasUnidades, getProperty } from "@/lib/queries";
 import { formatPrice } from "@/lib/utils";
 import {
-  TIPOS,
+  tipoLabel,
   DESTINOS,
   PLAZOS,
   AJUSTES,
   INDICES,
   MASCOTAS,
   AMOBLADO_OPCIONES,
+  COCHERA_OPCIONES,
+  SI_NO_CONVENIR,
+  GARANTIAS,
+  DEPOSITOS,
+  DISPONIBILIDADES,
+  LLAVES_OPCIONES,
 } from "@/lib/types";
 
 const OPERACION_LABEL = {
@@ -65,9 +74,12 @@ export default async function PropiedadPage({
     },
     property.dormitorios != null && {
       icon: BedDouble,
-      label: `${property.dormitorios} dorm.`,
+      label: property.dormitorios === 0 ? "Monoambiente" : `${property.dormitorios} dorm.`,
     },
-    property.banios != null && { icon: Bath, label: `${property.banios} baños` },
+    property.banios != null && {
+      icon: Bath,
+      label: `${property.banios} ${property.banios === 1 ? "baño" : "baños"}`,
+    },
     property.sup_cubierta != null && {
       icon: Ruler,
       label: `${property.sup_cubierta} m² cub.`,
@@ -75,6 +87,13 @@ export default async function PropiedadPage({
     property.sup_total != null && {
       icon: Ruler,
       label: `${property.sup_total} m² tot.`,
+    },
+    property.medidas_lote && { icon: Ruler, label: `Lote ${property.medidas_lote}` },
+    property.cochera && {
+      icon: Car,
+      label: `Cochera: ${labelOf(COCHERA_OPCIONES, property.cochera)}${
+        property.cochera_cubierta && property.cochera !== "no_tiene" ? " (cubierta)" : ""
+      }`,
     },
   ].filter(Boolean) as { icon: typeof Ruler; label: string }[];
 
@@ -100,7 +119,46 @@ export default async function PropiedadPage({
       ? property.indice_fijo_pct != null
         ? `Fijo ${property.indice_fijo_pct}%`
         : "Fijo"
-      : labelOf(INDICES, property.indice_ajuste);
+      : property.indice_ajuste === "otro"
+        ? property.indice_otro
+        : labelOf(INDICES, property.indice_ajuste);
+  const reglas = reglasPorTipo(property.tipo);
+  const fechaDisp = property.disponible_desde
+    ? new Date(`${property.disponible_desde}T12:00:00`).toLocaleDateString("es-AR")
+    : null;
+  const disponibilidadLabel =
+    property.disponibilidad === "mostrar_desde" || property.disponibilidad === "se_desocupa"
+      ? `${labelOf(DISPONIBILIDADES, property.disponibilidad)?.replace("…", "")} ${fechaDisp ?? ""}`.trim()
+      : labelOf(DISPONIBILIDADES, property.disponibilidad);
+  const garantiaLabel =
+    property.garantia === "especial"
+      ? (property.datos_internos?.garantia_detalle ?? "Especial")
+      : labelOf(GARANTIAS, property.garantia);
+  const depositoLabel =
+    property.deposito === "dolares" || property.deposito === "otro"
+      ? [labelOf(DEPOSITOS, property.deposito), property.deposito_detalle].filter(Boolean).join(": ")
+      : labelOf(DEPOSITOS, property.deposito);
+
+  // Características de la captación (casillas y datos de vivienda).
+  const listas = [
+    ["Ambientes", property.ambientes_lista.join(", ")],
+    ["Comodidades", property.comodidades.join(", ")],
+    ["Servicios", property.servicios.join(", ")],
+    ...(reglas.vivienda
+      ? [
+          ["Amoblado", labelOf(AMOBLADO_OPCIONES, property.amoblado)],
+          ["Mascotas", labelOf(MASCOTAS, property.mascotas)],
+          ["Acepta niños", labelOf(SI_NO_CONVENIR, property.acepta_ninos)],
+        ]
+      : []),
+    ["Disponibilidad", disponibilidadLabel],
+  ].filter(([, v]) => v) as [string, string][];
+
+  const internos = property.datos_internos;
+  const internosItems = [
+    ["Llaves", labelOf(LLAVES_OPCIONES, internos?.llaves ?? null)],
+    ["Visitas", internos?.visitas ?? null],
+  ].filter(([, v]) => v) as [string, string][];
 
   const alquilerItems =
     property.operacion === "alquiler" || property.operacion === "ambos"
@@ -110,8 +168,8 @@ export default async function PropiedadPage({
           ["Ajuste", ajusteLabel],
           ["Índice de ajuste", indiceLabel],
           ["Expensas", property.expensas],
-          ["Mascotas", labelOf(MASCOTAS, property.mascotas)],
-          ["Amoblado", labelOf(AMOBLADO_OPCIONES, property.amoblado)],
+          ["Garantía", garantiaLabel],
+          ["Depósito", depositoLabel],
         ].filter(([, v]) => v) as [string, string][])
       : [];
 
@@ -125,7 +183,7 @@ export default async function PropiedadPage({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
           <p className="text-xs uppercase text-muted-foreground">
-            {OPERACION_LABEL[property.operacion]} · {labelOf(TIPOS, property.tipo)}
+            {OPERACION_LABEL[property.operacion]} · {tipoLabel(property.tipo)}
           </p>
           <h1 className="text-2xl font-semibold">{property.titulo}</h1>
           {property.edificio && (
@@ -153,10 +211,30 @@ export default async function PropiedadPage({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <SharePropertyButton propertyId={property.id} />
-          <EstadoBadge estado={property.estado} />
+          {/* Un borrador no está en el sitio: el link daría 404. */}
+          {property.estado !== "borrador" && <SharePropertyButton propertyId={property.id} />}
+          <EstadoCompletitud estado={property.estado} faltantes={property.faltantes} />
         </div>
       </div>
+
+      {property.faltantes.length > 0 && (
+        <div className="flex flex-wrap items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+          <p className="min-w-0 flex-1">
+            {property.estado === "borrador"
+              ? "Para publicarla falta: "
+              : "Le faltan datos (se puede seguir usando, pero conviene completarla): "}
+            {property.faltantes.map(etiquetaCampo).join(", ")}.
+          </p>
+          {puedeGestionar && (
+            <Button asChild size="sm" variant="outline" className="bg-background">
+              <Link href={`/propiedades/${property.id}/editar`} prefetch={false}>
+                Completar
+              </Link>
+            </Button>
+          )}
+        </div>
+      )}
 
       {puedeGestionar && (
         <div className="rounded-xl flex flex-wrap items-center gap-2 border bg-background p-3">
@@ -220,6 +298,17 @@ export default async function PropiedadPage({
           <PropertyMap initialLat={property.lat} initialLng={property.lng} readOnly />
         )}
 
+        {listas.length > 0 && (
+          <dl className="grid grid-cols-1 gap-x-4 gap-y-1 text-sm sm:grid-cols-2">
+            {listas.map(([k, v]) => (
+              <div key={k}>
+                <dt className="text-xs text-muted-foreground">{k}</dt>
+                <dd>{v}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+
         {alquilerItems.length > 0 && (
           <div>
             <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
@@ -263,11 +352,32 @@ export default async function PropiedadPage({
           </div>
         )}
 
+        {internosItems.length > 0 && (
+          <div className="border border-[var(--estado-reservada-bg)] bg-[var(--estado-reservada-bg)]/30 p-3">
+            <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
+              <Lock className="size-4" /> Llaves, visitas y propietario
+              <span className="text-xs font-normal text-muted-foreground">
+                (interno: no lo ven el sitio ni Martina)
+              </span>
+            </h2>
+            <dl className="grid grid-cols-1 gap-x-4 gap-y-1 text-sm sm:grid-cols-2">
+              {internosItems.map(([k, v]) => (
+                <div key={k}>
+                  <dt className="text-xs text-muted-foreground">{k}</dt>
+                  <dd className="whitespace-pre-wrap">{v}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        )}
+
         <p className="border-t pt-3 text-xs text-muted-foreground">
           Cargada por {vendedor ?? "—"} ·{" "}
           {new Date(property.created_at).toLocaleDateString("es-AR")}
         </p>
       </div>
+
+      <MensajeGrupo property={property} responsable={vendedor} />
 
       {property.edificio && (
         <section className="rounded-xl border bg-background">

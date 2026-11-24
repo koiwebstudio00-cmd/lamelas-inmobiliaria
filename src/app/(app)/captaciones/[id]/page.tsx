@@ -1,21 +1,19 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft, Pencil } from "lucide-react";
-import { EliminarCaptacion } from "@/components/captaciones/eliminar-captacion";
+import { ChevronLeft } from "lucide-react";
 import { MensajeAcciones } from "@/components/captaciones/mensaje-acciones";
 import { Button } from "@/components/ui/button";
-import { getCurrentUser } from "@/lib/api";
-import { esAdmin } from "@/lib/permisos";
 import { getCaptacion } from "@/lib/queries";
-import { formatDateTime } from "@/lib/utils";
+import { formatDateTime, imageUrl } from "@/lib/utils";
 
 export const metadata = { title: "Captación — Lamelas & Chaumont" };
 
 export default async function CaptacionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [captacion, me] = await Promise.all([getCaptacion(id), getCurrentUser()]);
+  const captacion = await getCaptacion(id);
   if (!captacion) notFound();
-  const puedeEditar = Boolean(me && (captacion.autor.id === me.id || esAdmin(me.rol)));
+  // Historial de solo lectura (FORM-UNICO-01): sin editar ni borrar.
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
@@ -46,16 +44,33 @@ export default async function CaptacionPage({ params }: { params: Promise<{ id: 
         <MensajeAcciones mensaje={captacion.mensaje} />
       </section>
 
-      {puedeEditar && (
-        <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline" size="sm">
-            <Link href={`/captaciones/${captacion.id}/editar`} prefetch={false}>
-              <Pencil /> Editar
-            </Link>
-          </Button>
-          <EliminarCaptacion id={captacion.id} />
-        </div>
+      {captacion.imagenes.length > 0 && (
+        <section className="rounded-xl space-y-3 border bg-background p-4">
+          <h2 className="text-sm font-semibold">
+            Fotos <span className="font-normal text-muted-foreground">({captacion.imagenes.length})</span>
+          </h2>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {captacion.imagenes.map((foto, i) => (
+              <a
+                key={foto.id}
+                href={imageUrl(foto.url)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative block aspect-[4/3] overflow-hidden rounded-md border bg-muted"
+              >
+                <Image
+                  src={imageUrl(foto.url)}
+                  alt={`Foto ${i + 1} de la captación`}
+                  fill
+                  sizes="(min-width: 640px) 33vw, 50vw"
+                  className="object-cover"
+                />
+              </a>
+            ))}
+          </div>
+        </section>
       )}
+
     </div>
   );
 }

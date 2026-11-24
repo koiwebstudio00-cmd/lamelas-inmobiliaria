@@ -12,6 +12,7 @@ import { normalizarDatos } from "@/lib/captacion";
 import type { PropertyCardData } from "@/components/properties/property-card";
 import type {
   Captacion,
+  DatosInternos,
   PushEstado,
   AnalyticsLeads,
   AnalyticsOverview,
@@ -74,6 +75,11 @@ export interface PropertyFilters {
   /** id del edificio → solo sus unidades. */
   edificio?: string;
   dormitorios?: string;
+  /** Rango de precio (texto del query string; se ignoran valores no numéricos). */
+  precio_min?: string;
+  precio_max?: string;
+  /** "ARS" | "USD" → solo las publicadas en esa moneda. */
+  moneda?: string;
   /** "true" → solo las que tienen zona vacía o fuera de ZONAS. */
   zona_revisar?: string;
   pagina?: number;
@@ -130,6 +136,28 @@ interface ApiProperty {
   linkMaps: string | null;
   edificioId: string | null;
   unidad: string | null;
+  // FORM-UNICO-01
+  indiceOtro: string | null;
+  cochera: Property["cochera"];
+  cocheraCubierta: boolean | null;
+  ambientesLista: string[] | null;
+  medidasLote: string | null;
+  comodidades: string[] | null;
+  servicios: string[] | null;
+  aceptaNinos: Property["acepta_ninos"];
+  garantia: Property["garantia"];
+  deposito: Property["deposito"];
+  depositoDetalle: string | null;
+  disponibilidad: Property["disponibilidad"];
+  disponibleDesde: string | null;
+  /** Solo en la ficha (el listado no lo trae). */
+  datosInternos?: {
+    llaves: DatosInternos["llaves"];
+    visitas: string | null;
+    garantiaDetalle: string | null;
+  } | null;
+  /** Lo calcula la API (completitud). Viene en el listado y en la ficha. */
+  faltantes?: string[];
   createdAt: string;
   updatedAt: string;
   images?: ApiImage[];
@@ -159,11 +187,13 @@ function toCard(p: ApiProperty): PropertyCardData {
     estado: p.estado,
     destacada: p.destacada,
     zona: p.zona,
+    dormitorios: p.dormitorios ?? null,
     edificio: p.edificio?.nombre ?? null,
     unidad: p.unidad ?? null,
     vendedor: p.user?.nombre ?? null,
     // En el listado la API manda solo la portada (o nada, si no hay fotos).
     portada: p.images?.[0]?.url ?? null,
+    faltantes: p.faltantes ?? [],
     created_at: p.createdAt,
   };
 }
@@ -209,6 +239,28 @@ function toProperty(p: ApiProperty): Property {
     link_maps: p.linkMaps,
     edificio: p.edificio ? { id: p.edificio.id, nombre: p.edificio.nombre } : null,
     unidad: p.unidad ?? null,
+    indice_otro: p.indiceOtro ?? null,
+    cochera: p.cochera ?? null,
+    cochera_cubierta: p.cocheraCubierta ?? null,
+    ambientes_lista: p.ambientesLista ?? [],
+    medidas_lote: p.medidasLote ?? null,
+    comodidades: p.comodidades ?? [],
+    servicios: p.servicios ?? [],
+    acepta_ninos: p.aceptaNinos ?? null,
+    garantia: p.garantia ?? null,
+    deposito: p.deposito ?? null,
+    deposito_detalle: p.depositoDetalle ?? null,
+    disponibilidad: p.disponibilidad ?? null,
+    // La API manda la fecha como ISO (medianoche UTC): el día es lo que importa.
+    disponible_desde: p.disponibleDesde ? p.disponibleDesde.slice(0, 10) : null,
+    datos_internos: p.datosInternos
+      ? {
+          llaves: p.datosInternos.llaves,
+          visitas: p.datosInternos.visitas,
+          garantia_detalle: p.datosInternos.garantiaDetalle ?? null,
+        }
+      : null,
+    faltantes: p.faltantes ?? [],
     created_at: p.createdAt,
     updated_at: p.updatedAt,
   };
@@ -228,11 +280,14 @@ function toImage(i: ApiImage): PropertyImage {
 // --- Filtros ----------------------------------------------------------------
 
 const OPERACIONES = ["venta", "alquiler"] as const;
+// `monoambiente` sigue valiendo como filtro (links viejos): la API lo traduce a
+// departamento con 0 dormitorios.
 const TIPOS = [
   "monoambiente",
   "departamento",
   "casa",
   "duplex",
+  "quinta",
   "local_comercial",
   "oficina",
   "galpon",
@@ -247,6 +302,8 @@ const ESTADOS = [
   "pausado",
   "vendida",
   "alquilada",
+  "privado",
+  "borrador",
 ] as const;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -266,6 +323,7 @@ async function list(path: string, filters: PropertyFilters) {
     ? Number(filters.dormitorios)
     : undefined;
 
+  const numero = (v?: string) => (v && /^\d+(\.\d+)?$/.test(v.trim()) ? Number(v) : undefined);
   const { data, meta } = await apiFetch<ListResponse>(path, {
     query: {
       q: filters.q?.trim(),
@@ -275,6 +333,9 @@ async function list(path: string, filters: PropertyFilters) {
       vendedor: UUID.test(filters.vendedor ?? "") ? filters.vendedor : undefined,
       edificio_id: UUID.test(filters.edificio ?? "") ? filters.edificio : undefined,
       dormitorios,
+      precio_min: numero(filters.precio_min),
+      precio_max: numero(filters.precio_max),
+      moneda: filters.moneda === "ARS" || filters.moneda === "USD" ? filters.moneda : undefined,
       zona_revisar: filters.zona_revisar === "true" ? "true" : undefined,
       page,
       limit: PAGE_SIZE,
@@ -616,10 +677,10 @@ function analyticsQuery(filters: AnalyticsFilters) {
     operacion: oneOf(["venta", "alquiler", "ambos"] as const, filters.operacion),
     tipo: oneOf(
       [
-        "monoambiente",
         "departamento",
         "casa",
         "duplex",
+        "quinta",
         "local_comercial",
         "oficina",
         "galpon",
@@ -1353,6 +1414,7 @@ type ApiCaptacion = {
   mensaje: string;
   autor: { id: string; nombre: string } | null;
   responsable: { id: string; nombre: string } | null;
+  imagenes?: { id: string; url: string; orden: number }[];
   createdAt: string;
   updatedAt: string;
 };
@@ -1369,6 +1431,7 @@ function toCaptacion(c: ApiCaptacion): Captacion {
     mensaje: c.mensaje,
     autor: { id: c.autor?.id ?? "", nombre: c.autor?.nombre ?? "—" },
     responsable: c.responsable ? { id: c.responsable.id, nombre: c.responsable.nombre } : null,
+    imagenes: (c.imagenes ?? []).map((i) => ({ id: i.id, url: i.url, orden: i.orden })),
     created_at: c.createdAt,
     updated_at: c.updatedAt,
   };
