@@ -93,7 +93,7 @@ function deposito(p: Property): string | null {
 }
 
 function garantia(p: Property): string | null {
-  if (p.garantia === "especial") return p.garantia_detalle?.trim() || "Especial";
+  if (p.garantia === "especial") return p.datos_internos?.garantia_detalle?.trim() || "Especial";
   return labelOf(GARANTIAS, p.garantia);
 }
 

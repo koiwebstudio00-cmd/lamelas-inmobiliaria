@@ -105,7 +105,7 @@ export default async function HomePage() {
         </div>
         <Button asChild size="sm">
           <Link href="/propiedades/nueva" prefetch={false}>
-            <Plus /> Nueva propiedad
+            <Plus /> Nueva captación
           </Link>
         </Button>
       </div>

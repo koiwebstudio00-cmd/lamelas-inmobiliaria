@@ -54,9 +54,8 @@ export type Llaves = "oficina" | "propietario" | "inquilino" | "encargado" | "si
 export type DatosInternos = {
   llaves: Llaves | null;
   visitas: string | null;
-  pide_propietario: string | null;
-  propietario_nombre: string | null;
-  propietario_telefono: string | null;
+  /** Detalle de la garantía especial: qué pide el propietario. */
+  garantia_detalle: string | null;
 };
 
 export type Rol = "super_admin" | "admin" | "agente";
@@ -315,7 +314,6 @@ export type Property = {
   servicios: string[];
   acepta_ninos: SiNoConvenir | null;
   garantia: Garantia | null;
-  garantia_detalle: string | null;
   deposito: Deposito | null;
   deposito_detalle: string | null;
   disponibilidad: Disponibilidad | null;
@@ -362,6 +360,15 @@ export const TIPOS: { value: TipoPropiedad; label: string }[] = [
 export function tipoLabel(tipo: TipoPropiedad): string {
   if (tipo === "monoambiente") return "Monoambiente";
   return TIPOS.find((t) => t.value === tipo)?.label ?? tipo;
+}
+
+/**
+ * Tipo para listados: un departamento con 0 dormitorios se muestra como
+ * "Departamento · Monoambiente" (FORM-UNICO-01: monoambiente ya no es un tipo).
+ */
+export function tipoConDormitorios(tipo: TipoPropiedad, dormitorios: number | null | undefined): string {
+  if (tipo === "departamento" && dormitorios === 0) return "Departamento · Monoambiente";
+  return tipoLabel(tipo);
 }
 
 export const MONEDAS: { value: Moneda; label: string }[] = [

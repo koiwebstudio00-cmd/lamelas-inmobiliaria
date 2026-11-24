@@ -32,12 +32,13 @@ export default async function EditarPropiedadPage({
   const vendedores = esAdmin ? await getVendedores() : [];
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
+    <div className="mx-auto max-w-5xl space-y-4">
       <h1 className="text-2xl font-semibold">Editar propiedad</h1>
       <div className="rounded-xl border bg-background p-4">
         <PhotoManager propertyId={property.id} images={images} />
       </div>
-      <div className="rounded-xl border bg-background p-4 sm:p-6">
+      {/* Sin tarjeta envolvente: cada sección del formulario es su propia tarjeta. */}
+      <div>
         <PropertyForm
           action={action}
           property={property}

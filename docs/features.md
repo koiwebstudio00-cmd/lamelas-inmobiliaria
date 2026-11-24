@@ -753,3 +753,129 @@ condiciones de alquiler.
 **Plan de implementación ordenado:** `docs/plan-form-unico.md`.
 
 **Estado (2026-11-23).** Fases 1 a 6 implementadas en `dev` de `back-lamelas`, `lamelas`, `lamelas-web` y `lamelas-agent`, sin push ni deploy. Decisiones tomadas durante la implementación al principio de `docs/plan-form-unico.md`.
+
+## CARACT-CHIPS-01 — características como badges con íconos
+
+**Qué es.** En el formulario de propiedad, las casillas de Ambientes, Comodidades y
+Servicios (`Casillas` en `src/components/properties/property-form.tsx`) pasan a ser badges
+seleccionables con ícono, como los chips del formulario de captación (`Chips` en
+`captacion-form.tsx`), con los tokens del tema.
+
+**Cómo (propuesta).**
+- **Sin cambiar cómo se envía el formulario.** El form arma los datos con `FormData`
+  (`formDataAObjeto`), así que se mantiene el `<input type="checkbox" name=… value=…>` real,
+  oculto con `sr-only`, dentro de un `<label>` con estilo de badge. El estilo marcado sale de
+  `has-[:checked]:` de Tailwind: sin estado de React y sin tocar la validación ni el
+  `input` hidden de "presente".
+- **Estilo (tokens del tema, funciona en modo oscuro):**
+  - Sin marcar: `border bg-background text-foreground hover:bg-muted`.
+  - Marcado: `has-[:checked]:border-primary has-[:checked]:bg-primary
+    has-[:checked]:text-primary-foreground` (igual que los chips de captación).
+  - Foco: `has-[:focus-visible]:ring-2 ring-ring` para navegar con teclado.
+  - Error: `border-destructive` en el grupo cuando falta un obligatorio.
+  - Radio: el del tema (`rounded-md`, sale de `--radius`).
+  - Táctil: `min-h-11` en celular y `sm:min-h-9`, texto 16px en táctil (regla de
+    `globals.css`). Disposición `flex flex-wrap gap-1.5`.
+  - Micro-interacción: la de `data-slot` de botones si aplica; respeta
+    `prefers-reduced-motion`.
+- **Ícono + texto siempre.** El ícono es decorativo (`aria-hidden`); el texto sigue siendo
+  la etiqueta. Al marcar se mantiene el ícono (no se reemplaza por el check).
+- **Mapa de íconos** en un archivo propio (por ejemplo `src/lib/iconos-caracteristicas.ts`),
+  por etiqueta, con ícono de respaldo (`Circle`) si aparece una opción sin ícono. Solo
+  `lucide-react` (regla 7). Todos verificados en la versión instalada (0.545.0):
+
+| Ambientes | Ícono | Comodidades | Ícono | Servicios | Ícono |
+|---|---|---|---|---|---|
+| Cocina | `CookingPot` | Balcón | `PanelTop` | Agua corriente | `Droplets` |
+| Kitchenette | `Microwave` | Terraza | `Sun` | Energía eléctrica | `Zap` |
+| Comedor | `Utensils` | Patio | `Fence` | Cloacas | `Droplet` |
+| Comedor diario | `UtensilsCrossed` | Jardín | `Flower2` | Internet | `Wifi` |
+| Living | `Sofa` | Galería | `Columns3` | Gas natural | `Flame` |
+| Living-comedor | `Armchair` | Quincho | `Tent` | Gas envasado | `Cylinder` |
+| Toilet | `Toilet` | Parrilla | `Beef` | Todo eléctrico | `PlugZap` |
+| Lavadero | `WashingMachine` | Pileta | `Waves` | | |
+| Escritorio | `Monitor` | Ascensor | `ArrowUpDown` | | |
+| Dep. de servicio | `BedSingle` | Seguridad 24 h | `ShieldCheck` | | |
+| Vestidor | `Shirt` | Portero | `ConciergeBell` | | |
+| Placards | `DoorClosed` | | | | |
+| Altillo | `ArrowUpToLine` | | | | |
+| Sótano | `ArrowDownToLine` | | | | |
+| Baulera | `Archive` | | | | |
+
+- **Ficha de la propiedad (opcional, mismo componente en solo lectura):** mostrar las
+  características marcadas como `Badge variant="secondary"` con el mismo ícono, para que la
+  ficha y el formulario se vean iguales.
+- **Captación:** queda como está (oculta, historial). Opcional: que `Chips` use el mismo mapa.
+- **Fuera de alcance:** el sitio público (`lamelas-web` mantiene su propia marca).
+
+**Verificación.** Marcar y desmarcar en escritorio, celular y con teclado; guardar y
+reabrir la edición (las marcadas vuelven seleccionadas); error de obligatorio visible;
+modo claro y oscuro.
+
+**Viabilidad.** S. Solo panel, sin backend ni migraciones.
+
+**Estado.** Implementado en `dev` el 2026-11-23, sin commit: badges con ícono en el formulario (`Casillas` + `src/lib/iconos-caracteristicas.ts`). La ficha en solo lectura no se tocó. Falta verificación manual de Cacho.
+
+
+## FORM-UI-01 — formulario de propiedad más ordenado (2026-11-23)
+
+**Qué es.** Rediseño del layout de "Nueva propiedad" / "Editar propiedad" para que la carga no
+abrume, sin cambiar campos, nombres ni validación.
+
+- Seis secciones plegables (Edificio pasó a Ubicación; Descripción y Fotos juntas). Cada una
+  muestra en el encabezado su estado en vivo: "Faltan N", "Completa", "Opcional" o "No aplica"
+  (misma cuenta de completitud que la API, más título y precio).
+- Alta: arranca abierta solo la primera y se avanza con "Seguir con…". Edición: todas cerradas,
+  con el estado a la vista.
+- Escritorio: columna fija a la derecha con el avance por sección (lleva a cada una), responsable,
+  estado al publicar y los botones. Celular: una columna y barra inferior con "Faltan N datos para
+  publicar" (lleva al primero) y los botones.
+- Operación como selector de tres botones; campos agrupados en pares en dos columnas (una en el
+  celular); subgrupos en Características (Tamaño, Qué tiene, Para vivir) y en Condiciones de
+  alquiler (Contrato, Actualización del precio, Garantía y depósito).
+- El mapa y el link de Google Maps se ven siempre en Ubicación, sin marca de opcional (no son
+  obligatorios, pero conviene cargarlos). El mapa se recalcula al abrir la sección
+  (`ResizeObserver` en `property-map.tsx`).
+
+**Estado.** En `dev`, sin commit. Falta verificación visual de Cacho en escritorio y celular.
+
+## QA-CATALOGO-2026-11-24 — hallazgos de la QA del catálogo
+
+Reporte de QA (Codex) del 2026-11-24 sobre panel, API y sitio en `dev`.
+
+- **Corregido (sin commit):**
+  - Dormitorios "Monoambiente" (0) sin tipo elegido traía casas, terrenos y locales. Ahora agrega
+    `tipo = departamento` en `/v1/properties` y `/v1/export/properties` (con un tipo elegido se
+    respeta). Test en `back-lamelas/test/form-unico.test.ts`.
+  - La tarjeta y la tabla del panel muestran "Departamento · Monoambiente" (`tipoConDormitorios`).
+  - La ficha pública de una propiedad que no existe o no está disponible agrega
+    `<meta name="robots" content="noindex">` (`useSeo({ noindex })`). Un error de red no la marca.
+- **Pendiente (decidido dejarlo para después):** caché del export. `back-lamelas/src/modules/export/routes.ts`
+  manda `public, s-maxage=60, stale-while-revalidate=300` sin `max-age`, también en los 404, y el
+  sitio hace `fetch` con la caché por defecto: Chrome sirvió desde disco una ficha ya pasada a
+  borrador. Propuesta: `max-age=0, must-revalidate` (con el ETag revalida con 304), `no-store` en
+  errores y `cache: "no-cache"` en `lamelas-web/src/lib/api.ts`. No hay CDN adelante de la API.
+- **Datos a revisar (no tocado):** hay propiedades que no son departamentos con `dormitorios = 0`
+  (8 en la copia local); deberían tener dormitorios vacío.
+
+## FICHA-WEB-01 y ajustes de nombre (2026-11-24)
+
+- **"Nueva captación":** el alta de propiedad se llama así en el menú, la barra inferior, el inicio
+  y la página (la ruta sigue siendo `/propiedades/nueva`). El formulario viejo de captación sigue oculto.
+- **Precios con símbolo:** `$ 120.000` en pesos y `USD 85.000` en dólares, en el panel
+  (`formatPrice` de `src/lib/utils.ts`) y en el sitio (`lamelas-web/src/lib/properties.ts`).
+- **Ficha pública (`lamelas-web`):**
+  - Ambientes, comodidades y servicios con el mismo ícono que en el formulario
+    (`src/lib/iconos-caracteristicas.ts`, copia del mapa del panel: si cambia una lista, cambiar las dos).
+  - Condiciones de alquiler en tres bloques: **Contrato** (duración, actualización "trimestral, por
+    IPC", destino), **Para ingresar** (garantía, depósito, expensas) y **Convivencia** (mascotas,
+    niños, amoblado). Expensas numéricas se muestran como "$ 45.000 por mes" y 0 como "Sin expensas";
+    el depósito en dólares, como "USD 500".
+
+- **Orden de la ficha (2026-11-24):** fotos, descripción, características (datos, ambientes,
+  comodidades y servicios en una sola tarjeta), condiciones de alquiler (bloques uno debajo del
+  otro, datos en dos columnas desde tablet), requisitos y mapa.
+- **Ingreso inmediato destacado:** solo cuando la disponibilidad es "Ingreso inmediato", aparece
+  un distintivo junto al precio. Las otras disponibilidades siguen dentro de Características.
+
+**Estado.** En `dev`, sin commit. Falta verificación visual.

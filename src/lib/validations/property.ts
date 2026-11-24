@@ -149,9 +149,6 @@ export const propertySchema = z.object({
   // Datos internos (van a `datos_internos` en la API; nunca salen al sitio ni a Martina).
   llaves: optionalEnum(["oficina", "propietario", "inquilino", "encargado", "sin_llaves"] as const),
   visitas: optionalText,
-  pide_propietario: optionalText,
-  propietario_nombre: optionalText,
-  propietario_telefono: optionalText,
   // Edificio al que pertenece la unidad. "" = propiedad suelta. Cuando el
   // vendedor elige "Nuevo edificio" llega el nombre en `edificio_nuevo` y la
   // action lo crea antes de guardar (ver resolverEdificio en actions).

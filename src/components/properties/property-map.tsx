@@ -39,6 +39,7 @@ export function PropertyMap({
 
   useEffect(() => {
     let cancelled = false;
+    let resizeObserver: ResizeObserver | null = null;
 
     void (async () => {
       const mod = await import("leaflet");
@@ -87,13 +88,19 @@ export function PropertyMap({
       }
 
       mapRef.current = map;
-      // El contenedor puede montarse con tamaño 0 (dentro de una Card): forzamos
-      // el recálculo una vez que el layout se asentó.
+      // El contenedor puede montarse con tamaño 0 (dentro de una Card o de una
+      // sección plegada del formulario): se recalcula al asentarse el layout y
+      // cada vez que cambia de tamaño (por ejemplo, al abrir la sección).
       setTimeout(() => map.invalidateSize(), 0);
+      if (typeof ResizeObserver !== "undefined" && containerRef.current) {
+        resizeObserver = new ResizeObserver(() => map.invalidateSize());
+        resizeObserver.observe(containerRef.current);
+      }
     })();
 
     return () => {
       cancelled = true;
+      resizeObserver?.disconnect();
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;

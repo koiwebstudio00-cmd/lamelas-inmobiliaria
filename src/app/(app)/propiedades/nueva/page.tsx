@@ -3,7 +3,7 @@ import { PropertyForm } from "@/components/properties/property-form";
 import { getCurrentUser } from "@/lib/api";
 import { getEdificios, getProperty, getVendedores } from "@/lib/queries";
 
-export const metadata = { title: "Nueva propiedad — Lamelas & Chaumont" };
+export const metadata = { title: "Nueva captación — Lamelas & Chaumont" };
 
 type SearchParams = Promise<Record<string, string | undefined>>;
 
@@ -36,8 +36,8 @@ export default async function NuevaPropiedadPage({
     : undefined;
 
   return (
-    <div className="mx-auto max-w-4xl space-y-4">
-      <h1 className="text-2xl font-semibold">Nueva propiedad</h1>
+    <div className="mx-auto max-w-5xl space-y-4">
+      <h1 className="text-2xl font-semibold">Nueva captación</h1>
       {plantilla ? (
         <p className="border border-primary/30 bg-primary/5 p-3 text-sm">
           Copiamos los datos de <strong>{origen!.property.titulo}</strong>
@@ -47,12 +47,12 @@ export default async function NuevaPropiedadPage({
         </p>
       ) : (
         <p className="text-sm text-muted-foreground">
-          Para publicarla completá lo marcado con <span className="text-destructive">*</span>. Si
-          te falta algo, guardala como borrador (alcanza con título, operación, tipo y precio) y
-          terminala después. Las fotos las podés agregar acá o desde el detalle.
+          Completá lo marcado con <span className="text-destructive">*</span> para publicarla. Si te
+          falta algo, guardala como borrador y terminala después.
         </p>
       )}
-      <div className="rounded-xl border bg-background p-4 sm:p-6">
+      {/* Sin tarjeta envolvente: cada sección del formulario es su propia tarjeta. */}
+      <div>
         <PropertyForm
           // `key`: al pasar de una plantilla a otra el form se rearma entero.
           key={desde ?? "nueva"}

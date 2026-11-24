@@ -50,7 +50,7 @@ const IZQUIERDA: Destino[] = [
 const ACCIONES = [
   {
     href: "/propiedades/nueva",
-    label: "Nueva propiedad",
+    label: "Nueva captación",
     detalle: "Cargala con fotos y armá el mensaje para el grupo",
     icon: Building2,
   },

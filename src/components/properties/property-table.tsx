@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ImageOff, Star } from "lucide-react";
 import { EstadoCompletitud } from "@/components/properties/estado-completitud";
-import { tipoLabel } from "@/lib/types";
+import { tipoConDormitorios } from "@/lib/types";
 import { SharePropertyButton } from "@/components/properties/share-property-button";
 import {
   Table,
@@ -107,7 +107,7 @@ export function PropertyTable({
               <TableCell className="whitespace-nowrap">
                 {OPERACION_LABEL[p.operacion]}
               </TableCell>
-              <TableCell>{tipoLabel(p.tipo)}</TableCell>
+              <TableCell>{tipoConDormitorios(p.tipo, p.dormitorios)}</TableCell>
               <TableCell className="whitespace-nowrap text-muted-foreground">
                 {p.zona ?? "—"}
               </TableCell>

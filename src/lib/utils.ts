@@ -17,8 +17,10 @@ export function imageUrl(path: string) {
   return path;
 }
 
+/** "$ 120.000" en pesos, "USD 85.000" en dólares (mismo criterio que el mensaje para el grupo). */
 export function formatPrice(precio: number, moneda: string) {
-  return `${moneda} ${new Intl.NumberFormat("es-AR", {
+  const simbolo = moneda === "ARS" ? "$" : moneda;
+  return `${simbolo} ${new Intl.NumberFormat("es-AR", {
     maximumFractionDigits: 0,
   }).format(precio)}`;
 }

@@ -1,0 +1,85 @@
+import {
+  Archive,
+  Armchair,
+  ArrowDownToLine,
+  ArrowUpDown,
+  ArrowUpToLine,
+  Beef,
+  BedSingle,
+  Circle,
+  Columns3,
+  ConciergeBell,
+  CookingPot,
+  DoorClosed,
+  Droplet,
+  Droplets,
+  Fence,
+  Flame,
+  Flower2,
+  Microwave,
+  Monitor,
+  PanelTop,
+  PlugZap,
+  ShieldCheck,
+  Shirt,
+  Sofa,
+  Sun,
+  Tent,
+  Toilet,
+  Utensils,
+  UtensilsCrossed,
+  WashingMachine,
+  Waves,
+  Wifi,
+  Zap,
+  Cylinder,
+  type LucideIcon,
+} from "lucide-react";
+
+/**
+ * Ícono de cada característica del formulario de propiedad (ambientes,
+ * comodidades y servicios), por etiqueta. Ver CARACT-CHIPS-01 en
+ * docs/features.md. Si aparece una opción nueva sin ícono, se usa `Circle`.
+ */
+const ICONOS: Record<string, LucideIcon> = {
+  // Ambientes
+  Cocina: CookingPot,
+  Kitchenette: Microwave,
+  Comedor: Utensils,
+  "Comedor diario": UtensilsCrossed,
+  Living: Sofa,
+  "Living-comedor": Armchair,
+  Toilet: Toilet,
+  Lavadero: WashingMachine,
+  Escritorio: Monitor,
+  "Dep. de servicio": BedSingle,
+  Vestidor: Shirt,
+  Placards: DoorClosed,
+  Altillo: ArrowUpToLine,
+  Sótano: ArrowDownToLine,
+  Baulera: Archive,
+  // Comodidades
+  Balcón: PanelTop,
+  Terraza: Sun,
+  Patio: Fence,
+  Jardín: Flower2,
+  Galería: Columns3,
+  Quincho: Tent,
+  Parrilla: Beef,
+  Pileta: Waves,
+  Ascensor: ArrowUpDown,
+  "Seguridad 24 h": ShieldCheck,
+  Portero: ConciergeBell,
+  // Servicios
+  "Agua corriente": Droplets,
+  "Energía eléctrica": Zap,
+  Cloacas: Droplet,
+  Internet: Wifi,
+  "Gas natural": Flame,
+  "Gas envasado": Cylinder,
+  "Todo eléctrico": PlugZap,
+};
+
+export function iconoCaracteristica(etiqueta: string): LucideIcon {
+  return ICONOS[etiqueta] ?? Circle;
+}

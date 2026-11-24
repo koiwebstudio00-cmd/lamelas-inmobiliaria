@@ -78,7 +78,8 @@ async function resolverEdificio(
  * Body de la API a partir del formulario (FORM-UNICO-01):
  * - "Guardar como borrador" manda `estado: borrador`; "Publicar"/"Guardar
  *   cambios", el estado elegido (nunca borrador).
- * - Llaves, visitas y propietario van juntos en `datos_internos`.
+ * - Llaves, visitas y el detalle de la garantía especial (qué pide el
+ *   propietario) van juntos en `datos_internos`: nunca salen al sitio ni a Martina.
  * - `user_id` solo si vino (el select de responsable es del admin).
  */
 function cuerpoApi(data: Omit<PropertyInput, "edificio_nuevo">) {
@@ -87,16 +88,14 @@ function cuerpoApi(data: Omit<PropertyInput, "edificio_nuevo">) {
     user_id,
     llaves,
     visitas,
-    pide_propietario,
-    propietario_nombre,
-    propietario_telefono,
+    garantia_detalle,
     estado,
     ...campos
   } = data;
   return {
     ...campos,
     estado: intent === "borrador" ? "borrador" : estado === "borrador" ? "disponible" : estado,
-    datos_internos: { llaves, visitas, pide_propietario, propietario_nombre, propietario_telefono },
+    datos_internos: { llaves, visitas, garantia_detalle },
     ...(user_id ? { user_id } : {}),
   };
 }

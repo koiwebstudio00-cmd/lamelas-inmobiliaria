@@ -132,7 +132,7 @@ export default async function PropiedadPage({
       : labelOf(DISPONIBILIDADES, property.disponibilidad);
   const garantiaLabel =
     property.garantia === "especial"
-      ? (property.garantia_detalle ?? "Especial")
+      ? (property.datos_internos?.garantia_detalle ?? "Especial")
       : labelOf(GARANTIAS, property.garantia);
   const depositoLabel =
     property.deposito === "dolares" || property.deposito === "otro"
@@ -158,9 +158,6 @@ export default async function PropiedadPage({
   const internosItems = [
     ["Llaves", labelOf(LLAVES_OPCIONES, internos?.llaves ?? null)],
     ["Visitas", internos?.visitas ?? null],
-    ["Qué pide el propietario", internos?.pide_propietario ?? null],
-    ["Propietario", internos?.propietario_nombre ?? null],
-    ["Teléfono del propietario", internos?.propietario_telefono ?? null],
   ].filter(([, v]) => v) as [string, string][];
 
   const alquilerItems =

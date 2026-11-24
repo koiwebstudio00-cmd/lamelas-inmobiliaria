@@ -4,7 +4,7 @@ Fecha: 2026-11-23. Estado: **fases 1 a 6 implementadas en `dev` (2026-11-23), si
 
 Decisiones tomadas durante la implementación (2026-11-23):
 - Tipo nuevo `quinta`. Índice suma `otro` (con `indice_otro`) y `a_convenir`, además de `casa_propia`.
-- Columnas de lista cerrada como enums de Postgres. Datos del propietario: nombre y teléfono.
+- Columnas de lista cerrada como enums de Postgres. ~~Datos del propietario: nombre y teléfono.~~ Revertido el 2026-11-23 (ver abajo).
 - La policy `prop_insert` se cambió en la fase 1 para que el admin cargue a nombre de otro; `prop_update` también impide que un vendedor pase su propiedad a otro.
 - "Pasar a otro estado exige completitud" = solo al crear publicada o salir de borrador. Entre estados publicados rige la regla de edición (solo frena un faltante nuevo); el cierre de una consulta no saca de borrador a una incompleta.
 - En venta no se piden las condiciones de alquiler (plazo, índice, ajuste, garantía, depósito, expensas). Sí las características, incluidas mascotas, niños y amoblado en viviendas (pendiente de revisar).
@@ -80,7 +80,7 @@ Cada punto es una migración nueva (no editar las aplicadas).
    - `deposito` y `deposito_detalle`.
    - `disponibilidad` y `disponible_desde` (date).
 3. **Tabla `property_datos_internos`** (1 a 1 con `properties`):
-   - Columnas: `llaves`, `visitas`, `pide_propietario` y lugar para datos del propietario.
+   - Columnas: `llaves`, `visitas` y `garantia_detalle` (corregido el 2026-11-23; ver abajo).
    - RLS: lectura y escritura solo para `admin` y `agente` del tenant (el vendedor, con la
      misma regla de edición que la propiedad). **Sin policy** para `agent`, `export`,
      `public` ni `auth`.
@@ -232,3 +232,24 @@ Cada punto es una migración nueva (no editar las aplicadas).
 - Lista de barrios por localidad (ZONA-SELECT-02): se usan las listas actuales.
 - Pipeline kanban (PIPELINE-KANBAN-01).
 - Pasar las captaciones existentes a propiedades.
+
+---
+
+## Corrección del 2026-11-23 (pedida por Cacho)
+
+- **Sin campos inventados del propietario.** Se quitaron `pide_propietario`, `propietario_nombre`
+  y `propietario_telefono`: no estaban en ningún formulario original. "Qué pide el propietario"
+  de la captación es el detalle de la garantía especial, no un campo aparte.
+- **El detalle de la garantía especial es interno.** `garantia_detalle` pasó de `properties` a
+  `property_datos_internos` (migración `20261124001500_form_unico_garantia_interna`, que copia
+  los datos y borra las columnas). Martina y el sitio solo ven `garantia`
+  (`recibo_sueldo` / `especial`). En la API viaja en `datos_internos.garantia_detalle`.
+- **Etiquetas de la captación:** "Garantías que pide el propietario" (select, mismas dos
+  opciones) y "Qué pide el propietario" (se habilita con "Especial").
+- **Sin select "Publicación":** duplicaba "Estado al publicar" ("No publicar, solo ofrecer" =
+  estado Privado).
+- **"Condiciones de alquiler" siempre visible**, deshabilitada (`<fieldset disabled>`) hasta
+  elegir Alquiler o Venta y alquiler. Los campos deshabilitados no se envían.
+- Martina: si la garantía es especial, dice que el detalle lo confirma un asesor. Workflows de
+  n8n regenerados (`build-n8n.mjs` y `sync-zernio-workflow.mjs`).
+

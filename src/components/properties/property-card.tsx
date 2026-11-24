@@ -4,7 +4,7 @@ import { Building, ImageOff, Star } from "lucide-react";
 import { EstadoBadge } from "@/components/ui/badge";
 import { EstadoCompletitud, FaltanDatosBadge } from "@/components/properties/estado-completitud";
 import { formatPrice, imageUrl } from "@/lib/utils";
-import { tipoLabel, type EstadoPropiedad, type Moneda, type Operacion, type TipoPropiedad } from "@/lib/types";
+import { tipoConDormitorios, type EstadoPropiedad, type Moneda, type Operacion, type TipoPropiedad } from "@/lib/types";
 
 export interface PropertyCardData {
   id: string;
@@ -19,6 +19,8 @@ export interface PropertyCardData {
   estado: EstadoPropiedad;
   destacada: boolean;
   zona: string | null;
+  /** Para mostrar "Monoambiente" en los departamentos con 0 dormitorios. */
+  dormitorios: number | null;
   /** Nombre del edificio y unidad ("Torre Alem · 3° B"), si pertenece a uno. */
   edificio: string | null;
   unidad: string | null;
@@ -119,7 +121,7 @@ export function PropertyCard({
       </Link>
       <div className="flex min-w-0 flex-1 flex-col gap-1 p-3 sm:p-4">
         <p className="text-xs uppercase text-muted-foreground">
-          {OPERACION_LABEL[property.operacion]} · {tipoLabel(property.tipo)}
+          {OPERACION_LABEL[property.operacion]} · {tipoConDormitorios(property.tipo, property.dormitorios)}
           {property.zona ? ` · ${property.zona}` : ""}
         </p>
         <Link

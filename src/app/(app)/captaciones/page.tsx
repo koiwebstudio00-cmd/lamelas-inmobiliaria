@@ -27,7 +27,7 @@ export default async function CaptacionesPage({ searchParams }: { searchParams: 
           <p className="text-sm text-muted-foreground">
             Historial de solo lectura. Las propiedades nuevas se cargan en{" "}
             <Link href="/propiedades/nueva" prefetch={false} className="text-primary underline underline-offset-2">
-              Nueva propiedad
+              Nueva captación
             </Link>
             , que ahora arma el mismo mensaje para el grupo.
           </p>

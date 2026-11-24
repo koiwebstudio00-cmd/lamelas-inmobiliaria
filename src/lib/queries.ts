@@ -146,7 +146,6 @@ interface ApiProperty {
   servicios: string[] | null;
   aceptaNinos: Property["acepta_ninos"];
   garantia: Property["garantia"];
-  garantiaDetalle: string | null;
   deposito: Property["deposito"];
   depositoDetalle: string | null;
   disponibilidad: Property["disponibilidad"];
@@ -155,9 +154,7 @@ interface ApiProperty {
   datosInternos?: {
     llaves: DatosInternos["llaves"];
     visitas: string | null;
-    pidePropietario: string | null;
-    propietarioNombre: string | null;
-    propietarioTelefono: string | null;
+    garantiaDetalle: string | null;
   } | null;
   /** Lo calcula la API (completitud). Viene en el listado y en la ficha. */
   faltantes?: string[];
@@ -190,6 +187,7 @@ function toCard(p: ApiProperty): PropertyCardData {
     estado: p.estado,
     destacada: p.destacada,
     zona: p.zona,
+    dormitorios: p.dormitorios ?? null,
     edificio: p.edificio?.nombre ?? null,
     unidad: p.unidad ?? null,
     vendedor: p.user?.nombre ?? null,
@@ -250,7 +248,6 @@ function toProperty(p: ApiProperty): Property {
     servicios: p.servicios ?? [],
     acepta_ninos: p.aceptaNinos ?? null,
     garantia: p.garantia ?? null,
-    garantia_detalle: p.garantiaDetalle ?? null,
     deposito: p.deposito ?? null,
     deposito_detalle: p.depositoDetalle ?? null,
     disponibilidad: p.disponibilidad ?? null,
@@ -260,9 +257,7 @@ function toProperty(p: ApiProperty): Property {
       ? {
           llaves: p.datosInternos.llaves,
           visitas: p.datosInternos.visitas,
-          pide_propietario: p.datosInternos.pidePropietario,
-          propietario_nombre: p.datosInternos.propietarioNombre,
-          propietario_telefono: p.datosInternos.propietarioTelefono,
+          garantia_detalle: p.datosInternos.garantiaDetalle ?? null,
         }
       : null,
     faltantes: p.faltantes ?? [],
